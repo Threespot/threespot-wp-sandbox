@@ -1,0 +1,55 @@
+//------------------------------------------------------------------------
+// Background color classes
+//
+// sass-lint:disable no-important
+// scss-lint:disable ImportantRule
+//------------------------------------------------------------------------
+.bg {
+
+  // Default background color
+  &-default {
+    background-color: $bg-default;
+  }
+
+  // Fill parent with <img> (polyfilled by background-picture.js)
+  &-image {
+    display: block;
+    position: relative;
+
+    &-source {
+      @include fs-absolute-fill;
+      object-fit: cover;
+    }
+  }// end image
+
+  // NOTE: The code below will dynamically generate classes based on
+  //       the colors in the $fs-colors map in _color-vars.scss
+
+  // Generate classes for each “base” color in $fs-colors
+  // This is most useful on sites that allow authors to choose the background color of a component.
+  // @each $name, $val in map-get($fs-colors, 'base') {
+  //   &-#{$name} {
+  //     background-color: $val !important;
+  //   }
+  //
+  //   // Fill style for SVGs
+  //   &-fill-#{$name} {
+  //     fill: $val !important;
+  //   }
+  //
+  //   // :after
+  //   &-#{$name}--after {
+  //     &:after {
+  //       background-color: $val !important;
+  //     }
+  //   }
+  //
+  //   // :before
+  //   &-#{$name}--before {
+  //     &:before {
+  //       background-color: $val !important;
+  //     }
+  //   }
+  // }
+
+}// end bg

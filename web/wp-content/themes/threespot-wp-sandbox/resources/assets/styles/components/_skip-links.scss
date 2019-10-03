@@ -1,0 +1,38 @@
+// -------------------------------------------------------------------------
+// Skip Links
+//
+// Links should be visible on focus when tabbing
+// http://webaim.org/techniques/css/invisiblecontent/#skipnavlinks
+// http://www.456bereastreet.com/archive/200909/skip_links_need_to_be_at_least_temporarily_visible/
+//
+// Example markup:
+//
+// <div id="SkipLinks" class="SkipLinks">
+//   <ul>
+//     <li><a href="#Nav">Skip to Primary Navigation</a></li>
+//     <li><a href="#Main">Skip to Main Content</a></li>
+//     <li><a href="#Footer">Skip to Footer</a></li>
+//   </ul>
+// </div>
+// -------------------------------------------------------------------------
+.SkipLinks {
+  @include fs-print-hide;
+
+  a {
+    background-color: $bg-default;
+    font-size: fs-em(14px);
+    font-weight: normal;
+    left: 50%;
+    padding: 10px 15px;
+    position: absolute;
+    top: -200px; // Must be larger than the element's height
+    transform: translateX(-50%);// center horizontally
+    transition: all 150ms ease-in-out;
+    z-index: -1;
+
+    &:focus {
+      top: 0;
+      z-index: fs-zindex('skip-links');
+    }
+  }
+}

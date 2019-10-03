@@ -1,0 +1,30 @@
+//------------------------------------------------------------------------
+// Global left/right padding mixin, used by _layout-helpers.scss
+//------------------------------------------------------------------------
+@mixin base-padding($sides: ('left', 'right')) {
+  @each $bp, $width in $layout-padding {
+    @if $bp == 'default' {
+      @each $side in $sides {
+        padding-#{$side}: fs-rem($width);
+      }
+    }
+    @else {
+      @include fs-min-width($bp) {
+        @each $side in $sides {
+          padding-#{$side}: fs-rem($width);
+        }
+      }
+    }
+  }
+
+  @media print {
+    @each $side in $sides {
+      @if $side == 'left' {
+        padding-left: 0;
+      }
+      @if $side == 'right' {
+        padding-right: 0;
+      }
+    }
+  }
+}

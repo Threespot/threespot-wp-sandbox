@@ -1,0 +1,71 @@
+//------------------------------------------------------------------------
+// Text color classes
+//
+// sass-lint:disable no-important, no-color-literals, force-attribute-nesting
+// scss-lint:disable ImportantRule, ColorVariable
+//------------------------------------------------------------------------
+.c {
+
+  // Default text color
+  &-default {
+    color: $c-default;
+  }
+
+  // NOTE: The code below will dynamically generate classes based on
+  //       the colors in the $fs-colors map in _color-vars.scss
+
+  // Generate classes for each “text” color in $fs-colors
+  // @each $name, $val in map-get($fs-colors, 'text') {
+  //   &-#{$name} {
+  //     color: $val !important;
+  //   }
+  // }
+
+  // Auto text color (selects first passing color from list)
+  // This is most useful on sites that allow authors to choose the background color of a component.
+
+  // @each $name, $val in map-get($fs-colors, 'base') {
+  //   // Use “class*=” selector to account for “--before/--after” bg classes
+  //   &-auto[class*='bg-#{$name}'] {
+  //     // Note: fs-auto-contrast() defaults to contrast ratio of 4.5:1
+  //     $color: fs-auto-contrast($val, (#fff, #767676, #000));
+  //     color: $color !important;
+  //
+  //     // Apply font smoothing for white text
+  //     @if $color == #fff {
+  //       &.c-auto-smoothing {
+  //         @include fs-font-smoothing;
+  //       }
+  //     }
+  //   }
+  //
+  //   Auto color for large text (3:1 ratio)
+  //   $large-color: fs-auto-contrast($val, (#fff, #767676, #000), $ratio: 3);
+  //
+  //   &-auto-large[class*="bg-#{$name}"] {
+  //     color: $large-color !important;
+  //
+  //     // Apply font smoothing for white text
+  //     @if $large-color == #fff {
+  //       &.c-auto-smoothing {
+  //         @include fs-font-smoothing;
+  //       }
+  //     }
+  //   }
+  // }
+
+  // Link colors (optional, only use if needed)
+  //---------------------------------
+  // &-link {
+  //   &-white {
+  //     @include link-white;
+  //   }
+  // }// end link
+
+}// end c
+
+// Set fill color for any SVGs to “currentColor”
+[class^='c-'],
+[class*=' c-'] {
+  fill: currentColor;
+}

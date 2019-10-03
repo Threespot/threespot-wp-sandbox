@@ -1,0 +1,48 @@
+// -------------------------------------------------------------------------
+// Button Styles
+// -------------------------------------------------------------------------
+@mixin button-reset {
+  background-color: transparent;
+  background-image: none;// for Firefox mobile
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1;
+  text-align: center;
+  transition: background-color 150ms ease-in-out,
+              border 150ms ease-in-out,
+              color 150ms ease-in-out,
+              transform 50ms ease-in-out;
+}
+
+// Default button style (border)
+//---------------------------------
+// FIXME: These are demo styles
+@mixin button-base {
+  @include fs-font-smoothing;
+  @include button-reset;
+  border: 2px solid currentColor;
+  color: $c-default;
+  font-size: fs-rem(22px);
+  padding: fs-rem(18px 42px);
+
+  @include button-attention {
+    background-color: navy;
+    border-color: navy;
+    color: #fff;
+    text-decoration: none;// for links
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  // Disabled Button Styles
+  &:disabled {
+    background-color: #eee !important;
+    border-color: #bbb !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+  }
+}// end button-base

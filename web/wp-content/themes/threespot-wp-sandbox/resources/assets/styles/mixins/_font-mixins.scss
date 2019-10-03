@@ -1,0 +1,20 @@
+//------------------------------------------------------------------------
+// Mixins to apply webfonts only when they have loaded to prevent a FOIT
+// Depends on font-face.js and Sass vars in _font-vars.scss
+// Used to create helper classes in _font-helpers.scss
+// Note: This will no longer be necessary once `font-display` is supported
+// http://caniuse.com/#feat=css-font-rendering-controls
+//------------------------------------------------------------------------
+
+// Only apply web fonts once font files have loaded to prevent a FOIT
+// sass-lint:disable mixin-name-format, variable-name-format
+@mixin font-webfontName($important: false) {
+  font-family: $webfontName-fallback #{if($important, '!important', '')};
+
+  // 1. OPTIONAL: Enable OpenType kerning, standard and discretionary ligatures (when supported)
+  //    Note: This should only be applied to headings, not body copy, for performance reasons.
+  .fonts-loaded & {
+    font-family: $webfontName #{if($important, '!important', '')};
+    // font-feature-settings: "kern" 1, "liga" 1, "dlig" 1;// [1]
+  }
+}

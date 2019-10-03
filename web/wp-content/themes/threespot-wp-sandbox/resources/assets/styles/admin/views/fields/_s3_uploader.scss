@@ -1,0 +1,202 @@
+@keyframes icon-pulse {
+  0% {
+    color: $cButtonPrimaryActive;
+  }
+  50% {
+    color: $cGrey;
+  }
+  100% {
+    color: $cButtonPrimaryActive;
+  }
+}
+
+.s3-uploader-field {
+
+  @include clearfix;
+  border-radius: 2px;
+  border: 1px solid $cGrey;
+  box-shadow: 0 1px 0 rgba(#fff, 0.25) inset, 0 1px 1px rgba(#000, 0.15);
+  clear: both;
+  cursor: pointer;
+  display: block;
+  font-size: 14px;
+  line-height: 1.3;
+  min-width: 260px;
+  text-align: left;
+  white-space: normal;
+  width: 100%;
+  transition: background-color 100ms linear,
+    border-color 100ms linear,
+    border-style 100ms linear,
+    height 50ms linear;
+
+  @include min-width($bpFull) {
+    float: left;
+    clear: right;
+    width: 75%;
+    max-width: 520px;
+  }
+
+  &.-uploading {
+    background-color: #fff;
+    border-color: darken($cSapphire, 10);
+    border-bottom-color: $cSapphire;
+    border-right-color: $cSapphire;
+    border-style: solid;
+    cursor: default;
+    .s3-uploader-field-action-main {
+      cursor: default;
+    }
+  }
+
+  &.-ready {
+    border-color: darken($cSapphire, 10);
+    border-bottom-color: $cSapphire;
+    border-right-color: $cSapphire;
+    .icon {
+      color: $cButtonPrimaryActive;
+    }
+  }
+
+  &:hover,
+  &.-dragover {
+    background-color: #fff;
+    border-color: $cSapphire;
+    .s3-uploader-field-empty-well {
+      border-style: solid;
+      border-color: darken($cSapphire, 10);
+      border-bottom-color: $cSapphire;
+      border-right-color: $cSapphire;
+    }
+  }
+
+  &-touch-region {
+    @include clearfix;
+    padding: 2.25%;
+  }
+
+  &-empty-well {
+    background-color: $cCoolGrey;
+    background-size: cover;
+    border-radius: 3px;
+    border: 1px dashed $cDarkGrey;
+    float: left;
+    margin: 0 3% 0 0;
+    padding-top: 10%;
+    width: 11%;
+  }
+
+  &-preview-well {
+    background-color: $cCoolGrey;
+    background-size: cover;
+    border-radius: 1px;
+    border: 1px solid $cBlack;
+    float: left;
+    margin: 0 3% 0 0;
+    padding-top: 10%;
+    width: 11%;
+  }
+
+  .icon {
+    color: black(0.2);
+    float: left;
+    font-size: 45px;
+    height: 45px;
+    line-height: 45px;
+    margin: 0 3% 0 0;
+    position: relative;
+    text-align: center;
+    width: 11%;
+  }
+
+  .icon-ready {
+    color: $cButtonPrimaryActive;
+  }
+
+  .icon-pulse {
+    animation: icon-pulse 800ms infinite linear;
+  }
+
+  .icon-exists {
+    color: $cBlack;
+  }
+
+  .icon-danger {
+    color: $cRuby;
+  }
+
+  // Styling the progress element:
+  // https://css-tricks.com/html5-progress-element/
+
+  progress {
+    -ms-appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 6px;
+    width: 75%;
+    border-radius: 6px;
+    background: $cGrey;
+    border: 0;
+    display: block;
+    float: left;
+    margin: 5px 0 5px 0;
+  }
+
+  progress::-webkit-progress-bar {
+    height: 6px;
+    border-radius: 6px;
+    background: $cGrey;
+  }
+
+  progress::-webkit-progress-value {
+    background-color: $cButtonPrimaryActive;
+    border-radius: 6px;
+    border: 1px solid darken($cSapphire, 10);
+    box-shadow: inset -1px -1px 0 rgba(#fff, 0.1);
+  }
+
+  progress::-moz-progress-bar {
+    background-color: $cButtonPrimaryActive;
+    border-radius: 6px;
+    border: 1px solid darken($cSapphire, 10);
+    box-shadow: inset -1px -1px 0 rgba(#fff, 0.1);
+  }
+
+  &-action {
+    display: block;
+    clear: right;
+    float: left;
+    width: 85%;
+  }
+
+  &-action-main {
+    color: $cBlack;
+    font-weight: bold;
+    margin: 0 0 0.75% 0;
+    text-align: left;
+    white-space: normal;
+    width: 100%;
+    span {
+      color: $cSapphire;
+      font-weight: bold;
+      &:hover {
+        color: darken($cSapphire, 10);
+      }
+    }
+  }
+
+  &-action-alt {
+    color: $cSapphire;
+    display: inline;
+    font-size: 12px !important;
+    line-height: 19px;
+    padding: 0;
+    text-align: left;
+    width: auto;
+    &:hover {
+      color: darken($cSapphire, 10);
+    }
+  }
+
+}

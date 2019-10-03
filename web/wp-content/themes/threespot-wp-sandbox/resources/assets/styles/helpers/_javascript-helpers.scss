@@ -1,0 +1,32 @@
+//------------------------------------------------------------------------
+// Helper classes for no-js
+//
+// sass-lint:disable no-important, force-element-nesting
+// scss-lint:disable ImportantRule
+//------------------------------------------------------------------------
+
+// SHOW when JS is DISABLED
+//---------------------------------
+.no-js-show {
+  display: none !important;
+
+  .no-js & {
+    display: block !important;
+  }
+}
+
+// HIDE when JS is DISABLED
+//---------------------------------
+.no-js .no-js-hide {
+  display: none !important;
+}
+
+// HIDE when JS is ENABLED
+//---------------------------------
+.js-hide {
+  display: none !important;
+
+  .no-js & {
+    display: block !important;
+  }
+}

@@ -1,0 +1,15 @@
+//------------------------------------------------------------------------
+// Pseudo selector mixins
+//------------------------------------------------------------------------
+
+// Same as fs-attention() but only applies focus styles when using the keyboard.
+// This is useful for toggle buttons, which noramlly retain the focus styles
+// after clicking, even when the button is no longer hovered over.
+@mixin button-attention {
+  &:hover,
+  &:active,
+  [data-whatinput="keyboard"] &:focus,
+  .no-js &:focus {
+    @content;
+  }
+}

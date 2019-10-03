@@ -1,0 +1,37 @@
+// -------------------------------------------------------------------------
+// Font variables
+//
+// sass-lint:disable indentation, no-color-keywords
+// -------------------------------------------------------------------------
+
+// Base font stacks
+// Note: Quotes arn’t necessary for most font names https://mothereff.in/font-family
+//---------------------------------
+// Fallback to system sans-serif fonts since they support multiple weights.
+// All modern operating systems support the following weights:
+// - 900/800/700 Heavy
+// - 600 Bold
+// - 500/400 Regular
+// - 300/200/100 Light
+// (OS X and iOS support more)
+// Demo http://output.jsbin.com/morukug/quiet
+// Cross-browser results https://workflowy.com/s/BHZf.wXqmEGAjs4
+$sans-serif: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
+$serif: Georgia, Times, Times New Roman, serif;
+$monospace: Operator Mono, Consolas, Menlo, Monaco, monospace;
+
+// Helvetica Neue font stacks
+// https://gist.github.com/tedw/69576a543fbfe6cedb3d4c3fa0284eab
+
+// Web fonts
+//---------------------------------
+// Note: These should only by applied using the mixins in _font-mixins.scss to prevent a FOIT
+//
+// $webfontName-fallback: $sans-serif;
+// $webfontName: 'Webfont Name', $webfontName-fallback;
+
+// Body copy text
+//---------------------------------
+$body-copy-min-size: 17px;
+$body-copy-max-size: 20px;
+$body-copy-line-height: 1.5;

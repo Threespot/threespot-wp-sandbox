@@ -1,0 +1,100 @@
+//------------------------------------------------------------------------
+// Universal helper classes
+//
+// Add !important to all properties to force immutability
+// http://csswizardry.com/2016/05/the-importance-of-important/
+//
+// sass-lint:disable no-important
+// scss-lint:disable ImportantRule
+//------------------------------------------------------------------------
+.u {
+
+  &-hide { display: none !important; }
+
+  &-center { text-align: center !important; }
+
+  // This class is required by scrollable-tables.js
+  &-scrollX {
+    scroll-behavior: smooth;
+    overflow-x: scroll !important;
+  }
+
+  &-scrollY {
+    scroll-behavior: smooth;
+    overflow-y: scroll !important;
+  }
+
+  // Prevent text from wrapping
+  &-nowrap {
+    @include fs-min-width(320px) {
+      display: inline-block;// necessary for nested inline elements for some reason
+      text-decoration: inherit;// don’t break link styles
+      white-space: nowrap !important;
+    }
+  }
+
+  // Hide outline on focused element
+  // &-no-outline {
+  //   [data-whatinput='mouse'] &,
+  //   [data-whatinput='touch'] & {
+  //     outline: none;
+  //   }
+  // }
+
+  // Top/bottom margin in multiples of 10px
+  @for $i from 1 through 10 {
+    $val: $i * 10px;
+    &-mb#{$i} { margin-bottom: fs-rem($val) !important; }
+    &-mt#{$i} { margin-top: fs-rem($val) !important; }
+  }
+
+  // Top/bottom margin in multiples of 1em
+  @for $i from 1 through 3 {
+    $ems: $i * 1em;
+    &-mb#{$i}-em { margin-bottom: $ems !important; }
+    &-mt#{$i}-em { margin-top: $ems !important; }
+  }
+
+  // NOTE: We can’t easily add !important to the mixins below
+  // but there shouldn’t be any conflicts if used properly.
+
+  &-clearfix { @include fs-clearfix; }
+
+  // Hide text visually but keep it accessible to screen readers
+  &-screenreader { @include fs-visually-hidden; }
+
+  // Aspect ratios
+  // http://alistapart.com/article/creating-intrinsic-ratios-for-video
+  //---------------------------------
+  // Base styles
+  // Use attribute selector so we don’t have to add 2 classes
+  @at-root [class*='u-aspect--'] {
+    position: relative;
+
+    &:before {
+      content: '';
+      display: block;
+    }
+
+    img,
+    iframe {
+      @include fs-absolute-fill;
+    }
+  }
+
+  // Specific aspect ratios
+  &-aspect {
+    &--wide {
+      &:before {
+        padding-top: percentage(9/16);
+      }
+    }
+
+    &--square {
+      &:before {
+        padding-top: 100%;
+      }
+    }
+  }// end aspect ratios
+
+}// end u

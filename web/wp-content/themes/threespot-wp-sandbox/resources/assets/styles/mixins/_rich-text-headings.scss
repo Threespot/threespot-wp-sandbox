@@ -1,0 +1,54 @@
+//------------------------------------------------------------------------
+// Rich text heading styles
+//
+// <h1> should be reserved for the page title (see _custom-text-styles.scss).
+// We are automatically stepping headings down a level in markdown.rb,
+// but if an <h1> somehow makes it into a rich-text field, it will be styled
+// to look like an <h2> (see _richtext.scss)
+//
+// Use fs-scale() to override “f-scale-body” styles for body copy
+// since headings typically need to scale at different rates.
+//------------------------------------------------------------------------
+
+// FIXME: These are example styles
+
+// h2
+//---------------------------------
+@mixin h2 {
+  @include fs-scale(font-size, 30px, 40px, 320px, 900px);
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+// h3
+//---------------------------------
+@mixin h3 {
+  @include fs-scale(font-size, 22px, 32px, 320px, 900px);
+  font-weight: normal;
+  line-height: 1.24;
+}
+
+// h4
+//---------------------------------
+@mixin h4 {
+  @include fs-scale(font-size, 18px, 28px, 320px, 900px);
+  font-weight: bold;
+  line-height: 1.333;
+}
+
+// h5
+//---------------------------------
+@mixin h5 {
+  @include fs-scale(font-size, 16px, 22px, 320px, 900px);
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+// h6
+//---------------------------------
+@mixin h6 {
+  @include fs-scale(font-size, 16px, 18px, 320px, 900px);
+  font-weight: bold;
+  line-height: 1.2;
+  text-transform: uppercase;
+}

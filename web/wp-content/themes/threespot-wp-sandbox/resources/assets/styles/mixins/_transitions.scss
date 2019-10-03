@@ -1,0 +1,12 @@
+//------------------------------------------------------------------------
+// Transition helper for setting multiple properties at once
+//------------------------------------------------------------------------
+@mixin transition($props, $duration: 150ms, $easing: 'ease-in-out') {
+  $vals: ();
+
+  @each $prop in $props {
+    $vals: append($vals, $prop + ' ' + $duration + ' ' + $easing, 'comma');
+  }
+
+  transition: $vals;
+}

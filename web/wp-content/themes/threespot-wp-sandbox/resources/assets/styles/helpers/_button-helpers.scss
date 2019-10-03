@@ -1,0 +1,9 @@
+// -------------------------------------------------------------------------
+// Buttons
+//
+// scss-lint:disable ImportantRule, ColorVariable
+// sass-lint:disable no-important, no-color-literals
+// -------------------------------------------------------------------------
+.btn {
+  @include button-base;
+}// end btn

@@ -1,0 +1,50 @@
+// -------------------------------------------------------------------------
+// Color variables
+//
+// Use variable names that describe the color. Avoid additional abstraction
+// unless absolutely necessary (e.g. themeing)
+// http://bensmithett.com/stop-using-so-many-sass-variables/
+//
+// Can’t think of another name for a similar color? Try this site:
+// http://chir.ag/projects/name-that-color/
+// -------------------------------------------------------------------------
+
+// NOTE: Using Sass maps allows us to programmatically generate helper classes.
+//       If this isn’t needed, leave blank and use regular Sass vars instead.
+
+// Background and brand colors (optional, see note above)
+// Reference these colors with `fs-color('colorName')`
+$fs-colors: (
+  'base': (
+  )
+);
+
+// Text colors (optional, see note above)
+// Make sure all color combos meet WCAG contrast requirements
+// - http://jxnblk.com/colorable/demos/text/
+// - http://contrast-grid.eightshapes.com
+// Reference these colors with `fs-color('text', 'colorName')`
+$text-colors: (
+  'text': (
+  )
+);
+
+// Merge text colors with main $fs-colors map.
+// This is required for the Frontline color mixin to work.
+$fs-colors: map-merge($fs-colors, $text-colors);
+
+// Set default color variables
+//----------------------------
+$bg-default: #fff;
+$c-default: #000;
+
+// Note: It's typically better to use #000 on mobile devices instead of gray
+//       for better contrast. If you do that, use a mixin like this:
+//
+// @mixin default-text-color {
+//   color: #000;
+//
+//   @include fs-min-width(640px) {
+//     color: fs-color('text', 'darkGray');
+//   }
+// }

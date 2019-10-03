@@ -1,0 +1,19 @@
+// -------------------------------------------------------------------------
+// Layout Vars
+//------------------------------------------------------------------------
+$layout-max-width: 1050px;
+$layout-max-width-narrow: 680px;
+$layout-max-width-wide: 1200px;
+
+// Left/right padding
+//---------------------------------
+$layout-padding: (
+  'default': 10px,
+  320px: 15px,
+  400px: 20px,
+  600px: 30px
+);
+
+// 50% columns
+//---------------------------------
+$layout-equal-cols-bp: 860px;

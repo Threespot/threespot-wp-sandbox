@@ -1,0 +1,7 @@
+// -------------------------------------------------------------------------
+// Map of all z-index layers (for use with fs-zindex() function)
+// Using a single map allows us to see all layers at once to avoid conflicts
+// -------------------------------------------------------------------------
+$fs-zindex: (
+  'skip-links': 999
+);

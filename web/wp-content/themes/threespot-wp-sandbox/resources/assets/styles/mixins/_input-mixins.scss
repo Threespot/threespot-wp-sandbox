@@ -1,0 +1,43 @@
+//------------------------------------------------------------------------
+// Input styles (see _form-vars.scss)
+//
+// sass-lint:disable no-important
+//------------------------------------------------------------------------
+
+// Reset input styles
+@mixin input-normalize {
+  background-color: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+// Default input styles
+@mixin input-default {
+  background-color: $bg-default;
+  border: 1px solid $input-border-color;
+  line-height: 1.2;// prevents descenders from being cut off
+  padding: $input-padding;
+  transition: all 150ms ease-in-out;
+  width: 100%;
+
+  &:focus {
+    border-color: $input-border-color-focus;
+  }
+
+  &::placeholder {
+    color: #767676;
+  }
+
+  &:disabled {
+    background-color: $input-disabled-background;
+    border-color: $input-disabled-border;
+    color: $input-disabled-color;
+    cursor: not-allowed !important;
+  }
+}
+
+// Error styles
+@mixin input-error {
+  border-color: $input-error-color;
+}

@@ -1,0 +1,23 @@
+//------------------------------------------------------------------------
+// Main navigation
+//------------------------------------------------------------------------
+.Nav {
+
+  &-list {
+    margin-top: fs-rem(10px);
+    text-align: center;
+  }// end list
+
+  &-item {
+    display: inline-block;
+    margin: fs-rem(10px 10px 0);
+  }// end item
+
+  &-link {
+    &[aria-current] {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  }// end link
+
+}// end Nav

@@ -1,0 +1,229 @@
+//------------------------------------------------------------------------
+// Layout helper classes
+//------------------------------------------------------------------------
+.l {
+  &-padding {
+    @include base-padding;
+  }// end padding
+
+  &-wrap {
+    @include fs-clearfix;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: $layout-max-width;
+  }// end wrap
+
+  &-wrap--narrow {
+    @include fs-clearfix;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: fs-rem($layout-max-width-narrow);
+  }// end wrap--narrow
+
+  // For full-width strata that have a max-width (e.g. navigation wrapper)
+  &-wrap--wide {
+    @include fs-clearfix;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: fs-rem($layout-max-width-wide);
+  }// end wrap--wide
+
+  // Custom wrapper that adds gutter space.
+  // The gutter is added when the viewport reaches max width, so there is never
+  // too little space on the sides, which can look bad for things like full-width images.
+  // &-wrap-gutter {
+  //   $gutter: 20px;
+  //   @include fs-clearfix;
+  //   margin-left: auto;
+  //   margin-right: auto;
+  //   max-width: fs-rem($layout-max-width-wide);
+  //
+  //   @include fs-min-width($layout-max-width-wide) {
+  //     width: percentage(($layout-max-width-wide - ($gutter * 2)) / $layout-max-width-wide);
+  //   }
+  // }
+
+  // Allow element to span viewport width regardless of parent width
+  //------------------------------------------------------------------------
+  &-fullwidth {
+    // NOTE: These styles only work when the parent wrapper is centered.
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+
+    // Use these styles when the parent isn’t centered (e.g. 2-col layout)
+    //------------------------------------------------------------------------
+    // .l-cols-primary & {
+    //   transform: none;
+    //
+    //   // Offset each padding value in $layout-sidebar-bp
+    //   @each $bp, $padding in $layout-padding {
+    //     @if (type-of($bp) == 'number' and $bp < $layout-sidebar-bp) {
+    //       @include fs-min-width($bp) {
+    //         left: fs-rem(-$padding);
+    //       }
+    //     }
+    //   }
+    //
+    //   // Get largest padding amount
+    //   $max-padding: nth(nth($layout-padding, length($layout-padding)), 2);
+    //
+    //   // Each wrapper class needs custom styles since we have to know the max-width value
+    //   .l-wrap & {
+    //     // Determine when max-width has been reached
+    //     $max-width-bp: $layout-max-width + ($max-padding * 2);
+    //
+    //     // Offset max-width wrapper
+    //     @include fs-min-width($max-width-bp) {
+    //       left: calc(-50vw + #{$layout-max-width / 2});
+    //     }
+    //   }
+    //
+    //   .l-wrap--narrow & {
+    //     $max-width-bp: $layout-max-width-narrow + ($max-padding * 2);
+    //     @include fs-min-width($max-width-bp) {
+    //       left: calc(-50vw + #{$layout-max-width-narrow / 2});
+    //     }
+    //   }
+    //
+    //   .l-wrap--wide & {
+    //     $max-width-bp: $layout-max-width-wide + ($max-padding * 2);
+    //     @include fs-min-width($max-width-bp) {
+    //       left: calc(-50vw + #{$layout-max-width-wide / 2});
+    //     }
+    //   }
+    //
+    //   // Need different styles when columns are flipped
+    //   //------------------------------------------------------------------------
+    //   .l-cols--flip & {
+    //     float: right;
+    //     left: auto;
+    //     transform: none;
+    //
+    //     // Offset each padding value in $layout-sidebar-bp
+    //     @each $bp, $padding in $layout-padding {
+    //       @if (type-of($bp) == 'number' and $bp < $layout-sidebar-bp) {
+    //         @include fs-min-width($bp) {
+    //           right: fs-rem(-$padding);
+    //         }
+    //       }
+    //     }
+    //
+    //     // Each wrapper class needs custom styles since we have to know the max-width value
+    //     .l-wrap & {
+    //       // Determine when max-width has been reached
+    //       $max-width-bp: $layout-max-width + ($max-padding * 2);
+    //
+    //       // Offset max-width wrapper
+    //       @include fs-min-width($max-width-bp) {
+    //         right: calc(-50vw + #{$layout-max-width / 2});
+    //       }
+    //     }
+    //
+    //     .l-wrap--narrow & {
+    //       $max-width-bp: $layout-max-width-narrow + ($max-padding * 2);
+    //       @include fs-min-width($max-width-bp) {
+    //         right: calc(-50vw + #{$layout-max-width-narrow / 2});
+    //       }
+    //     }
+    //
+    //     .l-wrap--wide & {
+    //       $max-width-bp: $layout-max-width-wide + ($max-padding * 2);
+    //       @include fs-min-width($max-width-bp) {
+    //         right: calc(-50vw + #{$layout-max-width-wide / 2});
+    //       }
+    //     }
+    //   }// end flip
+    //
+    // }// end .l-cols-primary
+  }// end fullwidth
+
+
+  // 2-col layout with fixed-width sidebar
+  // Note: Column source order doesn’t matter
+  //------------------------------------------------------------------------
+  // &-cols {
+  //   $selector: &;
+  //   @include fs-clearfix;
+  //
+  //   // Note: Margin between columns in mobile should be added by child
+  //   //       components since the amount of margin will need to vary.
+  //
+  //   @supports (display: grid) {
+  //     @include fs-min-width($layout-sidebar-bp) {
+  //       display: grid;
+  //       grid-column-gap: fs-rem($layout-sidebar-gutter);
+  //       grid-template-areas: "main sidebar";
+  //       grid-template-columns: auto fs-rem($layout-sidebar-width);
+  //
+  //       // Since we’re using grid areas, the HTML source order
+  //       // of the columns doesn’t matter.
+  //
+  //       // 1. CSS grid automatically sets “min-width: auto” which
+  //       //    causes non-fixed-width columns to be too wide.
+  //       //    https://stackoverflow.com/a/43312314/673457
+  //       &-primary {
+  //         grid-area: main;
+  //         min-width: 0;// [1]
+  //       }
+  //
+  //       &-secondary {
+  //         grid-area: sidebar;
+  //       }
+  //
+  //       // Flip the sidebar to the left side
+  //       &--flip {
+  //         grid-template-areas: "sidebar main";
+  //         grid-template-columns: fs-rem($layout-sidebar-width) auto;
+  //       }
+  //     }
+  //   }
+  //
+  //   // Grid fallback required for desktop Safari 10.0-, iOS 10.2-, and Android 4.x
+  //   .no-cssgrid &,
+  //   .no-cssgrid_cssgridlegacy & {
+  //     @include fs-min-width($layout-sidebar-bp) {
+  //       display: flex;
+  //       justify-content: space-between;
+  //       width: 100%;
+  //
+  //       // Since we’re using flexbox with the “order” property,
+  //       // the HTML source order of the columns doesn’t matter.
+  //
+  //       &-primary {
+  //         flex-grow: 1;
+  //         opacity: 1;
+  //         order: 1;
+  //         width: calc(100% - #{$layout-sidebar-width + $layout-sidebar-gutter});
+  //       }
+  //
+  //       &-secondary {
+  //         flex-shrink: 0;
+  //         margin-left: fs-rem($layout-sidebar-gutter);
+  //         opacity: 2;
+  //         order: 2;
+  //         width: fs-rem($layout-sidebar-width);
+  //       }
+  //     }
+  //
+  //     // Flip the sidebar to the left side
+  //     &--flip {
+  //       @include fs-min-width($layout-sidebar-bp) {
+  //
+  //         #{$selector}-primary {
+  //           order: 2;
+  //         }
+  //
+  //         #{$selector}-secondary {
+  //           margin-left: 0;
+  //           margin-right: fs-rem($layout-sidebar-gutter);
+  //           order: 1;
+  //         }
+  //       }
+  //     }// end flip
+  //   }// end no grid fallback
+  //
+  // }// end 2-cols
+
+}// end l

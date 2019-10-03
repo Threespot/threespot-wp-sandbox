@@ -1,0 +1,45 @@
+//------------------------------------------------------------------------
+// Font style helper classes
+//
+// sass-lint:disable no-important
+// scss-lint:disable ImportantRule
+//------------------------------------------------------------------------
+.f {
+
+  // Examples
+  //---------------------------------
+  // &-uppercase {
+  //   text-transform: uppercase;
+  // }
+  //
+  // &-smallcaps {
+  //   font-variant: small-caps;
+  // }
+  //
+  // // Makes numbers all the same height (requires OpenType support)
+  // // This is nice for phone numbers and addresses, as well as data tables.
+  // &-lining-figures {
+  //   font-feature-settings: "lnum", "onum" off;
+  // }
+
+  // Scale the body copy font-size relative to the viewport width
+  // Note: This won’t affect h1–h6, which are set in rems (see _rich-text-headings.scss).
+  &-scale-body {
+    @include body-copy-size;
+  }
+
+  // Web fonts
+  // Depends on mixins in _font-mixins.scss
+  //---------------------------------
+  // &-webfontName {
+  //   @include font-webfontName;
+  // }
+
+  // Custom styles
+  //---------------------------------
+  // FIXME: Example
+  // &-title {
+  //   @include article-title;
+  // }
+
+}// end f

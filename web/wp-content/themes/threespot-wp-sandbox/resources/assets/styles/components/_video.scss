@@ -1,0 +1,32 @@
+//------------------------------------------------------------------------
+// YouTube and Vimeo video player styles
+//------------------------------------------------------------------------
+.Video {
+  // sass-lint:disable no-color-literals
+  $selector: &;
+  background: #ccc url(fs-svg('triangleRight', #eee)) center no-repeat;
+  background-size: 15%;
+  position: relative;
+
+  // Preserve 16:9 aspect ratio
+  &:before {
+    content: '';
+    display: block;
+    padding-top: percentage(9/16);
+  }
+
+  // Fallback link
+  &-link {
+    @include fs-absolute-fill;
+    padding-left: fs-rem(10px);
+    padding-top: fs-rem(10px);
+    z-index: 1;
+  }// end link
+
+  // Video iframe
+  iframe {
+    @include fs-absolute-fill;
+    z-index: 2;
+  }
+
+}// end Video

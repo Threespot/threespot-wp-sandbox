@@ -35,6 +35,15 @@ web/private/scripts/quicksilver
 !web/private/config/
 !.circleci
 
+# Threespot custom whitelist
+.env
+*.env
+.env.*
+frm.min.js
+!web/wp-content/themes/threespot-wp-sandbox
+#!web/wp-content/object-cache.php
+!web/wp-content/mu-plugins/bedrock-autoloader.php
+
 # Add directories containing build assets below.
 # Keep all additions above the "cut" line.
 
@@ -75,6 +84,10 @@ web/wp-content/backups/
 # Avoid accidental modification of pantheon.upstream.yml in sites
 # created from this upstream
 pantheon.upstream.yml
+
+# Terminus #
+############
+installer.phar
 
 # Packages #
 ############

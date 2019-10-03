@@ -1,0 +1,16 @@
+//------------------------------------------------------------------------
+// SVG icon data for use with fs-svg() function
+// https://threespot.github.io/frontline-sass/documentation/#main-function-fs-svg
+//------------------------------------------------------------------------
+$fs-svg-icons: (
+  triangleRight: (
+    height: 10,
+    width: 10,
+    data: '<path d="M0 0L10 5L0 10"/>'
+  ),
+  triangleDown: (
+    height: 6,
+    width: 12,
+    data: '<path d="M0 0h12L6 6"/>'
+  ),
+);

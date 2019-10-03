@@ -1,0 +1,13 @@
+//------------------------------------------------------------------------
+// Form vars
+//
+// Used by _input-mixins.scss
+//------------------------------------------------------------------------
+$input-border-color: #aaa;
+$input-border-color-focus: blue;// FIXME
+$input-padding-horz: 16px;
+$input-padding: fs-rem(12px $input-padding-horz 10px);
+$input-disabled-background: #f4f4f4;
+$input-disabled-border: #ccc;
+$input-disabled-color: #707070;
+$input-error-color: red;// FIXME

@@ -1,0 +1,58 @@
+//------------------------------------------------------------------------
+// Custom select styles
+//------------------------------------------------------------------------
+@mixin select {
+  $border-width: 2px;
+  $border-radius: 0;
+  $horz-padding: 16px;
+  $vert-padding: 12px;
+  $icon-width: 12px;
+  $icon-margin: 10px;
+  appearance: none;
+  background-color: transparent;
+  background-image: url(fs-svg('caretDown', #000));// can’t use currentColor :(
+  background-position: right 10px top 50%;
+  background-repeat: no-repeat;
+  background-size: $icon-width $icon-width;
+  border-radius: $border-radius;
+  border: $border-width solid currentColor;
+  color: currentColor;
+  cursor: pointer;
+  line-height: 1;
+  padding: fs-rem($vert-padding ($horz-padding + $icon-width + $icon-margin) $vert-padding $horz-padding);
+  position: relative;
+  transition: all 150ms ease-in-out;
+  width: 100%;
+  z-index: 2;
+
+  // @include button-attention {
+  //   background-image: url(fs-svg('caretDown', #fff));
+  // }
+
+  // Hide native UI in IE 10
+  &::-ms-expand {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  // Use default arrow in IE 9- since we can't hide it
+  .lte-ie9 & {
+    background-image: none;
+    padding-right: 0;
+  }
+
+  // Firefox requires adding padding back to option elements (removed by CSS reset)
+  optgroup {
+    padding-left: fs-rem(10px);
+  }
+
+  option {
+    padding: fs-rem(2px 15px);
+  }
+
+  // Error styles
+  &.is-invalid {
+    border-color: $input-error-color;
+  }
+
+}

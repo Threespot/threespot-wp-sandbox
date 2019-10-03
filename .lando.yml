@@ -1,0 +1,6 @@
+name: threespot-wp-sandbox
+recipe: pantheon
+config:
+  framework: wordpress
+  site: threespot-wp-sandbox
+  id: 08dda8d9-dc1e-4281-8dfa-8091d868d503

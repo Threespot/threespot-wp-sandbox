@@ -1,0 +1,35 @@
+// -------------------------------------------------------------------------
+// Tables
+// -------------------------------------------------------------------------
+
+// Default table styles (do not apply globally, they should be opt-in)
+// 1. Collapsing the borders causes extra 1px width, triggering horz scroll bar (browser bug)
+@mixin table-styles {
+  $table-border-color: $c-default;
+  border-collapse: separate;// 1
+  width: 100%;
+
+  caption {
+    font-size: 1em;
+    margin-bottom: 1em;
+  }
+
+  td {
+    border-bottom: 1px solid $table-border-color;
+    padding: fs-rem(15px 30px 15px 0);
+  }// end td
+
+  // Header Cells
+  th {
+    border-bottom: 1px solid $table-border-color;
+    font-weight: bold;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  // Footer Cells
+  tfoot {
+    td {
+    }
+  }
+}

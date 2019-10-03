@@ -1,0 +1,30 @@
+// -------------------------------------------------------------------------
+// Link Styles
+// -------------------------------------------------------------------------
+// Base link styles, excluding color
+@mixin link-base {
+  transition: all 150ms ease-in-out;
+
+  @include fs-all-states {
+    text-decoration: none;
+  }
+}
+
+// Define custom link styles below
+//---------------------------------
+@mixin link-blue() {
+  @include fs-link-colors(
+    $static: royalBlue,// FIXME
+    $attention: darkGreen// FIXME
+  );
+}
+
+// Custom named link styles
+//---------------------------------
+@mixin link-default() {
+  @include link-blue;
+}
+
+@mixin link-richtext() {
+  @include link-blue;
+}

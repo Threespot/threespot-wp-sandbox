@@ -1,0 +1,80 @@
+// -------------------------------------------------------------------------
+// Base Styles
+// -------------------------------------------------------------------------
+
+// 1. Set bg color on html instead of body to ensure it always fills the page
+//    http://css-tricks.com/just-one-of-those-weird-things-about-css-background-on-body/
+// 2. Use native smooth scroll (Chrome, Firefox, Opera, and aOS Chrome)
+//    https://caniuse.com/#feat=css-scroll-behavior
+html {
+  background-color: $bg-default;// [1]
+  color: $c-default;
+  font-family: $sans-serif;
+  scroll-behavior: smooth;// [2]
+
+  // Allow long words to wrap
+  @include fs-max-width(319px) {
+    @include fs-break-word;
+  }
+}
+
+// 1. Prevent horizontal scrolling (could happen if authors include a large fixed-width embed)
+//    Note: Remove this if using “position: sticky” as it will break it.
+body {
+  overflow-x: hidden;// [1]
+}// end body
+
+
+// Opinionated global styles not included in CSS reset
+a {
+  @include link-base;
+}
+
+svg:not([fill]) {
+  fill: currentColor;
+}
+
+.is-fluid-svg {
+  height: auto;
+  max-width: 100%;
+}
+
+
+// Prevent zoom on iOS (requires adding "ios" class to <html>)
+// http://www.456bereastreet.com/archive/201212/ios_webkit_browsers_and_auto-zooming_form_controls/
+// sass-lint:disable no-important
+// scss-lint:disable ImportantRule
+.ua-ios {
+  input,
+  textarea,
+  select {
+    font-size: 1rem !important;
+  }
+}
+
+// -------------------------------------------------------------------------
+// Remove text-shadow in selection highlight : http://h5bp.com/i
+// -------------------------------------------------------------------------
+// ::selection {
+//   background-color: $some-custom-color;
+//   text-shadow: none;
+// }
+
+//------------------------------------------------------------------------
+// Hide outlines on focused elements using “what-input” JS plugin
+//------------------------------------------------------------------------
+[data-whatinput='mouse'],
+[data-whatinput='touch'] {
+  *:focus {
+    outline: none;
+  }
+}
+
+//------------------------------------------------------------------------
+// Disable hover event while scrolling by adding this class (see events.js)
+// https://www.thecssninja.com/javascript/pointer-events-60fps
+//------------------------------------------------------------------------
+// .disable-hover,
+// .disable-hover * {
+//   pointer-events: none !important;
+// }

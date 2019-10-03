@@ -1,0 +1,45 @@
+//------------------------------------------------------------------------
+// Default form styles
+//
+// sass-lint:disable no-important
+// scss-lint:disable ImportantRule
+//------------------------------------------------------------------------
+.u-form {
+
+  // Apply default styles to all text inputs types
+  @include fs-text-inputs {
+    @include input-default;
+  }
+
+  textarea {
+    @include input-default;
+  }
+
+  // Apply error styles to all form elements
+  datalist,
+  input,
+  select,
+  textarea {
+    &.is-invalid {
+      @include input-error;
+    }
+  }
+
+  fieldset + fieldset {
+    margin-top: fs-rem(30px);
+  }
+
+  legend {
+    @include h4;
+    margin-bottom: 1rem;
+  }
+
+  // Error messages
+  [data-validate='error'] {
+    color: $input-error-color;
+
+    &.is-hidden {
+      display: none !important;
+    }
+  }// end error
+}// end u-form

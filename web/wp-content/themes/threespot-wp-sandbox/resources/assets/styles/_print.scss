@@ -1,0 +1,53 @@
+// -------------------------------------------------------------------------
+// Print Styles
+//
+// Note: Use @extend %hide-print to hide individual modules
+// sass-lint:disable no-important, no-color-literals
+// scss-lint:disable ImportantRule, ColorVariable
+// -------------------------------------------------------------------------
+@media print {
+
+  // HTML5 Boilerplate print styles (http://h5bp.com/r)
+  //---------------------------------
+  * {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #000 !important; // Black prints faster: http://h5bp.com/s
+    filter: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+  }
+
+  html {
+    font-size: percentage(13px / 16px);// [2]
+  }
+
+  svg {
+    fill: #000 !important;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 2;
+    widows: 2;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+  // Page margins
+  //---------------------------------
+  @page { margin: 0.75in 0.75in 1in; }
+
+
+  // Custom Styles Below
+  //---------------------------------
+
+}

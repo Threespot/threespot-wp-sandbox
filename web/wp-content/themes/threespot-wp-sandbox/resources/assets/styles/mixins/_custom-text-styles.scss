@@ -1,0 +1,20 @@
+//------------------------------------------------------------------------
+// Styles for custom headings and labels used throughout the project.
+//
+// Each of these should also be turned into a helper class in _font-helpers.scss
+//
+// For rich text heading styles (e.g. h2–h6), see _rich-text-headings.scss
+//------------------------------------------------------------------------
+// FIXME: Set breakpoints
+@mixin body-copy-size() {
+  @include fs-scale(font-size, $body-copy-min-size, $body-copy-max-size, 360px, 600px);
+}
+
+// FIXME: This is an example
+// Article page title (e.g. blog post, press release)
+// @mixin article-title {
+//   @include fs-scale(font-size, 42px, 55px, 320px, 900px);
+//   @include fs-scale(line-height, 42px * 1.2, 55px * 1.15, 320px, 900px);
+//   font-family: $sans-serif;
+//   font-weight: bold;
+// }

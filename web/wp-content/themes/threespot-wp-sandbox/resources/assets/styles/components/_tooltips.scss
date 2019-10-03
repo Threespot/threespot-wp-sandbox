@@ -1,0 +1,152 @@
+//------------------------------------------------------------------------
+// Tooltips
+//------------------------------------------------------------------------
+/* stylelint-disable no-duplicate-selectors */
+
+// Required styles
+//---------------------------------
+[data-tooltip] {
+  cursor: help;
+  position: relative;
+  transition: all 150ms ease-in-out;
+
+  // Need to disable relative positioning to make full width
+  &.is-fullwidth {
+    position: static;
+  }
+
+  // Base triangle styles
+  &:before {
+    content: '';
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    transform: translate(-50%, -100%);
+    transition: opacity 150ms ease-in-out;
+  }// end triangle
+
+  &.is-fullwidth {
+    &:before {
+      left: auto;
+      transform: translateY(-100%);
+    }
+  }
+
+  &[aria-expanded="true"] {
+    &:before {
+      opacity: 1;
+    }
+  }
+}// end data-tooltip
+
+[data-tooltip-menu] {
+  $tooltip-gutter: 10px;
+  $tooltip-max-width: 340px;
+  $tooltip-speed: 200ms;
+  left: 50%;
+  max-height: 0;// iOS fix
+  opacity: 0;
+  position: absolute;
+  transform: translate(-50%, -100%);
+  transition: max-height 0s linear $tooltip-speed,
+              visibility 0s linear $tooltip-speed,
+              opacity $tooltip-speed;
+  user-select: text;// allow users to double/triple click to select text (dragging is still not possible)
+  visibility: hidden;// hide from screen readers and keyboards until active
+  width: calc(100vw - #{$tooltip-gutter * 2});
+
+  @supports (width: max-content) {
+    max-width: calc(100vw - #{$tooltip-gutter * 2});
+    width: max-content;
+  }
+
+  // Set max-width once viewport is wide enough
+  @include fs-min-width($tooltip-max-width + ($tooltip-gutter * 2)) {
+    max-width: fs-rem($tooltip-max-width);
+  }
+
+  &[aria-hidden="false"] {
+    max-height: 100vh;// can’t set to “none” because that can't be transitioned
+    opacity: 1;
+    transition: max-height 0s linear 0s,
+                visibility 0s linear 0s,
+                opacity $tooltip-speed;
+    visibility: visible;
+  }
+
+  &[data-align="full"] {
+    left: fs-rem($tooltip-gutter);
+    right: fs-rem($tooltip-gutter);
+    transform: translateY(-100%);
+
+    // Center the tooltip once max-width is applied
+    @include fs-min-width($tooltip-max-width + ($tooltip-gutter * 2)) {
+      left: 50vw;
+      right: auto;
+      transform: translate(-50%, -100%);
+    }
+  }
+
+  &[data-align="left"] {
+    left: 0;
+    right: auto;
+    transform: translateY(-100%);
+  }
+
+  &[data-align="right"] {
+    left: auto;
+    right: 0;
+    transform: translateY(-100%);
+  }
+}// end data-tooltip-menu
+
+
+// Custom theme styles
+//---------------------------------
+[data-tooltip] {
+  $triangle-size: 16px;
+  border-bottom: 2px dashed currentColor;
+  text-decoration: none !important;
+
+  &:hover,
+  &:active,
+  [data-whatinput="keyboard"] &:focus {
+    border-bottom-style: solid;
+    text-decoration: none;
+  }
+
+  [data-whatinput="mouse"] &,
+  [data-whatinput="touch"] & {
+    &:focus {
+      outline: none;
+    }
+  }
+
+  // Triangle
+  &:before {
+    @include fs-triangle($triangle-size, #000, down);
+  }// end triangle
+
+  // Show definition when JS is disabled
+  // .no-js & {
+  //   border-bottom: 0;
+  //   color: $c-default !important;
+  //   cursor: text;
+  //
+  //   &:after {
+  //     content: ' (' attr(data-tooltip) ')';
+  //     display: inline;
+  //   }
+  // }
+
+  [data-tooltip-menu] {
+    background-color: $bg-default;
+    border: 1px solid #000;
+    border-radius: 5px;
+    color: $c-default;
+    cursor: text;
+    font-size: fs-em($body-copy-min-size - 2px);
+    margin-top: fs-rem(-$triangle-size / 2);
+    padding: fs-rem(10px 15px);
+  }
+}
