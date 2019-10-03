@@ -1,6 +1,7 @@
 #================================================================================================
 # NOTE: See Pantheon example WP repo for original version this config file was based off of
 # https://github.com/pantheon-systems/example-wordpress-composer/blob/master/.circleci/config.yml
+# Replacements: you will need to replace the paths for the build and delpoy scripts to be specific # to your project. Replace threespot-wp-sandbox with correct name
 #================================================================================================
 # https://circleci.com/docs/2.0/workflows/#using-workspaces-to-share-data-among-jobs
 defaults: &defaults
@@ -40,7 +41,6 @@ defaults: &defaults
 
     NOTIFY: 'scripts/github/add-commit-comment {project} {sha} "Created multidev environment [{site}#{env}]({dashboard-url})." {site-url}'
     ADMIN_USERNAME: admin
-    # BUILD_TOOLS_VERSION: dev-master
     TERM: dumb
 
 version: 2

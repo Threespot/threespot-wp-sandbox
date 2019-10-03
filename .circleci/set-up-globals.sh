@@ -31,7 +31,7 @@ composer global require -n "hirak/prestissimo:^0.3"
 # Start Install Terminus Plugins
 #===============================
 INSTALL_TERMINUS_PLUGINS() {
-	composer create-project --no-dev -d $HOME/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:^2.0.0-beta15
+	composer create-project --no-dev -d $HOME/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:^2.0.0-beta16
 	composer create-project -n -d $HOME/.terminus/plugins pantheon-systems/terminus-secrets-plugin:^1
 }
 
