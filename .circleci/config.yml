@@ -65,7 +65,7 @@ jobs:
 
       - run:
           name: dependencies
-          command: ./.circleci/set-up-globals.sh
+          command: bash ./.circleci/set-up-globals.sh
 
       - run:
           name: install composer dependencies
@@ -90,7 +90,7 @@ jobs:
 
       - run:
           name: deploy to Pantheon
-          command: ./.ci/deploy-to-pantheon.sh
+          command: bash ./.ci/deploy-to-pantheon.sh
 
       - save_cache:
           name: cache Composer files
