@@ -93,6 +93,7 @@
     "lodash": "^4.17.10",
     "mdn-polyfills": "^5.9.0",
     "picturefill": "^3.0.2",
+    "webpack-cli": "^3.3.9",
     "what-input": "^5.1.1"
   }
 }
