@@ -42,6 +42,7 @@
     "vlucas/phpdotenv": "^3.1.0",
     "wpackagist-plugin/acf-better-search": "^3.3.2",
     "wpackagist-plugin/classic-editor": "^1.5",
+    "wpackagist-plugin/custom-post-type-ui": "^1.6",
     "wpackagist-plugin/duplicate-post": "^3.2.3",
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
     "wpackagist-plugin/lh-hsts": "^1.24",
