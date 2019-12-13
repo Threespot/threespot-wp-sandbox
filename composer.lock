@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e6748d642efdf2b6a0f21bc52ed7e39d",
+    "content-hash": "ac1e04ad5f5253b27c9ff2949b8a9189",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -704,15 +704,15 @@
         },
         {
             "name": "wpackagist-plugin/gutenberg",
-            "version": "7.0.0",
+            "version": "7.1.0",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/gutenberg/",
-                "reference": "tags/7.0.0"
+                "reference": "tags/7.1.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/gutenberg.7.0.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/gutenberg.7.1.0.zip"
             },
             "require": {
                 "composer/installers": "~1.0"

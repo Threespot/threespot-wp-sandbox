@@ -45,7 +45,7 @@
     "wpackagist-plugin/custom-post-type-ui": "^1.6",
     "wpackagist-plugin/duplicate-post": "^3.2.3",
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
-    "wpackagist-plugin/gutenberg": "^7.0",
+    "wpackagist-plugin/gutenberg": "^7.1",
     "wpackagist-plugin/lh-hsts": "^1.24",
     "wpackagist-plugin/pantheon-advanced-page-cache": ">=0.3.0",
     "wpackagist-plugin/wp-native-php-sessions": ">=0.6.9",
