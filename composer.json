@@ -41,6 +41,7 @@
     "rvtraveller/qs-composer-installer": "^1.1",
     "vlucas/phpdotenv": "^3.1.0",
     "wpackagist-plugin/acf-better-search": "^3.3.2",
+    "wpackagist-plugin/block-unit-test": "^1.0",
     "wpackagist-plugin/classic-editor": "^1.5",
     "wpackagist-plugin/custom-post-type-ui": "^1.6",
     "wpackagist-plugin/duplicate-post": "^3.2.3",
