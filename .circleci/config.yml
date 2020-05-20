@@ -51,7 +51,7 @@ jobs:
     # doesn't need Pantheon specific items such as Terminus that are
     # in the quay.io/pantheon-public/build-tools-ci image
     docker:
-      - image: drupaldocker/php:7.1-cli
+      - image: circleci/php:7.3-cli
     steps:
       - checkout
 
