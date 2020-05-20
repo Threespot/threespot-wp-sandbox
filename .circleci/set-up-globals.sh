@@ -7,15 +7,16 @@ set -ex
 #==================================================
 
 # Update current apt packages
-apt-get update
-apt-get -y install gnupg2 # required to install “apt-transport-https” for some reason
-apt-get install apt-transport-https
+sudo apt-get update
+sudo apt-get -y install gnupg2 # required to install “apt-transport-https” for some reason
+sudo apt-get install apt-transport-https
+sudo apt-get install rsync
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-apt-get update
-apt-get -y install nodejs
-apt-get -y install yarn
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get update
+sudo apt-get -y install nodejs
+sudo apt-get -y install yarn
 
 #=========================================================================
 # Commands below this line would not be transferable to a docker container
