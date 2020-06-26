@@ -50,6 +50,7 @@
     "wpackagist-plugin/lh-hsts": "^1.24",
     "wpackagist-plugin/ninja-forms": "3.4.24.3",
     "wpackagist-plugin/pantheon-advanced-page-cache": ">=0.3.0",
+    "wpackagist-plugin/wp-mail-smtp": "^2.1",
     "wpackagist-plugin/wp-native-php-sessions": ">=0.6.9",
     "wpackagist-plugin/wpforms-lite": "^1.6",
     "wpackagist-theme/twentynineteen": "^1.2"
