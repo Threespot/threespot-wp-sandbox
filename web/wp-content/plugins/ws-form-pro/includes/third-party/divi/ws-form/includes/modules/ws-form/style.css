@@ -1,0 +1,16 @@
+.ws_form_divi_ajax form.ws-form * {
+	pointer-events:none;
+}
+
+.ws_form_divi_ajax form.ws-form {
+	margin-bottom: 20px;
+}
+
+.ws_form_divi_no_form_id {
+	background: rgb(126, 190, 197);
+	padding: 25px;
+}
+
+.ws_form_divi_no_form_id h2, .ws_form_divi_no_form_id p {
+	color: #fff;
+}

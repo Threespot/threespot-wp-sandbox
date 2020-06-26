@@ -1,0 +1,491 @@
+<?php
+
+	/**
+	 * Configuration settings
+	 * Pro Version
+	 */
+
+	class WS_Form_Config {
+
+		// Caches
+		public static $meta_keys = array();
+		public static $field_types = array();
+		public static $file_types = false;
+		public static $settings_plugin = array();
+		public static $settings_form_admin = false;
+		public static $frameworks = array();
+		public static $parse_variables = array();
+		public static $parse_variable_help = array();
+		public static $tracking = array();
+		public static $ecommerce = false;
+
+		// Get full public or admin config
+		public static function get_config($parameters = false, $field_types = false) {
+
+			// Determine if this is an admin or public API request
+			$is_admin = (WS_Form_Common::get_query_var('form_is_admin', 'false') == 'true');
+			$form_id = WS_Form_Common::get_query_var('form_id', 0);
+
+			// Standard response
+			$config = array();
+
+			// Different for admin or public
+			if($is_admin) {
+
+				$config['meta_keys'] = self::get_meta_keys($form_id, false);
+				$config['field_types'] = self::get_field_types(false);
+				$config['file_types'] = self::get_file_types(false);
+				$config['settings_plugin'] = self::get_settings_plugin(false);
+				$config['settings_form'] = self::get_settings_form_admin();
+				$config['frameworks'] = self::get_frameworks(false);
+				$config['parse_variables'] = self::get_parse_variables(false);
+				$config['parse_variable_help'] = self::get_parse_variable_help($form_id, false);
+				$config['tracking'] = self::get_tracking(false);
+				$config['ecommerce'] = self::get_ecommerce();
+				$config['actions'] = WS_Form_Action::get_settings();
+
+			} else {
+
+				$config['meta_keys'] = self::get_meta_keys($form_id, true);
+				$config['field_types'] = self::get_field_types_public($field_types);
+				$config['settings_plugin'] = self::get_settings_plugin();
+				$config['settings_form'] = self::get_settings_form_public();
+				$config['frameworks'] = self::get_frameworks();
+				$config['parse_variables'] = self::get_parse_variables();
+				$config['external'] = self::get_external();
+				$config['analytics'] = self::get_analytics();
+				$config['tracking'] = self::get_tracking();
+				$config['ecommerce'] = self::get_ecommerce();
+
+				// Debug
+				if(WS_Form_Common::debug_enabled()) {
+
+					$config['debug'] = self::get_debug();
+				}
+			}
+
+			// Add generic settings (Shared between both admin and public, e.g. language)
+			$config['settings_form'] = array_merge_recursive($config['settings_form'], self::get_settings_form(!$is_admin));
+
+			return $config;
+		}
+
+		// Attributes
+
+		//	label 					Field type label
+		//	label_default 			Default label injected into field when it is created
+		//	label_position_force	Force position of the label on this field. This useful if you don't want label positioning to affect the masks for this fied (e.g. input type file)
+		//	license 				true = Licensed to use, false = Not licensed to use
+		//	required 				Whether or not required functionality applies to this field
+		//	fieldsets 				Configuration fieldsets (meta_keys) shown in the sidebar
+
+		//	data_source 			Type and ID of data source linked to this field (e.g. for rendering repeater elements such as options)
+
+		//	mask 						Overall field mask wrapper (Defaults to #field if not specified)
+
+		//	mask_group 					Mask for groups (e.g. <optgroup label="#group_label"#disabled>#group</optgroup>)
+		//	mask_group_attributes		Which fields should be rendered as part of the #attributes tag
+		//	mask_group_label			Mask for the group label (e.g. #group_label)
+		//	mask_group_always 			Should the group mask always be rendered?
+
+		//	mask_row 					Mask for each data grid row (e.g. <option value="#select_field_value"#attributes>#select_field_label</option> or <div#attributes>#row_label</div>)
+		//	mask_row 					Mask for placeholder row (e.g. <option value="">#value</option for Select... row)
+		//	mask_row_attributes			Which fields should be rendered as part of the #attributes tag
+		//	mask_row_label 				Mask for each row label (Typically include #row_field)
+		//	mask_row_label_attributes	Attributes to include in row labels
+		//	mask_row_field 				Mask for each row field
+		//	mask_row_field_attributes	Attributes to include in row labels
+		//	mask_row_lookups			Which fields are made available in mask_row (These are lookups in the data)
+		//	datagrid_column_value		Name of field that is saved as the submit value
+		//	mask_row_default			String to use if a row is marked as default (e.g. ' selected' for a select field)
+
+		//	mask_field 					Mask for the field itself (e.g. <input type="text" id="#id" name="#name" class="#class" value="#value"#attributes />)
+		//	mask_field_attributes		Which fields should be rendered as part of the #attributes tag
+
+		//	mask_field_label 			Mask for the field label when rendered (e.g. <label id="#label_id" for="#id" class="#class">#label</label>)
+		//	mask_field_label_attributes	Which fields should be rendered as part of the #attributes tag for field labels
+		//	mask_field_label_hide_group	Hide labels on groups
+
+		//	mask_help 					Mask for field help (if omitted, falls back to framework mask_help)
+
+
+		// Submit variables
+
+		//	submit_save 				Should this field be saved to meta data (e.g. html_editor = false)
+		//	submit_edit					Can this field be edited once submitted (e.g. signature = false)
+		//	submit_edit_type			Override type for editing (e.g. hidden = text)
+		//	submit_array				Should this field be treated as array (true for datagrid fields such as select, radio and checkbox)
+
+
+		// Mask variables
+
+		//	#id 					Field ID
+		//	#label 					Field label
+		//	#attributes 			Field attributes (attributes that may or may not have a value, e.g. maxlength)
+		//	#value 					Field value
+
+		//	#group_id 				Group ID (i.e. Unique to tab index in data grid)
+		//	#group_label 			Group label (i.e. Tab name in data grid)
+
+		//	#row_id 				Row ID (e.g. of option in optgroup or datalist)
+		//	#row_label 				Render the mask_row_label mask
+		//	#row_field 				Render the mask_row_field mask
+
+		//	#data 					Outputs content of data grid (e.g. select optgroup/options or datalist)
+
+		//	logics_enabled			Logics enabled on 'if' condition
+		//	actions_enabled			Actions enavbled on 'then'/'else'
+		//	condition_event 		Event that will fire a conditional check (space separate multiple events)
+
+		// Configuration - Field Types
+		public static function get_field_types($public = true) {
+
+			// Check cache
+			if(isset(self::$field_types[$public])) { return self::$field_types[$public]; }
+
+			$field_types = array(
+
+				'basic' => array(
+
+					'label'	=> 'Basic',
+					'types' => array(
+
+						'text' => array (
+
+							'label'				=>	__('Text', 'ws-form'),
+							'pro_required'		=>	!WS_Form_Common::is_edition('basic'),
+							'kb_url'			=>	'/knowledgebase/text/',
+							'label_default'		=>	__('Text', 'ws-form'),
+							'data_source'		=>	array('type' => 'data_grid', 'id' => 'data_grid_datalist'),
+							'submit_save'		=>	true,
+							'submit_edit'		=>	true,
+							'progress'			=>	true,
+							'conditional'		=>	array(
+
+								'logics_enabled'		=>	array('equals', 'equals_not', 'contains', 'contains_not', 'starts', 'starts_not', 'ends', 'ends_not', 'blank', 'blank_not', 'cc==', 'cc!=', 'cc>', 'cc<', 'cw==', 'cw!=', 'cw>', 'cw<', 'regex', 'regex_not', 'field_match', 'field_match_not', 'validate', 'validate_not', 'click', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'touchstart', 'touchend', 'touchmove', 'touchcancel', 'focus', 'blur', 'change', 'input', 'change_input', 'keyup', 'keydown'),
+								'actions_enabled'		=>	array('visibility', 'required', 'focus', 'value', 'disabled', 'readonly', 'set_custom_validity', 'class_add_wrapper', 'class_remove_wrapper', 'class_add_field', 'class_remove_field'),
+								'condition_event'		=>	'input change'
+							),
+							'events'			=>	array(
+
+								'event'				=>	'keyup',
+								'event_category'	=>	'Field'
+							),
+
+							// Groups
+							'mask_group'		=>	"\n\n<datalist id=\"#group_id\">#group</datalist>",
+							'mask_group_always'	=> true,
+
+							// Rows
+							'mask_row'			=>	'<option value="#datalist_field_value">#datalist_field_text</option>',
+							'mask_row_lookups'	=>	array('datalist_field_value', 'datalist_field_text'),
+							'datagrid_column_value'	=>	'datalist_field_value',
+
+							// Fields
+							'mask_field'					=>	'<input type="text" id="#id" name="#name" value="#value"#attributes />#data#invalid_feedback#help',
+							'mask_field_attributes'			=>	array('class', 'disabled', 'readonly', 'required', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'placeholder', 'pattern', 'list', 'aria_describedby', 'aria_labelledby', 'aria_label', 'custom_attributes'),
+							'mask_field_label'				=>	'<label id="#label_id" for="#id"#attributes>#label</label>',
+							'mask_field_label_attributes'	=>	array('class'),
+
+							'fieldsets'	=>	array(
+
+								// Tab: Basic
+								'basic'	=>	array(
+
+									'label'		=>	__('Basic', 'ws-form'),
+									'meta_keys'	=>	array('label_render', 'label_position', 'label_column_width', 'required', 'hidden', 'default_value', 'placeholder', 'help_count_char_word'),
+
+									'fieldsets'	=>	array(
+
+										array(
+											'label'		=>	__('Accessibility', 'ws-form'),
+											'meta_keys'	=>	array('aria_label')
+										),
+
+										array(
+											'label'		=>	__('Exclusions', 'ws-form'),
+											'meta_keys'	=>	array('exclude_email')
+										)
+									)
+								),
+
+								// Tab: Advanced
+								'advanced'	=>	array(
+
+									'label'	=>	__('Advanced', 'ws-form'),
+
+									'fieldsets'		=>	array(
+
+										array(
+											'label'		=>	__('Styles', 'ws-form'),
+											'meta_keys'	=>	array('class_single_vertical_align')
+										),
+
+										array(
+											'label'		=>	__('Classes', 'ws-form'),
+											'meta_keys'	=>	array('class_field_wrapper', 'class_field')
+										),
+
+										array(
+											'label'		=>	__('Restrictions', 'ws-form'),
+											'meta_keys'	=>	array('disabled', 'readonly', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'pattern')
+										),
+
+										array(
+											'label'		=>	__('Duplication', 'ws-form'),
+											'meta_keys'	=>	array('dedupe','dedupe_message')
+										),
+
+										array(
+											'label'		=>	__('Validation', 'ws-form'),
+											'meta_keys'	=>	array('invalid_feedback_render', 'invalid_feedback')
+										),
+
+										array(
+											'label'		=>	__('Custom Attributes', 'ws-form'),
+											'meta_keys'	=>	array('custom_attributes')
+										),
+										array(
+											'label'		=>	__('Breakpoints', 'ws-form'),
+											'meta_keys'	=> array('breakpoint_sizes'),
+											'class'		=>	array('wsf-fieldset-panel')
+										)
+									)
+								),
+
+								// Tab: Autocomplete
+								'datalist'	=> array(
+
+									'label'		=>	__('Datalist', 'ws-form'),
+									'meta_keys'	=> array('data_grid_datalist', 'datalist_field_text', 'datalist_field_value')
+								)
+							)
+						),
+
+						'textarea' => array (
+
+							'label'				=>	__('Text Area', 'ws-form'),
+							'pro_required'		=>	!WS_Form_Common::is_edition('basic'),
+							'kb_url'			=>	'/knowledgebase/textarea/',
+							'label_default'		=>	__('Text Area', 'ws-form'),
+							'submit_save'		=>	true,
+							'submit_edit'		=>	true,
+							'progress'			=>	true,
+							'conditional'		=>	array(
+
+								'logics_enabled'		=>	array('equals', 'equals_not', 'contains', 'contains_not', 'starts', 'starts_not', 'ends', 'ends_not', 'blank', 'blank_not', 'cc==', 'cc!=', 'cc>', 'cc<', 'cw==', 'cw!=', 'cw>', 'cw<', 'regex', 'regex_not', 'field_match', 'field_match_not', 'validate', 'validate_not', 'click', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'touchstart', 'touchend', 'touchmove', 'touchcancel', 'focus', 'blur', 'change', 'input', 'change_input', 'keyup', 'keydown'),
+								'actions_enabled'		=>	array('visibility', 'required', 'focus', 'value_textarea', 'disabled', 'readonly', 'set_custom_validity', 'class_add_wrapper', 'class_remove_wrapper', 'class_add_field', 'class_remove_field'),
+								'condition_event'		=>	'input change'
+							),
+							'events'			=>	array(
+
+								'event'				=>	'keyup',
+								'event_category'	=>	'Field'
+							),
+
+							// Fields
+							'mask_field'					=>	'<textarea id="#id" name="#name"#attributes>#value</textarea>#invalid_feedback#help',
+							'mask_field_attributes'			=>	array('class', 'disabled', 'readonly', 'required', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'placeholder', 'spellcheck', 'cols', 'rows', 'aria_describedby', 'aria_labelledby', 'aria_label', 'custom_attributes', 'input_type_textarea', 'input_type_textarea_toolbar'),
+							'mask_field_label'				=>	'<label id="#label_id" for="#id"#attributes>#label</label>',
+							'mask_field_label_attributes'	=>	array('class'),
+
+							'fieldsets'	=>	array(
+
+								// Tab: Basic
+								'basic'	=>	array(
+
+									'label'			=>	__('Basic', 'ws-form'),
+									'meta_keys'		=>	array('label_render', 'label_position', 'label_column_width', 'input_type_textarea', 'input_type_textarea_toolbar', 'required', 'hidden', 'default_value_textarea', 'placeholder', 'help_count_char_word_with_default'),
+
+									'fieldsets'		=>	array(
+
+										array(
+											'label'		=>	__('Accessibility', 'ws-form'),
+											'meta_keys'	=>	array('aria_label')
+										),
+
+										array(
+											'label'		=>	__('Exclusions', 'ws-form'),
+											'meta_keys'	=>	array('exclude_email')
+										)
+									)
+								),
+
+								// Tab: Advanced
+								'advanced'	=>	array(
+
+									'label'			=>	__('Advanced', 'ws-form'),
+
+									'fieldsets'	=>	array(
+
+										array(
+											'label'		=>	__('Styles', 'ws-form'),
+											'meta_keys'	=>	array('class_single_vertical_align')
+										),
+
+										array(
+											'label'		=>	__('Classes', 'ws-form'),
+											'meta_keys'	=> array('class_field_wrapper', 'class_field')
+										),
+
+										array(
+											'label'		=>	__('Restrictions', 'ws-form'),
+											'meta_keys'	=> array('disabled', 'readonly', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'cols', 'rows')
+										),
+
+										array(
+											'label'		=>	__('Duplication', 'ws-form'),
+											'meta_keys'	=>	array('dedupe','dedupe_message')
+										),
+
+										array(
+											'label'		=>	__('Validation', 'ws-form'),
+											'meta_keys'	=>	array('invalid_feedback_render', 'invalid_feedback')
+										),
+
+										array(
+											'label'		=>	__('Custom Attributes', 'ws-form'),
+											'meta_keys'	=>	array('custom_attributes')
+										),
+										array(
+											'label'		=>	__('Breakpoints', 'ws-form'),
+											'meta_keys'	=> array('breakpoint_sizes'),
+											'class'		=>	array('wsf-fieldset-panel')
+										)
+									)
+								)
+							)
+						),
+
+						'number' => array (
+
+							'label'				=>	__('Number', 'ws-form'),
+							'pro_required'		=>	!WS_Form_Common::is_edition('basic'),
+							'kb_url'			=>	'/knowledgebase/number/',
+							'label_default'		=>	__('Number', 'ws-form'),
+							'data_source'		=>	array('type' => 'data_grid', 'id' => 'data_grid_datalist'),
+							'submit_save'		=>	true,
+							'submit_edit'		=>	true,
+							'progress'			=>	true,
+							'conditional'		=>	array(
+
+								'logics_enabled'	=>	array('==', '!=', '<', '>', '<=', '>=', 'blank', 'blank_not', 'field_match', 'field_match_not', 'validate', 'validate_not', 'click', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'touchstart', 'touchend', 'touchmove', 'touchcancel', 'focus', 'blur', 'change', 'input', 'change_input', 'keyup', 'keydown'),
+								'actions_enabled'	=>	array('visibility', 'required', 'focus', 'value_number', 'disabled', 'readonly', 'set_custom_validity', 'class_add_wrapper', 'class_remove_wrapper', 'class_add_field', 'class_remove_field'),
+								'condition_event'	=>	'input change'
+							),
+							'compatibility_id'	=>	'input-number',
+							'events'			=>	array(
+
+								'event'				=>	'input',
+								'event_category'	=>	'Field'
+							),
+
+							// Groups
+							'mask_group'		=>	"\n\n<datalist id=\"#group_id\">#group</datalist>",
+							'mask_group_always'	=> true,
+
+							// Rows
+							'mask_row'				=>	'<option value="#datalist_field_value">#datalist_field_text</option>',
+							'mask_row_lookups'		=>	array('da=>	'<textarea id="#id" name="#name"#attributes>#value</textarea>#invalid_feedback#help',
+							'mask_field_attributes'			=>	array('class', 'disabled', 'readonly', 'required', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'placeholder', 'spellcheck', 'cols', 'rows', 'aria_describedby', 'aria_labelledby', 'aria_label', 'custom_attributes', 'input_type_textarea', 'input_type_textarea_toolbar'),
+							'mask_field_label'				=>	'<label id="#label_id" for="#id"#attributes>#label</label>',
+							'mask_field_label_attributes'	=>	array('class'),
+
+							'fieldsets'	=>	array(
+
+								// Tab: Basic
+								'basic'	=>	array(
+
+									'label'			=>	__('Basic', 'ws-form'),
+									'meta_keys'		=>	array('label_render', 'label_position', 'label_column_width', 'input_type_textarea', 'input_type_textarea_toolbar', 'required', 'hidden', 'default_value_textarea', 'placeholder', 'help_count_char_word_with_default'),
+
+									'fieldsets'		=>	array(
+
+										array(
+											'label'		=>	__('Accessibility', 'ws-form'),
+											'meta_keys'	=>	array('aria_label')
+										),
+
+										array(
+											'label'		=>	__('Exclusions', 'ws-form'),
+											'meta_keys'	=>	array('exclude_email')
+										)
+									)
+								),
+
+								// Tab: Advanced
+								'advanced'	=>	array(
+
+									'label'			=>	__('Advanced', 'ws-form'),
+
+									'fieldsets'	=>	array(
+
+										array(
+											'label'		=>	__('Styles', 'ws-form'),
+											'meta_keys'	=>	array('class_single_vertical_align')
+										),
+
+										array(
+											'label'		=>	__('Classes', 'ws-form'),
+											'meta_keys'	=> array('class_field_wrapper', 'class_field')
+										),
+
+										array(
+											'label'		=>	__('Restrictions', 'ws-form'),
+											'meta_keys'	=> array('disabled', 'readonly', 'min_length', 'max_length', 'min_length_words', 'max_length_words', 'input_mask', 'cols', 'rows')
+										),
+
+										array(
+											'label'		=>	__('Duplication', 'ws-form'),
+											'meta_keys'	=>	array('dedupe','dedupe_message')
+										),
+
+										array(
+											'label'		=>	__('Validation', 'ws-form'),
+											'meta_keys'	=>	array('invalid_feedback_render', 'invalid_feedback')
+										),
+
+										array(
+											'label'		=>	__('Custom Attributes', 'ws-form'),
+											'meta_keys'	=>	array('custom_attributes')
+										),
+										array(
+											'label'		=>	__('Breakpoints', 'ws-form'),
+											'meta_keys'	=> array('breakpoint_sizes'),
+											'class'		=>	array('wsf-fieldset-panel')
+										)
+									)
+								)
+							)
+						),
+
+						'number' => array (
+
+							'label'				=>	__('Number', 'ws-form'),
+							'pro_required'		=>	!WS_Form_Common::is_edition('basic'),
+							'kb_url'			=>	'/knowledgebase/number/',
+							'label_default'		=>	__('Number', 'ws-form'),
+							'data_source'		=>	array('type' => 'data_grid', 'id' => 'data_grid_datalist'),
+							'submit_save'		=>	true,
+							'submit_edit'		=>	true,
+							'progress'			=>	true,
+							'conditional'		=>	array(
+
+								'logics_enabled'	=>	array('==', '!=', '<', '>', '<=', '>=', 'blank', 'blank_not', 'field_match', 'field_match_not', 'validate', 'validate_not', 'click', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'touchstart', 'touchend', 'touchmove', 'touchcancel', 'focus', 'blur', 'change', 'input', 'change_input', 'keyup', 'keydown'),
+								'actions_enabled'	=>	array('visibility', 'required', 'focus', 'value_number', 'disabled', 'readonly', 'set_custom_validity', 'class_add_wrapper', 'class_remove_wrapper', 'class_add_field', 'class_remove_field'),
+								'condition_event'	=>	'input change'
+							),
+							'compatibility_id'	=>	'input-number',
+							'events'			=>	array(
+
+								'event'				=>	'input',
+								'event_category'	=>	'Field'
+							),
+
+							// Groups
+							'mask_group'		=>	"\n\n<datalist id=\"#group_id\">#group</datalist>",
+							'mask_group_always'	=> true,
+
+							// Rows
+							'mask_row'				=>	'<option value="#datalist_field_value">#datalist_field_text</option>',
+							'mask_row_lookups'		=>	array('da

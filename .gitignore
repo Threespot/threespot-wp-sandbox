@@ -43,6 +43,8 @@ frm.min.js
 !web/wp-content/themes/threespot-wp-sandbox
 #!web/wp-content/object-cache.php
 !web/wp-content/mu-plugins/bedrock-autoloader.php
+!web/wp-content/plugins/ws-form-pro
+!web/wp-content/plugins/gravityforms
 
 # Add directories containing build assets below.
 # Keep all additions above the "cut" line.

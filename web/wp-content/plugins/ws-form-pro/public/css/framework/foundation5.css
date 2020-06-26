@@ -1,0 +1,19 @@
+.wsf-form select[multiple] {
+	height: auto;
+}
+
+.wsf-tab-disabled {
+	pointer-events: none;
+}
+
+.wsf-tab-disabled.tab-title > a {
+	color: #cacaca;
+    cursor: not-allowed;
+}
+
+[data-type='textarea'] .mce-btn.mce-active button,
+[data-type='textarea'] .mce-btn.mce-active:hover button,
+[data-type='textarea'] .mce-btn.mce-active i,
+[data-type='textarea'] .mce-btn.mce-active:hover i {
+	color: #000;
+}

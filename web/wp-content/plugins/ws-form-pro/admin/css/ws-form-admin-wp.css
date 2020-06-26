@@ -1,0 +1,213 @@
+#dashboard_right_now li a.wsf-dashboard-glance-count:before, #dashboard_right_now li > span.wsf-dashboard-glance-count:before {
+	content: '';
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cGF0aCBmaWxsPSIjNjA2YTczIiBkPSJNMCAwdjQwMGg0MDBWMEgwem0zMzYuNiAxMTguOWM2LjctLjEgMTMuNCA1LjQgMTMuNCAxMy42LS4xIDcuNC01LjkgMTMuNC0xMy40IDEzLjQtOC4xIDAtMTMuNi02LjctMTMuNS0xMy43IDAtNy4zIDYuMS0xMy41IDEzLjUtMTMuM3ptLTEyNC40IDYuNWMtMTIgNDguOC0yNCA5Ny42LTM2LjEgMTQ2LjMgMCAuMi0uMi4yLS4yLjQtLjguMS02IC4yLTEwLjQuMmgtMS45Yy0yLjEgMC0zLjctLjEtNC4xLS4xLS4yLS4yLS4zLS40LS4zLS42LS4xLS4yLS4xLS41LS4yLS43LTEuNS02LjYtMi45LTEzLjItNC40LTE5LjgtMi44LTEyLjItNS41LTI0LjQtOC4yLTM2LjYtMi4zLTEwLjItNC41LTIwLjQtNi44LTMwLjYtLjktNC4yLTEuOS04LjMtMi44LTEyLjUtLjYtMy0xLjEtNi4xLTEuNy05LjEtMS01LjUtMi0xMS4yLTMtMTYuNy0uMS0uNC0uMi0uOC0uMy0xLjUtLjIuNi0uMy44LS40IDEuMS0xLjUgOS0zLjQgMTcuOS01LjIgMjYuOC0uOSA0LjctMi4xIDkuNS0zLjIgMTQuMi0yLjggMTIuMy01LjcgMjQuNi04LjUgMzYuOS0zLjYgMTUuOC03LjMgMzEuNi0xMSA0Ny41LS4xLjUtLjMgMS0uNCAxLjUtLjIuMS0uNS4yLS42LjJIODYuN2MtLjYtLjMtLjYtLjgtLjctMS4yLTEuMi00LjgtMi4zLTkuNi0zLjUtMTQuNS0zLjYtMTUuNC03LjQtMzAuOS0xMS00Ni40LTMuOS0xNi40LTcuOC0zMi43LTExLjctNDkuMS0yLjgtMTEuNS01LjUtMjIuOS04LjEtMzQuMy0uMi0uNy0uNS0xLjQtLjQtMi4xIDEuMi0uMiAxMS45LS4zIDE0LS4xLjEuMy4yLjcuNCAxLjEgMi40IDEwIDQuNyAxOS45IDcgMjkuOSAyLjUgMTAuNyA1IDIxLjQgNy41IDMyIDEuOCA3LjggMy43IDE1LjYgNS41IDIzLjMgMS43IDcuNCAzLjIgMTQuOCA0LjcgMjIuMiAxLjQgNi44IDIuOCAxMy43IDQuMyAyMC41LjEuNS4yLjkuNCAxLjMuMS4yLjMuMi42LjMuMi0uNi4zLTEuMS40LTEuNyAxLjgtMTMuMSA0LjQtMjUuOSA3LjQtMzguOCA0LjMtMTguNiA4LjctMzcuMiAxMy4xLTU1LjhsNy44LTMzLjNjLjEtLjUuMi0uOS40LTEuNCAxLjctLjEgMy4zIDAgNS0uMWg1YzEuNyAwIDMuMy0uMSA1IC4xLjIuNi4zIDEuMi41IDEuNyAzLjggMTYuMSA3LjYgMzIuMiAxMS40IDQ4LjIgMyAxMi43IDYgMjUuMyA4LjkgMzggMS4zIDUuNSAyLjMgMTEuMiAzLjQgMTYuOCAxLjMgNi45IDIuNSAxMy44IDMuNyAyMC42LjMgMS43LjYgMy4yLjkgNC45LjEuMy4yLjYuNy42bC4zLTEuMmMuOC01LjEgMS44LTEwIDIuOS0xNSAzLjktMTguMSA4LjItMzYuMSAxMi40LTU0LjMgMy42LTE1LjIgNy4xLTMwLjQgMTAuNy00NS42IDEtNC41IDIuMS05IDMuMi0xMy41LjEtLjMuMi0uNy40LTEuMSAxLjItLjIgMi40LS4xIDMuNS0uMWg2LjhjMS4yIDAgMi40LS4yIDMuNi4yLS44LjUtLjguNy0uOSAxem04Ni4zIDEyNC41Yy0zLjYgMTEuNS0xMS4zIDE5LjEtMjIuOCAyMi44LTMuMiAxLTYuNiAxLjctMTAgMi01LjIuNi0xMC40LjUtMTUuNy0uMS03LS43LTEzLjgtMi43LTIwLjItNS45LTEuMi0uNi0yLjQtMS4yLTMuNS0yLjEuNi0xLjYgNS40LTkuNyA2LjItMTAuNy4zLjIuNi4yLjkuNSAxLjcgMS4xIDMuNSAxLjggNS40IDIuNSAzLjIgMS4xIDYuMyAyLjEgOS43IDIuOCA1LjEuOSAxMC4xIDEuMyAxNS4zLjggMTIuOS0xLjQgMTkuMi0xMCAyMS4zLTE4IDEuNS01LjYgMS42LTExLjMuMi0xNi45LS45LTMuOS0yLjgtNy4zLTUuNC0xMC4yLTEuOC0yLTMuOC0zLjgtNS45LTUuNC00LjItMy4zLTguNy02LjItMTMuMy04LjktNC43LTIuOC05LjMtNS41LTEzLjgtOC42LTIuOS0yLjEtNS45LTQuMS04LjQtNi42LTMuNy0zLjYtNi43LTcuNy04LjktMTIuNC0xLjgtMy45LTIuOC04LjEtMy4yLTEyLjMtLjItMi41LS4yLTUuMS0uMS03LjcuNi04LjggNC4yLTE2LjIgMTAuNi0yMi4zIDUuOS01LjUgMTIuOC04LjkgMjAuNi0xMC40IDUuMy0xIDEwLjctMS4yIDE2LjEtLjcgNy40LjYgMTQuNSAyLjUgMjEuMSA1LjkgMS4zLjcgMi42IDEuNCAzLjkgMi4yLjMuMi42LjUuOS42LS41IDEuMy0zLjggNy4xLTUuNyAxMC4xLS4yLjItLjMuNC0uNi42bC0xLjItLjZjLTUuNC0zLjEtMTEuMS01LjMtMTcuMi02LjItNS42LS45LTExLjItLjktMTYuNy41LTIuOC43LTUuNCAxLjctNy44IDMuMy01LjkgMy45LTkuMyA5LjMtMTAuMiAxNi4yLS42IDQuNS0uMiA4LjkgMS4yIDEzLjMgMS4xIDMuNSAzIDYuNSA1LjUgOSAyLjYgMi42IDUuNSA0LjggOC41IDcgMy4zIDIuMyA2LjggNC40IDEwLjMgNi41IDUuOCAzLjQgMTEuNSA3IDE2LjggMTEgMi4zIDEuNyA0LjYgMy42IDYuNiA1LjYgNS45IDUuOSA5LjUgMTMgMTAuNiAyMS4yIDEuNCA3LjIgMS4xIDE0LjUtMS4xIDIxLjZ6bTM4IDI2LjRjLTcuNS4xLTEzLjUtNi4yLTEzLjUtMTMuNSAwLTYuNyA1LjQtMTMuNSAxMy41LTEzLjQgNy40IDAgMTMuNCA1LjkgMTMuNCAxMy40LjEgOC02LjUgMTMuNi0xMy40IDEzLjV6bS0uMS02NC44Yy03LjktLjEtMTMuNC02LjYtMTMuNC0xMy40IDAtNy43IDYuNC0xMy43IDEzLjUtMTMuNSA2LjQtLjIgMTMuNCA1LjEgMTMuNSAxMy41IDAgNy40LTYuMSAxMy41LTEzLjYgMTMuNHoiPjwvcGF0aD48L3N2Zz4=);
+	width: 15px;
+	height: 20px;
+	background-repeat: no-repeat;
+	padding: 0px 5px;
+}
+
+.block-editor-inserter__preview .wsf-block-form-add-preview svg {
+	width: 80%;
+	margin-left: 10%;
+}
+
+[data-type="wsf-block/form-add"] {
+	min-height: 40px;
+}
+
+[data-type="wsf-block/form-add"] svg.wsf-block-loader {
+	-webkit-animation: wsf-rotate 1s linear infinite;
+	animation: wsf-rotate 1s linear infinite;
+	height: 40px;
+	width: 40px;
+	margin: 0 auto;
+	display: block;
+}
+
+.wp-core-ui .button-secondary.wsf-button-add-form {
+	margin-right: 5px;
+	margin-bottom: 4px;
+	padding-left: 7px;
+	padding-right: 7px;
+}
+
+.wsf-button-add-form-icon {
+	display: inline-block;
+	height: 18px;
+	margin: -1px 6px 0 0;
+	vertical-align: text-top;
+	width: 18px;
+}
+
+.wsf-button-add-form-icon svg path {
+	fill: #0071a1;
+}
+
+.button:hover .wsf-button-add-form-icon svg path {
+	fill: #016087;
+}
+
+#wp-et_pb_content-editor-tools .wsf-button-add-form-icon {
+	margin: 0px 6px 0 0;
+}
+
+#wp-et_pb_content-editor-tools .wsf-button-add-form-icon path {
+	fill: #FFFFFF;
+}
+
+#wsf-post-add-form {
+	display: none;
+}
+
+.wsf-modal-backdrop {
+	background-color: #000000;
+	bottom: 0;
+	display: none;
+	filter: alpha(opacity=70);
+	left: 0;
+	opacity: 0.7;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 150000;
+}
+
+.wsf-modal {
+	background-color: #FFFFFF;
+	-webkit-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+	display: none;
+	left: 50%;
+	position: fixed;
+	top: 50%;
+	z-index: 150001;
+}
+
+.wsf-modal-title {
+	background-color: #FCFCFC;
+	border-bottom: 1px solid #DFDFDF;
+	height: 36px;
+	font-size: 18px;
+	font-weight: 600;
+	left: 0;
+	line-height: 36px;
+	padding: 0 36px 0 42px;
+	right: 0;
+	top: 0;
+}
+
+.wsf-modal-title svg {
+	height: 36px;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 36px;
+}
+
+.wsf-modal-close {
+	color: #666666;
+	cursor: pointer;
+	height: 36px;
+	padding: 0;
+	position: absolute;
+	right: 0;
+	text-align: center;
+	top: 0;
+	width: 36px;
+}
+
+.wsf-modal-close:before {
+	content: '\f158';
+	font: normal 20px/36px 'dashicons';
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	height: 36px;
+	speak: none;
+	vertical-align: top;
+	width: 36px;
+}
+
+.wsf-modal-content {
+	padding: 0 16px 50px;
+}
+
+.wsf-modal-content form {
+	padding: 8px 0 12px;
+}
+
+.wsf-modal-content form label {
+	display: block;
+	margin-bottom: 6px;
+}
+
+#wsf-post-add-form-id {
+	max-width: 100%;
+}
+
+#wsf-feedback-reason-found-better-plugin-select {
+	margin-bottom: 6px;
+	width: 100%;
+}
+
+#wsf-feedback-reason-other-text,
+#wsf-feedback-reason-error-text {
+	width: 100%;
+}
+
+.wsf-modal-buttons {
+	padding: 8px 16px;
+	background: #FCFCFC;
+	border-top: 1px solid #DFDFDF;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+#wsf-modal-buttons-cancel {
+	float: left;
+	line-height: 25px;
+}
+
+#wsf-modal-buttons-cancel a {
+	color: #A00;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+#wsf-modal-buttons-cancel a:hover {
+	color: #DC3232;
+}
+
+#wsf-modal-buttons-add-form,
+#wsf-modal-buttons-feedback-submit {
+	float: right;
+	line-height: 23px;
+}
+
+.wsf-submit-unread > span {
+	background-color: #ca4a1f;
+	border-radius: 9px;
+	box-sizing: border-box;
+	color: #FFF;
+	display: inline-block;
+	font-size: 11px;
+	height: 18px;
+	line-height: 1.6;
+	margin: 1px 0 -1px 2px;
+	min-width: 18px;
+	padding: 0 5px;
+	text-align: center;
+	vertical-align: top;
+	z-index: 26;
+}
+
+.admin-color-fresh .wsf-submit-unread > span { background-color: #ca4a1f; }
+.admin-color-blue .wsf-submit-unread > span { background-color: #e1a948; }
+.admin-color-coffee .wsf-submit-unread > span { background-color: #9ea476; }
+.admin-color-ectoplasm .wsf-submit-unread > span { background-color: #d46f15; }
+.admin-color-light .wsf-submit-unread > span { background-color: #d64e07; }
+.admin-color-midnight .wsf-submit-unread > span { background-color: #69a8bb; }
+.admin-color-ocean .wsf-submit-unread > span { background-color: #aa9d88; }
+.admin-color-sunrise .wsf-submit-unread > span { background-color: #ccaf0b; }
