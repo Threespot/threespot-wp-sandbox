@@ -98,7 +98,7 @@
     "frontline-css-reset": "^3.0.0",
     "frontline-sass": "^3.7.5",
     "jquery": "^3.5.1",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.19",
     "mdn-polyfills": "^5.18.0",
     "picturefill": "^3.0.2",
     "react": "^16.10.1",
