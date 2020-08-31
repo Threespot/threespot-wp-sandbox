@@ -1,0 +1,11 @@
+#cover{
+    width: 100px;
+}
+.thumb{
+	height:100px; 
+	width: 70px;
+	background-color:transparent;
+	background-size:contain;
+	background-position:center;
+	background-repeat:no-repeat;
+}

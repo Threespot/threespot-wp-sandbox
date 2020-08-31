@@ -1,0 +1,586 @@
+
+#real3dflipbook-admin .actions-holder {
+    padding: 10px;
+}
+#real3dflipbook-admin .submit {
+    clear: both;
+}
+#real3dflipbook-admin .float-left {
+    float:left;
+}
+#real3dflipbook-admin .float-right {
+    float:right;
+}
+#real3dflipbook-admin .column-left {
+    position: relative;
+    float: left;
+    width:50%;
+}
+#real3dflipbook-admin .column-right {
+    position: relative;
+    width:50%;
+    float: right;
+}
+#real3dflipbook-admin .back-to-list-link {
+    text-decoration: none;
+    margin-top: 11px;
+    display: block;
+    width: 180px;
+}
+
+#real3dflipbook-admin #add-new-page-button {
+    margin-bottom:20px;
+    float:right;
+}
+
+#real3dflipbook-admin .delete-pages-button {color: #bc0b0b;cursor:pointer;}
+
+#real3dflipbook-admin .delete-all-pages {
+    margin-bottom:20px;
+    margin-right:10px;
+    margin-left:10px;
+    float:right;
+}
+
+#real3dflipbook-admin .delete-page {
+    position:absolute;
+    top:25px;
+    right:0;
+    color:#f00;
+}
+
+#real3dflipbook-admin .update-all-flipbooks {
+    margin: 5px 20px;
+    color:#f00;
+}
+
+#real3dflipbook-admin .button80 {
+    min-width: 80px;
+    text-align: center;
+}
+
+#real3dflipbook-admin .page{
+    margin: 5px;
+    position: relative;
+    display: inline-block;
+    cursor:pointer;
+    margin-bottom: 10px;
+}
+
+#real3dflipbook-admin .page-number{
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+#real3dflipbook-admin .page .page-img{
+    height: 80px;
+    background: #ffffff;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    min-width: 50px;
+    box-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+
+#real3dflipbook-admin .attachments-browser{
+    position:relative;
+    height: 800px;
+}
+
+#real3dflipbook-admin #pages-container{
+    margin-bottom: 10px;
+}
+
+#real3dflipbook-admin #pages-container:focus{
+    outline: none;
+}
+
+#real3dflipbook-admin .attachments-browser{
+    border: 2px solid #c9c9c9;
+    border-radius: 4px;
+    background: #e2e2e2;
+}
+
+#real3dflipbook-admin .media-sidebar{
+    border-left:  2px solid #CCC;
+    background: #eaeaea;
+}
+#real3dflipbook-admin .media-sidebar canvas{
+    margin: 10px auto;
+    display: block;
+}
+
+#real3dflipbook-admin .media-sidebar input{
+    width:100%;
+}
+
+#real3dflipbook-admin .media-sidebar img{
+    margin: 10px auto;
+    display: block;
+}
+
+#real3dflipbook-admin .attachments-browser .ui-sortable{
+    /* top:10px !important; */
+    /* background: #ffffff; */
+}
+
+#real3dflipbook-admin .attachments-browser textarea{
+    display: block;
+    height: 300px;
+    width: 100%;
+}
+
+#real3dflipbook-admin .page .tabs{
+    /* background:#EBEBEB */
+}
+
+#real3dflipbook-admin .share .tabs{
+    background:#EBEBEB
+}
+
+#real3dflipbook-admin .page img{
+    height: 80px;
+}
+
+#real3dflipbook-admin .page canvas{
+    /* margin: 0 auto; */
+    /* display: block; */
+    /* max-width: 100%; */
+    /* max-height: 100%; */
+    /* vertical-align: middle; */
+    /* max-width: 100%; */
+    /* max-height: 100%; */
+    /* padding: 0; */
+    /* position: relative; */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+}
+
+#real3dflipbook-admin .page-img{display: inline-block;}
+
+#real3dflipbook-admin .page .deletediv,
+#real3dflipbook-admin .page .duplicatediv {
+    cursor:pointer;
+    position: absolute;
+    right: 6px;
+    top: 0;
+}
+
+#real3dflipbook-admin .share .deletediv,
+#real3dflipbook-admin .share .duplicatediv {
+    /*float:right;*/
+    position:absolute;
+    top: 10px;
+    right: 10px;
+    cursor:pointer;
+}
+
+#real3dflipbook-admin .page .page-link .field-row{
+    clear: both;
+    margin-bottom: 10px;
+    height: 20px;
+    position: relative;
+}
+
+#real3dflipbook-admin .page .page-link{
+    position: relative;
+    background: rgba(255, 255, 255, 0.75);
+    margin-bottom: 15px;
+    border-radius: 2px;
+}
+#real3dflipbook-admin .page .page-link label{
+    /*width: 115px;*/
+    /*text-align: right;*/
+    /*display: block;*/
+    /*float: left;*/
+
+    display: block;
+    float: left;
+    width: 115px;
+    text-align: right;
+    margin: 6px 5px 0 0;
+}
+#real3dflipbook-admin .page .page-link input{
+    /*width: 65px;*/
+}
+
+
+#real3dflipbook-admin .page .delete-link{
+    position:absolute;
+    right: 0;
+    top: 0;
+    cursor:pointer;
+}
+
+#real3dflipbook-admin .page .deletediv {
+    background-position: -17px -28px;
+}
+#real3dflipbook-admin .page .deletediv:hover {
+    background-position: -27px -30px;
+}
+
+#real3dflipbook-admin .page .duplicatediv {
+    top:30px;
+    background-position: 0 0;
+}
+#real3dflipbook-admin .page .duplicatediv:hover {
+    background-position: 0 -30px;
+}
+
+#real3dflipbook-admin .postbox {
+    /* margin-right: 10px; */
+    /* background: #DEDEDE; */
+    /* display: inline-block; */
+}
+
+#real3dflipbook-admin .postbox h3{
+    /* color: #000; */
+    /* background: #CFCFCF; */
+    font-size: 14px;
+    padding: 8px 12px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+#real3dflipbook-admin .postbox .handlediv{
+    color: #000;
+}
+
+
+
+#real3dflipbook-admin .widget-top, .postbox .inside{
+    margin-bottom: 30px;
+}
+
+#real3dflipbook-admin .page .settings-area {
+
+background: #ddd;
+}
+
+#real3dflipbook-admin .page .settings-area input,
+#real3dflipbook-admin .page .settings-area textarea {
+    
+}
+#real3dflipbook-admin .page .content-editor-button {
+    margin-top:10px;
+}
+#real3dflipbook-admin a.button-primary {
+    color:#FFF !important;
+    display: inline-block;
+}
+
+#real3dflipbook-admin .dashicons {
+    font-size:100px;
+    display: inline-block;
+    height: 100px;
+}
+
+#real3dflipbook-admin .options-sidebar .field-row {
+    clear: both;
+    margin-bottom: 10px;
+    height: 20px;
+    position: relative;
+}
+#real3dflipbook-admin .hidden {
+    display:none !important;
+}
+
+#real3dflipbook-admin .real3dflipbooks-table tr {
+    height:45px;
+}
+#real3dflipbook-admin .ui-widget-content{
+    border:none;
+}
+#real3dflipbook-admin .ui-tabs{
+    /*padding:0;*/
+    background: transparent;
+}
+/* tabs */
+#real3dflipbook-admin .settings-area .ui-tabs-nav {
+    /*padding: 0;*/
+    
+}
+#real3dflipbook-admin .settings-area .ui-tabs-panel {
+    /*padding: 0.5em 0;*/
+}
+#real3dflipbook-admin .settings-area .ui-tabs-panel input[type=text]{
+    width:100%;
+    
+    max-width: 500px;
+}
+#real3dflipbook-admin .settings-area .ui-tabs-panel  textarea{
+    width:100%;
+    height:300px;
+}
+#real3dflipbook-admin .settings-area .ui-widget-content {
+    /* background: none; */
+    /* border: none; */
+    /* padding: 10px; */
+    /* margin: 0; */
+    /* background: #fff; */
+    /* position: relative; */
+    /* top: -88px; */
+    /* left: 83px; */
+    /* margin-right: 100px; */
+}
+
+#real3dflipbook-admin .settings-area img {
+    border: 1px solid #999;
+}
+
+#real3dflipbook-admin .settings-area .page-img {
+    height: 120px;
+    display: inline-block;
+}
+
+#real3dflipbook-admin .settings-area .ui-state-active {
+    /* background: #D9D9D9; */
+    /* border-color: #aaa; */
+}
+#real3dflipbook-admin .settings-area .ui-widget-header {
+    border: none;
+}
+#real3dflipbook-admin .settings-area .ui-tabs-nav {
+    /*border-radius: 0;*/
+    /*display: inline-block;*/
+    /*margin-left: 10px;*/
+    /* position: absolute; */
+}
+
+#real3dflipbook-admin .settings-area .ui-tabs-nav {
+    /*border-radius: 0;*/
+    /*display: inline-block;*/
+    /*margin-left: 10px;*/
+    /* position: absolute; */
+    max-height: 31px;
+}
+
+#real3dflipbook-admin .tabs h4 {
+    margin:0;
+    font-size: 12px;
+}
+
+#real3dflipbook-admin .tabs .ui-state-default {
+    border-bottom: 1px solid #e4e4e4;
+    /* background: #e4e4e4; */
+    margin-bottom: 0;
+}
+#real3dflipbook-admin .tabs .ui-state-default a{
+    padding: 6px 10px;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 24px;
+    background: #E2E2E2;
+}
+
+#real3dflipbook-admin .tabs .ui-state-active {
+    border-bottom: 1px solid #f1f1f1;
+    background: #f1f1f1;
+    color: #000;
+}
+#real3dflipbook-admin .tabs .ui-state-active a{
+
+border-bottom: 1px solid #F1F1F1;
+
+background: #F1F1F1;
+
+color: #000;
+}
+
+#real3dflipbook-admin .ui-tabs-nav{
+    background: none;
+    border:none;
+
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0;
+    padding-left: 10px
+
+}
+
+#real3dflipbook-admin .page .page-title{
+    margin: 0px;
+    text-align: center;
+    font-weight: 400;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: initial;
+}
+
+#real3dflipbook-admin .page .page-delete{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    /* padding: 2px; */
+    width: 16px;
+    color: #bc0b0b;
+    font-size: 14px;
+    visibility:hidden;
+    pointer-events: none;
+    background: #fff;
+    text-align: center;
+}
+
+#real3dflipbook-admin .page .page-delete-visible{
+    visibility:visible;
+    pointer-events: auto;
+}
+
+#real3dflipbook-admin .page .page-edit{
+    pointer-events: none;
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translate(-50%);
+    visibility: hidden;
+}
+
+#real3dflipbook-admin .page .page-edit-visible{
+    visibility:visible;
+}
+
+#real3dflipbook-admin .page .overlay{
+    position: absolute;
+    margin: 0;
+    text-align: center;
+    width:100%;
+    height: 135px;
+    background: rgba(0,0,0,.3);
+    top:0;
+    left:0;
+    color:#fff;
+    opacity:0;
+    transition:all .3s;
+    cursor:pointer;
+    display: table;
+}
+
+#real3dflipbook-admin .page .edit{
+    height: 100%;
+    vertical-align: middle;
+    display: table-cell;
+}
+
+#real3dflipbook-admin .page .edit:before{
+    margin-top:-1px;
+}
+
+#real3dflipbook-admin .page .overlay:hover{
+    opacity:1;
+}
+
+#real3dflipbook-admin .unsaved{
+    color:#f00;
+}
+
+#real3dflipbook-admin .nav-tab{cursor: pointer;}
+
+/*#real3dflipbook-admin .nav-tab-active{
+    box-shadow:none;
+}*/
+
+.r3d-save-sticky{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding-right: 18px;
+    background: rgba(255, 255, 255, 0.87);
+    width: 100%;
+    border-top: 1px solid #e0e0e0;
+    z-index: 9999;
+    margin: 0;
+}
+
+#r3d-save-holder{
+    height: 58.5px;
+    padding: 0;
+    margin: 0;
+}
+
+#real3dflipbook-admin .toc-item{
+    padding: 2px 10px;
+    margin: 2px;
+    background: #e5e5e5;
+    border: 2px solid #CCC;
+    border-radius: 4px;
+}
+
+#real3dflipbook-admin .toc-item-wrapper{
+   
+/*    transition:all 300ms; */
+}
+
+#real3dflipbook-admin .toc-sub-item{
+    margin-left:40px;
+    margin-right:0;
+    margin-top:2px;
+    margin-bottom:2px;
+   
+}
+
+#real3dflipbook-admin .toc-item:hover{
+   border: 2px solid #BBB;
+}
+
+#real3dflipbook-admin .toc-controls span{
+   font-size: 16px;
+   padding: 5px;
+   color:  #000;
+   opacity:  .2;
+   cursor:pointer;
+}
+
+
+#real3dflipbook-admin .toc-controls span:hover{
+   opacity:  .5;
+}
+
+#real3dflipbook-admin .toc-add-sub{
+   margin: 0 10px;
+}
+
+#real3dflipbook-admin .toc-delete-all{
+   color: #bc0b0b;
+   margin-left: 10px;
+}
+
+#real3dflipbook-admin .toc-controls{
+   float:right;
+}
+
+#real3dflipbook-admin #toc-items{
+   max-width: 800px;
+}
+
+#real3dflipbook-admin td{
+    vertical-align:top;
+}
+
+#real3dflipbook-admin .default-setting{
+    margin-left:10px;
+    margin-top: 5px;
+    font-size: 13px;
+    font-style: italic;
+    vertical-align:top;
+    display: inline-block;
+}
+
+#real3dflipbook-admin .theme-img{
+    /* box-shadow: 0 0 20px #00000066; */
+    display: inline-block;
+    height: 300px;
+    margin: 10px;
+    border: 4px solid transparent;
+}
+
+#real3dflipbook-admin .theme-img-active{
+    border: 4px solid #0084bc;
+}
+
+#real3dflipbook-admin img{
+    /*height:300px;*/
+}
+
+#edit-page-img{
+    box-shadow: 0px 0px 1px #000;
+}
