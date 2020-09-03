@@ -45,7 +45,7 @@ frm.min.js
 !web/wp-content/mu-plugins/bedrock-autoloader.php
 !web/wp-content/plugins/ws-form-pro
 !web/wp-content/plugins/gravityforms
-!web/wp-content/plugins/real3d-flipbook
+
 
 # Add directories containing build assets below.
 # Keep all additions above the "cut" line.
