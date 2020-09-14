@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "86c5f2bfbb931c1cb126cd4425eeb232",
+    "content-hash": "0f4779b910d92b13267252f14c92c8e3",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -691,6 +691,42 @@
             "homepage": "https://wordpress.org/plugins/acf-better-search/"
         },
         {
+            "name": "wpackagist-plugin/advanced-gutenberg",
+            "version": "2.4.5",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/advanced-gutenberg/",
+                "reference": "tags/2.4.5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/advanced-gutenberg.2.4.5.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/advanced-gutenberg/"
+        },
+        {
+            "name": "wpackagist-plugin/atomic-blocks",
+            "version": "2.8.5",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/atomic-blocks/",
+                "reference": "tags/2.8.5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/atomic-blocks.2.8.5.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/atomic-blocks/"
+        },
+        {
             "name": "wpackagist-plugin/block-unit-test",
             "version": "1.0.6",
             "source": {
@@ -725,6 +761,24 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/classic-editor/"
+        },
+        {
+            "name": "wpackagist-plugin/coblocks",
+            "version": "2.3.2",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/coblocks/",
+                "reference": "tags/2.3.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/coblocks.2.3.2.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/coblocks/"
         },
         {
             "name": "wpackagist-plugin/custom-post-type-ui",
@@ -853,6 +907,24 @@
             "homepage": "https://wordpress.org/plugins/pantheon-advanced-page-cache/"
         },
         {
+            "name": "wpackagist-plugin/stackable-ultimate-gutenberg-blocks",
+            "version": "2.10.0",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/stackable-ultimate-gutenberg-blocks/",
+                "reference": "tags/2.10.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/stackable-ultimate-gutenberg-blocks.2.10.0.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/stackable-ultimate-gutenberg-blocks/"
+        },
+        {
             "name": "wpackagist-plugin/wp-mail-smtp",
             "version": "2.3.1",
             "source": {
@@ -923,6 +995,24 @@
             },
             "type": "wordpress-theme",
             "homepage": "https://wordpress.org/themes/twentynineteen/"
+        },
+        {
+            "name": "wpackagist-theme/twentytwenty",
+            "version": "1.5",
+            "source": {
+                "type": "svn",
+                "url": "https://themes.svn.wordpress.org/twentytwenty/",
+                "reference": "1.5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/theme/twentytwenty.1.5.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-theme",
+            "homepage": "https://wordpress.org/themes/twentytwenty/"
         }
     ],
     "packages-dev": [

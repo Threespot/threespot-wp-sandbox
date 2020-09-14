@@ -41,8 +41,11 @@
     "rvtraveller/qs-composer-installer": "^1.1",
     "vlucas/phpdotenv": "^3.1.0",
     "wpackagist-plugin/acf-better-search": "^3.3.2",
+    "wpackagist-plugin/advanced-gutenberg": "^2.4.5",
+    "wpackagist-plugin/atomic-blocks": "^2.8.5",
     "wpackagist-plugin/block-unit-test": "^1.0",
     "wpackagist-plugin/classic-editor": "^1.5",
+    "wpackagist-plugin/coblocks": "^2.3.2",
     "wpackagist-plugin/custom-post-type-ui": "^1.6",
     "wpackagist-plugin/duplicate-post": "^3.2.3",
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
@@ -50,10 +53,12 @@
     "wpackagist-plugin/lh-hsts": "^1.24",
     "wpackagist-plugin/ninja-forms": "3.4.24.3",
     "wpackagist-plugin/pantheon-advanced-page-cache": ">=0.3.0",
+    "wpackagist-plugin/stackable-ultimate-gutenberg-blocks": "^2.10.0",
     "wpackagist-plugin/wp-mail-smtp": "^2.1",
     "wpackagist-plugin/wp-native-php-sessions": ">=0.6.9",
     "wpackagist-plugin/wpforms-lite": "^1.6",
-    "wpackagist-theme/twentynineteen": "^1.2"
+    "wpackagist-theme/twentynineteen": "^1.2",
+    "wpackagist-theme/twentytwenty": "^1.5"
   },
   "require-dev": {
     "behat/mink-goutte-driver": "^1.2.1",
