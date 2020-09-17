@@ -9,6 +9,10 @@
 
 This is a repository to try out custom plugins, custom Gutenberg blocks, etc. Get wild, but not too wild.
 
+# Child Theme
+
+The `twentytwenty-child` directory is a child theme based off the WP Twentytwenty. Use this to test simple custimizations.
+
 # Hosting
 
 This site is hosted on Pantheon on the Basic plan ([details](https://pantheon.io/plans/basic-pricing)). It's running on WordPress 5 on PHP 7.1. Redis cache is not available to sites on the Basic plan.
