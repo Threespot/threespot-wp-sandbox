@@ -11,7 +11,6 @@
 $name = get_field( 'name' );
 $title = get_field( 'title' );
 $photo = get_field( 'photo' );
-$description = get_field( 'description' );
 
 
 echo '<div class="team-member">';
@@ -23,7 +22,6 @@ echo '<div class="team-member">';
 		if( !empty( $title ) )
 			echo '<h6 class="alt">' . esc_html( $title ) . '</h6>';
 	echo '</div>';
-    echo '<div class="team-member--content">' . apply_filters( 'ea_the_content', $description ) . '</div>';
     echo '<div class="team-member--innerBlocks">';
     echo '<InnerBlocks />';
     echo '</div>';

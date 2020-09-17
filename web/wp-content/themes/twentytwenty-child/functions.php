@@ -20,7 +20,7 @@ function be_register_blocks() {
 	acf_register_block_type( array(
 		'name'			=> 'team-member',
 		'title'			=> __( 'Team Member', 'clientname' ),
-		'render_template'	=> 'template-parts/block-team-member.php',
+		'render_template'	=> 'template-parts/blocks/block-team-member.php',
 		'category'		=> 'formatting',
 		'icon'			=> 'admin-users',
 		'mode'			=> 'preview',
