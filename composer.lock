@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d27865781007c9022d9112c7a5e675e",
+    "content-hash": "89abd65f3d03db8daab6ffd203cfe858",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -1192,6 +1192,24 @@
             },
             "type": "wordpress-theme",
             "homepage": "https://wordpress.org/themes/blank-canvas/"
+        },
+        {
+            "name": "wpackagist-theme/seedlet",
+            "version": "1.1.13",
+            "source": {
+                "type": "svn",
+                "url": "https://themes.svn.wordpress.org/seedlet/",
+                "reference": "1.1.13"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/theme/seedlet.1.1.13.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-theme",
+            "homepage": "https://wordpress.org/themes/seedlet/"
         },
         {
             "name": "wpackagist-theme/twentytwenty",
