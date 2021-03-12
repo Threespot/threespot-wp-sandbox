@@ -1,8 +1,8 @@
 #================================================================================================
 # NOTE: See Pantheon example WP repo for original version this config file was based off of
 # https://github.com/pantheon-systems/example-wordpress-composer/blob/master/.circleci/config.yml
-# Replacements: you will need to replace the paths for the build and delpoy scripts to be specific # to your project. Replace threespot-wp-sandbox with correct name
 #================================================================================================
+
 # https://circleci.com/docs/2.0/workflows/#using-workspaces-to-share-data-among-jobs
 defaults: &defaults
   docker:
@@ -26,7 +26,7 @@ defaults: &defaults
     # ACF_PRO_KEY:    The license key for Advanced Custom Fields Pro
     #=========================================================================
     # Timezone
-    TZ: '/usr/share/zoneinfo/America/New_York'
+    TZ: "/usr/share/zoneinfo/America/New_York"
 
     # The variables below usually do not need to be modified.
 
@@ -45,39 +45,103 @@ defaults: &defaults
 
 version: 2
 jobs:
-  build_and_deploy:
+  configure_env_vars:
     <<: *defaults
-    # override the default image with drupaldocker/php as this job
-    # doesn't need Pantheon specific items such as Terminus that are
-    # in the quay.io/pantheon-public/build-tools-ci image
-    docker:
-      - image: circleci/php:7.4-cli
+
     steps:
       - checkout
 
-      # Caching docs https://circleci.com/docs/2.0/caching/
+      - run:
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
+
+      - run:
+          name: clone-bash-env
+          command: cp $BASH_ENV bash_env.txt
+
+      # https://circleci.com/docs/2.0/workflows/#using-workspaces-to-share-data-among-jobs
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bash_env.txt
+
+  static_tests:
+    <<: *defaults
+
+    steps:
+      - checkout
+
       - restore_cache:
           keys:
-            - composer-cache
-            - terminus-install
-            - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
-            - yarn-packages- # used if checksum fails
+            - composer-cache-{{ checksum "composer.lock" }}
+            - composer-cache-
 
       - run:
-          name: dependencies
-          command: bash ./.circleci/set-up-globals.sh
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
 
       - run:
-          name: install composer dependencies
-          command: composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+          name: run static tests
+          command: ./.ci/test/static/run
+
+      - save_cache:
+          key: composer-cache-{{ checksum "composer.lock" }}
+          paths:
+            - $HOME/.composer/cache
+
+  build_php:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - composer-cache-{{ checksum "composer.lock" }}
+            - composer-cache-
+            - vendor-{{ checksum "composer.lock" }}
+            - vendor-
 
       - run:
-          name: composer build assets
-          command: composer -n build-assets
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
+
+      - run:
+          name: run PHP build step
+          command: ./.ci/build/php
 
       - run:
           name: install theme composer dependencies
-          command: cd web/wp-content/themes/threespot-wp-sandbox && composer install
+          command: cd web/wp-content/themes/threespot-wp-sandbox && composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+
+      - save_cache:
+          key: vendor-{{ checksum "composer.lock" }}
+          paths:
+            - $CIRCLE_WORKING_DIRECTORY/vendor
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - web
+            - vendor
+
+  build_yarn:
+    <<: *defaults
+    docker:
+      - image: circleci/node:14
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
+            - yarn-packages- # used if checksum fails
 
       - run:
           name: install theme yarn dependencies
@@ -85,25 +149,8 @@ jobs:
 
       - run:
           name: build theme assets
-          # We’re also running `yarn build:nohash` to generate un-hashed files for 3rd-party usage (e.g. sEngaging Networks)
+          # If non-hashed versions of site assets are needed for 3rd parties, also run `yarn build:nohash`
           command: cd web/wp-content/themes/threespot-wp-sandbox && yarn build:production
-
-      - run:
-          name: deploy to Pantheon
-          command: bash ./.ci/deploy-to-pantheon.sh
-
-      - save_cache:
-          name: cache Composer files
-          key: composer-cache
-          paths:
-            - $HOME/.composer/cache
-
-      - save_cache:
-          name: cache Terminus files
-          key: terminus-install
-          paths:
-            - $HOME/.terminus
-            - $HOME/terminus
 
       - save_cache:
           name: cache Yarn files
@@ -116,10 +163,148 @@ jobs:
           root: .
           # Must be relative path from root
           paths:
-            - vendor
+            - web/wp-content/themes/threespot-wp-sandbox/dist
+
+  deploy_to_pantheon:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Attach the workspace
+      - attach_workspace:
+          at: /tmp
+
+      - run:
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
+
+      # Rsync the build artifact pieces web directory
+      - run:
+          name: sync build artifact
+          command: rsync -rz /tmp/web /tmp/vendor .
+
+      # Deploy to Pantheon
+      - run:
+          name: deploy to Pantheon
+          command: ./.ci/deploy/pantheon/dev-multidev
+
+  behat_test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - composer-cache-{{ checksum "composer.lock" }}
+            - composer-cache-
+
+      - run:
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
+
+      - run:
+          name: prepare for Behat testing
+          command: ./.ci/test/behat/initialize
+
+      - run:
+          name: run acceptance tests with Behat
+          command: ./.ci/test/behat/run
+
+      - run:
+          name: clean up after Behat
+          command: ./.ci/test/behat/cleanup
+          when: always
+
+      - save_cache:
+          key: composer-cache-{{ checksum "composer.lock" }}
+          paths:
+            - $HOME/.composer/cache
+
+      - store_artifacts:
+          path: /tmp/artifacts
+          destination: artifacts
+
+  visual_regression_test:
+    <<: *defaults
+    docker:
+      - image: backstopjs/backstopjs:4.1.9
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: /tmp/workspace
+
+      - run: cp /tmp/workspace/bash_env.txt $BASH_ENV
+      - run: echo "export CI_BUILD_URL='${CIRCLE_BUILD_URL}'" >> $BASH_ENV
+      - run: echo "export CI_NODE_INDEX='${CIRCLE_NODE_INDEX}'" >> $BASH_ENV
+      - run: echo "export CI_REPOSITORY_URL='${CIRCLE_REPOSITORY_URL}'" >> $BASH_ENV
+      - run: echo "export ARTIFACTS_DIR_URL='${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/artifacts'" >> $BASH_ENV
+      - run: source $BASH_ENV
+
+      - run:
+          name: visual regression test
+          command: ./.ci/test/visual-regression/run
+
+      - store_artifacts:
+          path: /tmp/artifacts
+          destination: artifacts
+
+  composer_lock_updater:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - run:
+          # Set TERMINUS_ENV and related environment variables.
+          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+          name: setup-environment-vars
+          command: /build-tools-ci/scripts/set-environment
+
+      - run:
+          name: Authenticate with Terminus
+          command: terminus -n auth:login --machine-token="$TERMINUS_TOKEN"
+
+      - run:
+          name: run composer lock updater
+          command: set -e && terminus project:clu $TERMINUS_SITE
 
 workflows:
   version: 2
-  build_and_test:
+  build_deploy_and_test:
     jobs:
-      - build_and_deploy
+      - configure_env_vars
+      # - static_tests
+      - build_yarn
+      - build_php
+      - deploy_to_pantheon:
+          requires:
+            # - static_tests
+            - build_yarn
+            - build_php
+      # - visual_regression_test:
+      #     requires:
+      #       - configure_env_vars
+      #       - deploy_to_pantheon
+      #     filters:
+      #       branches:
+      #         ignore:
+      #           - master
+      # - behat_test:
+      #     requires:
+      #       - deploy_to_pantheon
+      #       - visual_regression_test
+
+  # scheduled_update_check:
+  #   triggers:
+  #     - schedule:
+  #         cron: '0 0 * * *'
+  #         filters:
+  #           branches:
+  #             only:
+  #               - master
+  #   jobs:
+  #     - composer_lock_updater
