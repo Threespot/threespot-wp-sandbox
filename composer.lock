@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "106547d8f47efc63e93faef22ebb5396",
+    "content-hash": "1d27865781007c9022d9112c7a5e675e",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -1174,6 +1174,24 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/wpforms-lite/"
+        },
+        {
+            "name": "wpackagist-theme/blank-canvas",
+            "version": "1.2.9",
+            "source": {
+                "type": "svn",
+                "url": "https://themes.svn.wordpress.org/blank-canvas/",
+                "reference": "1.2.9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/theme/blank-canvas.1.2.9.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-theme",
+            "homepage": "https://wordpress.org/themes/blank-canvas/"
         },
         {
             "name": "wpackagist-theme/twentytwenty",
