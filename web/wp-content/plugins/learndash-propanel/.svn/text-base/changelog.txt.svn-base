@@ -1,0 +1,9 @@
+::: v0.2
+* Updated styles
+* Showing all the assigments in the widget.
+* Fixed activity widget to show only 10 activities
+* Fixed showing assignments for deleted lessons
++ Admin color scheme is applied to admin user by default when the plugin is activated
+
+::: v0.1
++ Initial version

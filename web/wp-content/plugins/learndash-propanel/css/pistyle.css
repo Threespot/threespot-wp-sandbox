@@ -1,0 +1,265 @@
+/**
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    contenteditable attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that are clearfixed.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+ #learndash_propanel_dashboard_widget {
+  display: none;
+ }
+.cf:before,
+.cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.cf:after {
+    clear: both;
+}
+
+/**
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+.cf {
+    *zoom: 1;
+}
+div.most-popular-courses div {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 24px;
+}
+#learndash_propanel_tabs{
+	background: white;
+  margin: 0;
+  padding: 0;
+}
+.pi-left-panel{
+	width: 22%;
+	margin-right: 1%;
+	float: left;
+}
+.pi-left-panel ul li{
+	width: 90%;
+}
+.pi-left-panel ul li h4{
+	border-bottom: 1px solid #c4c4c4;
+}
+.pi-left-panel ul li p{
+	font-size: 1em;
+	font-weight: bold;
+	text-align: center;
+}
+.pi-right-panel{
+	margin-top: 13px;
+	width: 73%; 
+	float: left;
+}
+/*Change when adding the necessary functionality*/
+.pi-graph{
+	margin: 0 auto;
+	text-align: center;
+	padding: 5px;
+}
+.pi-box{
+	background: #fff;
+	border: 1px solid #c4c4c4;
+	border-radius: 3px;
+	padding: 10px;
+}
+.pi-full-panel{
+	width: 95%;
+}
+.ui-widget-header{
+    background: #f1f1f1;
+}
+.learndash_propanel_message_label {
+  margin-bottom: 2px;
+}
+/*Custom Progress Bar*/
+dd.course_progress {
+    display: block;
+    margin: 10px 0;
+    padding: 0px;
+    position: relative;
+    background-color: #F5F5F5;
+    border: medium none;
+    border-radius: 4px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1) inset;
+    height: 20px;
+    overflow: hidden;
+    border: 1px solid #c4c4c4;
+}
+dd.course_progress div.course_progress_blue {
+    display: block;
+    position: relative;
+    text-align: right;
+    width: 75%;
+    background-color: #5CB85C;
+    box-shadow: 0px -1px 0px rgba(0, 0, 0, 0.15) inset;
+    color: #FFF;
+    float: left;
+    font-size: 12px;
+    height: 100%;
+    transition: width 0.6s ease 0s;
+}
+
+{
+background:red;
+}
+.pi-report .box form textarea, .pi-report .box form input:not([type]), .pi-report .box form input[type="text"]{
+    width: 100%;
+    border: 1px solid #c4c4c4;
+    border-radius: 3px;
+}
+.pi-report .box form textarea{
+    height: 100px;
+}
+/*Pie Chart Styles*/
+.not-started, .in-progress, .complete{
+    margin-bottom: 5px;
+}
+.pi-legend-container{
+    float: left;
+    margin-top: 40px;
+}
+.pi-legend{
+    float: left;
+    margin-right: 20px;
+}
+.not-started .pi-legend{
+    width: 30px; 
+    height: 15px;
+    display: inline-block; 
+    background: #a5a5a5;
+}
+.in-progress .pi-legend{
+    width: 30px; 
+    height: 15px;
+    display: inline-block; 
+}
+.in-progress .pi-legend, .course_progress.in-progress .course_progress_blue {
+    background: #c3dd5a;  
+}
+
+.complete .pi-legend{
+    width: 30px; 
+    height: 15px;
+    display: inline-block; 
+}
+.complete .pi-legend, .course_progress.complete .course_progress_blue {
+    background: #5CB85C; 
+}
+/*Collpasible Icon*/
+.pi-report{
+    position: relative;
+}
+#pi-collapse{
+    width: 20px;
+    position: absolute;
+    right: 0;
+    top: 5px;
+    cursor: pointer;
+    z-index: 100;
+}
+.arrow-up{
+    display: block;
+    position: absolute;
+ /*  top: -15px; */
+}
+/*Get rid of admin widgets which have the data*/
+#learndash_propanel_overview_widget, #learndash_propanel_quiz_widget, #learndash_propanel_assignment_widget{
+    display: none;
+}
+/* 
+Generic Table form styling responsive
+*/
+.wrap .pi-form-table table { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+/* Zebra striping */
+.wrap .pi-form-table table tr:nth-of-type(odd) { 
+  background: #eee; 
+}
+.wrap .pi-form-table table th { 
+  background: #333; 
+  color: white; 
+  font-weight: bold; 
+}
+.wrap .pi-form-table table td, .wrap .pi-form-table table th { 
+  padding: 6px; 
+  border: 1px solid #ccc; 
+  text-align: left; 
+}
+
+.relative {
+  position: relative;
+}
+.relative .viewall {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  text-decoration: none;
+  font-size: 0.8em;
+}
+
+.ld-btn  {
+  border: none;
+  font-weight: normal;
+  background: #5CB85C;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -webkit-transition: border .25s linear, color .25s linear, background-color .25s linear, background .25s linear  !important;
+  transition: border .25s linear, color .25s linear, background-color .25s linear, background .25s linear  !important;
+  color: #ffffff !important;
+  background-color: #5CB85C;
+  padding: 10px 19px;
+  font-size: 12px;
+  line-height: 1.471;
+  border-radius: 6px;
+  white-space: normal;
+  text-decoration: none !important;
+}
+.ld-btn:hover,
+.ld-btn:focus,
+.ld-btn.active {
+  color: #ffffff;
+  background-color: #58d68d;
+  border-color: #58d68d;
+}
+.ld-btn.active{
+  background-color: #27ad60;
+  border-color: #27ad60;
+}
+
+
+/*Responsive Media Queries*/
+@media only screen and (max-width: 768px) {
+    /* Here, rules for anything less than Ipads width, with the
+       advice to design for the smallest common width, 320px.
+       This is the majority of smarthphones. */
+       .pi-right-panel, .pi-left-panel{
+            width: 98%;
+       }
+       .pi-left-panel ul li{
+            width: 100%;
+        }
+}
+@media only screen and (max-width: 600px) {
+    /* Here, rules for anything less than Ipads width, with the
+       advice to design for the smallest common width, 320px.
+       This is the majority of smarthphones. */
+       .wrap .pi-form-table table{
+            font-size: .7em;
+       }
+       .wrap .pi-form-table table tr td{
+            padding: 0px;
+       }
+       .wrap .pi-form-table table td, .wrap .pi-form-table table th { 
+        padding: 0px; 
+      }
+}

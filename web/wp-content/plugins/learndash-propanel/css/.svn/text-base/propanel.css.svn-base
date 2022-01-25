@@ -1,0 +1,114 @@
+#learndash_propanel_tabs .inside {
+	margin: 0 !important;
+	position: static;
+}
+#learndash_propanel_tabs {
+	border: 0;
+}
+#learndash_propanel_tabs .pi-right-panel h3{
+	padding-left: 0px;
+}
+#learndash_propanel_tabs #course-dashboard .learndash_propanel_send_message_label {
+	margin: 15px 0 10px;
+}
+#learndash_propanel_tabs .learndash_propanel_loadingbar .loadingbar_message {
+	position: absolute;
+    text-align: center;
+    width: 100%;
+    color: green;
+}
+#learndash_propanel_tabs .inside {
+	padding: 0;
+	margin: 0 12px;
+}
+.learndash_propanel_filter {
+	margin: 10px 0;
+}
+#learndash_propanel_user_table_pagination {
+margin-top: 20px;
+}
+#learndash_propanel_user_table_pagination a {
+	color: #0074a2;
+	background: #eee;
+	padding: 2px 5px;
+	border: 1px solid #ddd;
+	margin-right: 5px; 
+}
+#learndash_propanel_user_table_pagination a.current {
+	color: black;
+	background: #ccc;
+}
+.pi-report {
+	min-height: inherit !important;
+	margin-bottom: 20px !important;
+}
+#ld_activity .inside,
+#ld_assignments .inside {
+	padding: 0;
+	margin: 0;
+}
+
+#ld_activity_widget,
+#ld_assignments_widget {
+	max-height: 280px;
+	overflow: auto;
+}
+
+.activity_item {
+	border-top: 1px solid #fcfcfc;
+	border-bottom: 1px solid #dfdfdf;
+	padding: 10px;
+}
+
+.activity_item:last-child {
+	border-bottom: none;
+}
+
+.activity_user {
+	font-weight: bold;
+	color: #333;
+}
+.activity_date {
+	color: #888;
+	font-style: italic;
+}
+
+#ld_activity_actions{
+	border: none;
+	/*border-bottom: 1px solid #dfdfdf;*/
+	border-radius: 0;
+	padding: 3px 10px;
+	text-align: right;
+	line-height: 32px;
+
+}
+
+.activity_export_quiz{
+	margin-right: 10px;
+}
+.activity_export_course{
+	margin-left: 10px;
+}
+
+.activity_item_actions{
+	text-align: right;
+	visibility: hidden;
+}
+
+.activity_item:hover .activity_item_actions{
+	visibility: visible;
+}
+
+.activity_loading,
+.activity_deleting {
+	display:none;
+	text-align:right;
+}
+
+.activity_lang {
+	display: none;
+}
+
+.assignment_pendant {
+	background: #ffffe0;
+}

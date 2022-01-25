@@ -55,6 +55,7 @@
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
     "wpackagist-plugin/gutenberg": "^7.1",
     "wpackagist-plugin/lh-hsts": "^1.24",
+    "wpackagist-plugin/lifterlms": "^5.7.0",
     "wpackagist-plugin/ninja-forms": "^3.4.24",
     "wpackagist-plugin/pantheon-advanced-page-cache": ">=0.3.0",
     "wpackagist-plugin/pantheon-hud": "^0.3",
