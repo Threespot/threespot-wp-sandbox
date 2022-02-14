@@ -16,14 +16,14 @@
       "type": "package",
       "package": {
         "name": "advanced-custom-fields/advanced-custom-fields-pro",
-        "version": "5.9.5",
+        "version": "5.11.4",
         "type": "wordpress-plugin",
         "dist": {
           "type": "zip",
           "url": "https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k={%ACF_PRO_KEY}&t={%version}"
         },
         "require": {
-          "composer/installers": "^1.4",
+          "composer/installers": "^1.12",
           "ffraenz/private-composer-installer": "^5.0"
         }
       }
@@ -32,44 +32,33 @@
   "require": {
     "php": ">=7.4",
     "advanced-custom-fields/advanced-custom-fields-pro": "*",
-    "composer/installers": "^1.3.0",
+    "composer/installers": "^1.12",
     "ffraenz/private-composer-installer": "^5.0",
+    "filp/whoops": "^2.14",
     "pantheon-systems/quicksilver-pushback": "^2",
-    "pantheon-systems/wordpress-composer": "*",
+    "pantheon-systems/wordpress-composer": "~5.9.0",
+    "roots/bedrock-autoloader": "^1.0",
     "roots/soil": "^4.0.4",
     "roots/wp-password-bcrypt": "^1.0.0",
-    "rvtraveller/qs-composer-installer": "^1.1",
-    "vlucas/phpdotenv": "^4.0",
+    "vlucas/phpdotenv": "^5.3",
     "wpackagist-plugin/acf-extended": "^0.8",
     "wpackagist-plugin/admin-menu-editor": "^1.9",
-    "wpackagist-plugin/autodescription": "^4.1.3",
-    "wpackagist-plugin/block-manager": "^1.1",
-    "wpackagist-plugin/block-pattern-builder": "^1.1",
-    "wpackagist-plugin/block-unit-test": "^1.0",
-    "wpackagist-plugin/contact-form-7": "^5.4",
+    "wpackagist-plugin/block-manager": "^1.2",
+    "wpackagist-plugin/defender-security": "^2.7.1",
     "wpackagist-plugin/disable-embeds": "^1.5",
     "wpackagist-plugin/disable-emojis": "^1.7",
-    "wpackagist-plugin/duplicate-post": "^4.0.1",
-    "wpackagist-plugin/enable-media-replace": "^3.5",
+    "wpackagist-plugin/duplicate-post": "^4.1",
+    "wpackagist-plugin/enable-media-replace": "^3.6",
     "wpackagist-plugin/favicon-by-realfavicongenerator": "^1.3",
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
-    "wpackagist-plugin/gutenberg": "^7.1",
-    "wpackagist-plugin/lh-hsts": "^1.24",
-    "wpackagist-plugin/lifterlms": "^5.7.0",
-    "wpackagist-plugin/ninja-forms": "^3.4.24",
-    "wpackagist-plugin/pantheon-advanced-page-cache": ">=0.3.0",
+    "wpackagist-plugin/lh-hsts": "^1.25",
+    "wpackagist-plugin/pantheon-advanced-page-cache": "^1.0",
     "wpackagist-plugin/pantheon-hud": "^0.3",
-    "wpackagist-plugin/redirection": "^4.9",
+    "wpackagist-plugin/redirection": "^5.1",
     "wpackagist-plugin/simple-custom-post-order": "^2.5",
-    "wpackagist-plugin/stackable-ultimate-gutenberg-blocks": "^2.10.0",
-    "wpackagist-plugin/svg-support": "^2.3",
-    "wpackagist-plugin/user-switching": "^1.5",
-    "wpackagist-plugin/wp-mail-smtp": "^2.1",
-    "wpackagist-plugin/wp-native-php-sessions": ">=0.6.9",
-    "wpackagist-plugin/wpforms-lite": "^1.6",
-    "wpackagist-theme/blank-canvas": "^1.2.9",
-    "wpackagist-theme/seedlet": "^1.1.13",
-    "wpackagist-theme/twentytwenty": "^1.5",
+    "wpackagist-plugin/svg-support": "^2.4",
+    "wpackagist-plugin/wordpress-seo": "^18.1",
+    "wpackagist-plugin/wp-native-php-sessions": "^1.2",
     "wpackagist-theme/twentytwentyone": "^1.1",
     "wpackagist-theme/twentytwentytwo": "^1.0"
   },
@@ -96,8 +85,7 @@
       "composer/installers": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "ffraenz/private-composer-installer": true,
-      "johnpbloch/wordpress-core-installer": true,
-      "rvtraveller/qs-composer-installer": true
+      "johnpbloch/wordpress-core-installer": true
     }
   },
   "extra": {
@@ -109,15 +97,10 @@
       ]
     },
     "installer-paths": {
-      "web/wp-content/plugins/{$name}/": [
-        "type:wordpress-plugin"
-      ],
-      "web/wp-content/themes/{$name}/": [
-        "type:wordpress-theme"
-      ],
-      "web/private/scripts/quicksilver/{$name}/": [
-        "type:quicksilver-script"
-      ]
+      "web/wp-content/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
+      "web/wp-content/plugins/{$name}/": ["type:wordpress-plugin"],
+      "web/wp-content/themes/{$name}/": ["type:wordpress-theme"],
+      "web/private/scripts/quicksilver/{$name}/": ["type:quicksilver-script"]
     }
   },
   "autoload": {
@@ -155,6 +138,8 @@
     "unit-test": [
       "./vendor/bin/phpunit tests/unit/*"
     ],
-    "lint": "find web/wp-content -name '*.php' -exec php -l {} \\;"
+    "lint": "find web/wp-content -name '*.php' -exec php -l {} \\;",
+    "deploy:test": "terminus env:deploy threespot-wp-sandbox.test && terminus env:clear-cache threespot-wp-sandbox.test",
+    "deploy:live": "terminus env:deploy threespot-wp-sandbox.live"
   }
 }

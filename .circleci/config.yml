@@ -1,19 +1,16 @@
-#================================================================================================
 # NOTE: See Pantheon example WP repo for original version this config file was based off of
 # https://github.com/pantheon-systems/example-wordpress-composer/blob/master/.circleci/config.yml
-#================================================================================================
-
 # https://circleci.com/docs/2.0/workflows/#using-workspaces-to-share-data-among-jobs
 defaults: &defaults
   docker:
-    - image: quay.io/pantheon-public/build-tools-ci:6.x
+    - image: quay.io/pantheon-public/build-tools-ci:7.x-php7.4
   working_directory: ~/example_wordpress_composer
   environment:
     #=========================================================================
     # In addition to the environment variables defined in this file, also
     # add the following variables in the Circle CI UI.
     #
-    # See: https://circleci.com/docs/2.0/environment-variables/
+    # See: https://circleci.com/docs/2.0/env-vars/
     #
     # TERMINUS_SITE:  Name of the Pantheon site to run tests on, e.g. my_site
     # TERMINUS_TOKEN: The Pantheon machine token
@@ -25,11 +22,9 @@ defaults: &defaults
     # ADMIN_EMAIL:    The email address to give the admin when installing.
     # ACF_PRO_KEY:    The license key for Advanced Custom Fields Pro
     #=========================================================================
-    # Timezone
     TZ: "/usr/share/zoneinfo/America/New_York"
 
     # The variables below usually do not need to be modified.
-
     #======================================================================================================================================
     # Circle CI 2.0 does not yet expand environment variables so they have to be manually EXPORTed
     # Once environment variables can be expanded the variables below can be uncommented and the EXPORTs in set-up-globals.sh can be removed
@@ -37,8 +32,6 @@ defaults: &defaults
     # See: https://discuss.circleci.com/t/environment-variable-expansion-in-working-directory/11322
     # See: https://discuss.circleci.com/t/circle-2-0-global-environment-variables/8681
     #======================================================================================================================================
-    # See set-up-globals.sh for more environment variables
-
     NOTIFY: 'scripts/github/add-commit-comment {project} {sha} "Created multidev environment [{site}#{env}]({dashboard-url})." {site-url}'
     ADMIN_USERNAME: admin
     TERM: dumb
@@ -117,7 +110,7 @@ jobs:
 
       - run:
           name: install theme composer dependencies
-          command: cd web/wp-content/themes/threespot-wp-sandbox && composer install --no-ansi --no-interaction --optimize-autoloader --no-progress
+          command: cd web/wp-content/themes/threespot-wp-sandbox && composer install --no-interaction --optimize-autoloader
 
       - save_cache:
           key: vendor-{{ checksum "composer.lock" }}
@@ -142,6 +135,11 @@ jobs:
           keys:
             - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
             - yarn-packages- # used if checksum fails
+
+      # nasm reaquired if using imagemin and mozjpeg
+      # - run:
+      #     name: install nasm dependency
+      #     command: sudo apt-get update && sudo apt-get install -y nasm
 
       - run:
           name: install theme yarn dependencies
@@ -183,7 +181,7 @@ jobs:
       # Rsync the build artifact pieces web directory
       - run:
           name: sync build artifact
-          command: rsync -rz /tmp/web /tmp/vendor .
+          command: rsync -lrz /tmp/web /tmp/vendor .
 
       # Deploy to Pantheon
       - run:
@@ -300,10 +298,10 @@ workflows:
 
   # scheduled_update_check:
   #   triggers:
-  #     - schedule:
-  #         cron: '0 0 * * *'
-  #         filters:
-  #           branches:
+  #      - schedule:
+  #          cron: "0 0 * * *"
+  #          filters:
+  #            branches:
   #             only:
   #               - master
   #   jobs:
