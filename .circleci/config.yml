@@ -60,31 +60,31 @@ jobs:
           paths:
             - bash_env.txt
 
-  static_tests:
-    <<: *defaults
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          keys:
-            - composer-cache-{{ checksum "composer.lock" }}
-            - composer-cache-
-
-      - run:
-          # Set TERMINUS_ENV and related environment variables.
-          # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
-          name: setup-environment-vars
-          command: /build-tools-ci/scripts/set-environment
-
-      - run:
-          name: run static tests
-          command: ./.ci/test/static/run
-
-      - save_cache:
-          key: composer-cache-{{ checksum "composer.lock" }}
-          paths:
-            - $HOME/.composer/cache
+  # static_tests:
+  #   <<: *defaults
+  #
+  #   steps:
+  #     - checkout
+  #
+  #     - restore_cache:
+  #         keys:
+  #           - composer-cache-{{ checksum "composer.lock" }}
+  #           - composer-cache-
+  #
+  #     - run:
+  #         # Set TERMINUS_ENV and related environment variables.
+  #         # https://github.com/pantheon-systems/docker-build-tools-ci/blob/6.x/scripts/set-environment
+  #         name: setup-environment-vars
+  #         command: /build-tools-ci/scripts/set-environment
+  #
+  #     - run:
+  #         name: run static tests
+  #         command: ./.ci/test/static/run
+  #
+  #     - save_cache:
+  #         key: composer-cache-{{ checksum "composer.lock" }}
+  #         paths:
+  #           - $HOME/.composer/cache
 
   build_php:
     <<: *defaults
@@ -108,9 +108,9 @@ jobs:
           name: run PHP build step
           command: ./.ci/build/php
 
-      - run:
-          name: install theme composer dependencies
-          command: cd web/wp-content/themes/threespot-wp-sandbox && composer install --no-interaction --optimize-autoloader
+      # - run:
+      #     name: install theme composer dependencies
+      #     command: cd web/wp-content/themes/threespot-wp-sandbox && composer install --no-interaction --optimize-autoloader
 
       - save_cache:
           key: vendor-{{ checksum "composer.lock" }}
@@ -123,45 +123,45 @@ jobs:
             - web
             - vendor
 
-  build_yarn:
-    <<: *defaults
-    docker:
-      - image: circleci/node:14
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          keys:
-            - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
-            - yarn-packages- # used if checksum fails
-
-      # nasm reaquired if using imagemin and mozjpeg
-      # - run:
-      #     name: install nasm dependency
-      #     command: sudo apt-get update && sudo apt-get install -y nasm
-
-      - run:
-          name: install theme yarn dependencies
-          command: cd web/wp-content/themes/threespot-wp-sandbox && yarn install
-
-      - run:
-          name: build theme assets
-          # If non-hashed versions of site assets are needed for 3rd parties, also run `yarn build:nohash`
-          command: cd web/wp-content/themes/threespot-wp-sandbox && yarn build:production
-
-      - save_cache:
-          name: cache Yarn files
-          key: yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
-          paths:
-            - $HOME/.cache/yarn
-
-      - persist_to_workspace:
-          # Must be relative path from working_directory
-          root: .
-          # Must be relative path from root
-          paths:
-            - web/wp-content/themes/threespot-wp-sandbox/dist
+  # build_yarn:
+  #   <<: *defaults
+  #   docker:
+  #     - image: circleci/node:14
+  #
+  #   steps:
+  #     - checkout
+  #
+  #     - restore_cache:
+  #         keys:
+  #           - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
+  #           - yarn-packages- # used if checksum fails
+  #
+  #     # nasm reaquired if using imagemin and mozjpeg
+  #     # - run:
+  #     #     name: install nasm dependency
+  #     #     command: sudo apt-get update && sudo apt-get install -y nasm
+  #
+  #     - run:
+  #         name: install theme yarn dependencies
+  #         command: cd web/wp-content/themes/threespot-wp-sandbox && yarn install
+  #
+  #     - run:
+  #         name: build theme assets
+  #         # If non-hashed versions of site assets are needed for 3rd parties, also run `yarn build:nohash`
+  #         command: cd web/wp-content/themes/threespot-wp-sandbox && yarn build:production
+  #
+  #     - save_cache:
+  #         name: cache Yarn files
+  #         key: yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
+  #         paths:
+  #           - $HOME/.cache/yarn
+  #
+  #     - persist_to_workspace:
+  #         # Must be relative path from working_directory
+  #         root: .
+  #         # Must be relative path from root
+  #         paths:
+  #           - web/wp-content/themes/threespot-wp-sandbox/dist
 
   deploy_to_pantheon:
     <<: *defaults
@@ -226,30 +226,30 @@ jobs:
           path: /tmp/artifacts
           destination: artifacts
 
-  visual_regression_test:
-    <<: *defaults
-    docker:
-      - image: backstopjs/backstopjs:4.1.9
-    steps:
-      - checkout
-
-      - attach_workspace:
-          at: /tmp/workspace
-
-      - run: cp /tmp/workspace/bash_env.txt $BASH_ENV
-      - run: echo "export CI_BUILD_URL='${CIRCLE_BUILD_URL}'" >> $BASH_ENV
-      - run: echo "export CI_NODE_INDEX='${CIRCLE_NODE_INDEX}'" >> $BASH_ENV
-      - run: echo "export CI_REPOSITORY_URL='${CIRCLE_REPOSITORY_URL}'" >> $BASH_ENV
-      - run: echo "export ARTIFACTS_DIR_URL='${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/artifacts'" >> $BASH_ENV
-      - run: source $BASH_ENV
-
-      - run:
-          name: visual regression test
-          command: ./.ci/test/visual-regression/run
-
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: artifacts
+  #visual_regression_test:
+  #  <<: *defaults
+  #  docker:
+  #    - image: backstopjs/backstopjs:4.1.9
+  #  steps:
+  #    - checkout
+  #
+  #    - attach_workspace:
+  #        at: /tmp/workspace
+  #
+  #    - run: cp /tmp/workspace/bash_env.txt $BASH_ENV
+  #    - run: echo "export CI_BUILD_URL='${CIRCLE_BUILD_URL}'" >> $BASH_ENV
+  #    - run: echo "export CI_NODE_INDEX='${CIRCLE_NODE_INDEX}'" >> $BASH_ENV
+  #    - run: echo "export CI_REPOSITORY_URL='${CIRCLE_REPOSITORY_URL}'" >> $BASH_ENV
+  #    - run: echo "export ARTIFACTS_DIR_URL='${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/artifacts'" >> $BASH_ENV
+  #    - run: source $BASH_ENV
+  #
+  #    - run:
+  #        name: visual regression test
+  #        command: ./.ci/test/visual-regression/run
+  #
+  #    - store_artifacts:
+  #        path: /tmp/artifacts
+  #        destination: artifacts
 
   composer_lock_updater:
     <<: *defaults
@@ -276,7 +276,7 @@ workflows:
     jobs:
       - configure_env_vars
       # - static_tests
-      - build_yarn
+      # - build_yarn
       - build_php
       - deploy_to_pantheon:
           requires:
