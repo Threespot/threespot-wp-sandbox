@@ -281,7 +281,7 @@ workflows:
       - deploy_to_pantheon:
           requires:
             # - static_tests
-            - build_yarn
+            # - build_yarn
             - build_php
       # - visual_regression_test:
       #     requires:
