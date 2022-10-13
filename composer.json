@@ -36,7 +36,7 @@
     "ffraenz/private-composer-installer": "^5.0",
     "filp/whoops": "^2.14",
     "pantheon-systems/quicksilver-pushback": "^2",
-    "pantheon-systems/wordpress-composer": "~5.9.0",
+    "pantheon-systems/wordpress-composer": "~6.0.2",
     "roots/bedrock-autoloader": "^1.0",
     "roots/soil": "^4.0.4",
     "roots/wp-password-bcrypt": "^1.0.0",
