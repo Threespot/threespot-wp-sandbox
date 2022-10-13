@@ -27,7 +27,7 @@ web/wp-content/themes/*
 !web/wp-content/themes/custom/
 !web/wp-content/themes/.gitkeep
 !web/wp-content/config/
-web/wp
+!web/wp
 !web/private/
 web/private/*
 !web/private/scripts/
