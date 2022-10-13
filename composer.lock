@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d71c1a980817e88b1d4fb7aac118cedc",
+    "content-hash": "2702adab037310f01811a72cbfc41077",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -371,60 +371,6 @@
             "time": "2021-11-21T21:41:47+00:00"
         },
         {
-            "name": "johnpbloch/wordpress-core-installer",
-            "version": "2.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/johnpbloch/wordpress-core-installer.git",
-                "reference": "237faae9a60a4a2e1d45dce1a5836ffa616de63e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/johnpbloch/wordpress-core-installer/zipball/237faae9a60a4a2e1d45dce1a5836ffa616de63e",
-                "reference": "237faae9a60a4a2e1d45dce1a5836ffa616de63e",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.0 || ^2.0",
-                "php": ">=5.6.0"
-            },
-            "conflict": {
-                "composer/installers": "<1.0.6"
-            },
-            "require-dev": {
-                "composer/composer": "^1.0 || ^2.0",
-                "phpunit/phpunit": ">=5.7.27"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "johnpbloch\\Composer\\WordPressCorePlugin"
-            },
-            "autoload": {
-                "psr-0": {
-                    "johnpbloch\\Composer\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "John P. Bloch",
-                    "email": "me@johnpbloch.com"
-                }
-            ],
-            "description": "A custom installer to handle deploying WordPress with composer",
-            "keywords": [
-                "wordpress"
-            ],
-            "support": {
-                "issues": "https://github.com/johnpbloch/wordpress-core-installer/issues",
-                "source": "https://github.com/johnpbloch/wordpress-core-installer/tree/master"
-            },
-            "time": "2020-04-16T21:44:57+00:00"
-        },
-        {
             "name": "pantheon-systems/quicksilver-pushback",
             "version": "2.0.2",
             "source": {
@@ -452,40 +398,6 @@
                 "source": "https://github.com/pantheon-systems/quicksilver-pushback/tree/master"
             },
             "time": "2020-08-20T22:12:09+00:00"
-        },
-        {
-            "name": "pantheon-systems/wordpress-composer",
-            "version": "6.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pantheon-systems/wordpress-composer.git",
-                "reference": "d24015fad19234077923e7821c6b955d6707cd84"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pantheon-systems/wordpress-composer/zipball/d24015fad19234077923e7821c6b955d6707cd84",
-                "reference": "d24015fad19234077923e7821c6b955d6707cd84",
-                "shasum": ""
-            },
-            "require": {
-                "johnpbloch/wordpress-core-installer": "^2.0"
-            },
-            "type": "wordpress-core",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "5.x-dev"
-                },
-                "wordpress-install-dir": "web/wp"
-            },
-            "license": [
-                "GPL-2.0+"
-            ],
-            "description": "WordPress for Pantheon with a composer.json file.",
-            "support": {
-                "source": "https://github.com/pantheon-systems/wordpress-composer/tree/6.0.2",
-                "issues": "https://github.com/pantheon-systems/wordpress-composer/issues"
-            },
-            "time": "2022-08-30T19:11:33+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -1347,6 +1259,24 @@
             "homepage": "https://wordpress.org/plugins/fly-dynamic-image-resizer/"
         },
         {
+            "name": "wpackagist-plugin/gutentoc-advance-table-of-content",
+            "version": "2.0.7",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/gutentoc-advance-table-of-content/",
+                "reference": "tags/2.0.7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/gutentoc-advance-table-of-content.2.0.7.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/gutentoc-advance-table-of-content/"
+        },
+        {
             "name": "wpackagist-plugin/lh-hsts",
             "version": "1.25",
             "source": {
@@ -1435,6 +1365,24 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/simple-custom-post-order/"
+        },
+        {
+            "name": "wpackagist-plugin/simpletoc",
+            "version": "5.0.30",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/simpletoc/",
+                "reference": "tags/5.0.30"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/simpletoc.5.0.30.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/simpletoc/"
         },
         {
             "name": "wpackagist-plugin/svg-support",
