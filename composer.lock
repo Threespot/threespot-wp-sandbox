@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2a95b365acf2baa68cbde26efa88abac",
+    "content-hash": "e1fb90658d5ebeee7e17e061d09a39ec",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -1363,6 +1363,24 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/lh-hsts/"
+        },
+        {
+            "name": "wpackagist-plugin/options-importer",
+            "version": "5",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/options-importer/",
+                "reference": "tags/5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/options-importer.5.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/options-importer/"
         },
         {
             "name": "wpackagist-plugin/pantheon-advanced-page-cache",
@@ -7288,5 +7306,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.3.0"
 }
