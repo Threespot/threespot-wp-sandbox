@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e1fb90658d5ebeee7e17e061d09a39ec",
+    "content-hash": "bff3ffa70beedb48bbaaa0bc628d3533",
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -1345,6 +1345,42 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/fly-dynamic-image-resizer/"
+        },
+        {
+            "name": "wpackagist-plugin/if-so",
+            "version": "1.6.1",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/if-so/",
+                "reference": "tags/1.6.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/if-so.1.6.1.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/if-so/"
+        },
+        {
+            "name": "wpackagist-plugin/juicer",
+            "version": "1.12.2",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/juicer/",
+                "reference": "tags/1.12.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/juicer.1.12.2.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/juicer/"
         },
         {
             "name": "wpackagist-plugin/lh-hsts",
@@ -7306,5 +7342,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.2.0"
 }

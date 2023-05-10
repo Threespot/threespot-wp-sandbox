@@ -51,6 +51,8 @@
     "wpackagist-plugin/enable-media-replace": "^3.6",
     "wpackagist-plugin/favicon-by-realfavicongenerator": "^1.3",
     "wpackagist-plugin/fly-dynamic-image-resizer": "^2.0.5",
+    "wpackagist-plugin/if-so": "^1.6",
+    "wpackagist-plugin/juicer": "^1.12",
     "wpackagist-plugin/lh-hsts": "^1.25",
     "wpackagist-plugin/options-importer": "^5.0",
     "wpackagist-plugin/pantheon-advanced-page-cache": "^1.0",
