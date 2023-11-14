@@ -4,7 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "content-hash": "bff3ffa70beedb48bbaaa0bc628d3533",
+=======
+    "content-hash": "cf74a1928bb52c08100769386acc6e5c",
+>>>>>>> 59e66a5 (plugin: upgrade defender plugin version)
     "packages": [
         {
             "name": "advanced-custom-fields/advanced-custom-fields-pro",
@@ -1222,15 +1226,15 @@
         },
         {
             "name": "wpackagist-plugin/defender-security",
-            "version": "2.7.1",
+            "version": "4.2.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/defender-security/",
-                "reference": "tags/2.7.1"
+                "reference": "tags/4.2.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/defender-security.2.7.1.zip"
+                "url": "https://downloads.wordpress.org/plugin/defender-security.4.2.1.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
