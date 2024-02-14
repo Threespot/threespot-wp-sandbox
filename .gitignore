@@ -27,36 +27,48 @@ web/wp-content/themes/*
 !web/wp-content/themes/custom/
 !web/wp-content/themes/.gitkeep
 !web/wp-content/config/
-!web/wp
+web/wp
 !web/private/
 web/private/*
 !web/private/scripts/
 web/private/scripts/quicksilver
 !web/private/config/
 !.circleci
+.bashrc
 
 # Threespot custom whitelist
 .env
 *.env
 .env.*
 frm.min.js
-!web/wp-content/themes/threespot-wp-sandbox
-#!web/wp-content/object-cache.php
 !web/wp-content/mu-plugins/bedrock-autoloader.php
-!web/wp-content/plugins/ws-form-pro
+!web/wp-content/mu-plugins/custom-post-types
+!web/wp-content/mu-plugins/custom-taxonomies
+!web/wp-content/mu-plugins/pantheon
+!web/wp-content/mu-plugins/pantheon.php
+!web/wp-content/mu-plugins/threespot-custom-wp-functions
+!web/wp-content/plugins/fly-dynamic-image-resizer
 !web/wp-content/plugins/gravityforms
 !web/wp-content/plugins/learndash-propanel
-!web/wp-content/plugins/sfwd-lms
 !web/wp-content/plugins/searchwp
 !web/wp-content/plugins/searchwp-boolean
 !web/wp-content/plugins/searchwp-exclude-ui
-!web/wp-content/themes/twentytwenty-child/
+!web/wp-content/plugins/sfwd-lms
+!web/wp-content/plugins/ws-form-pro
+# Include any plugins not loaded via composer
+# !web/wp-content/object-cache.php
+# !web/wp-content/plugins/searchwp-enable-media-replace
+# !web/wp-content/plugins/searchwp-metrics
+# !web/wp-content/plugins/wp-all-import-pro
+# !web/wp-content/plugins/wpai-acf-add-on
+# !web/wp-content/plugins/wpai-linkcloak-add-on
+# !web/wp-content/plugins/wpai-user-add-on
 
+!web/wp-content/themes/threespot-wp-sandbox
+!web/wp-content/themes/twentytwenty-child
 
 # Add directories containing build assets below.
 # Keep all additions above the "cut" line.
-
-
 
 # :::::::::::::::::::::: cut ::::::::::::::::::::::
 
@@ -120,7 +132,10 @@ installer.phar
 ######################
 .DS_Store*
 ehthumbs.db
-Icon?
+# Info on ignoring Icon? files
+# https://stackoverflow.com/questions/17556250/how-to-ignore-icon-in-git
+Icon[
+]
 Thumbs.db
 ._*
 

@@ -21,27 +21,52 @@ function render_block_core_post_featured_image( $attributes, $content, $block ) 
 
 	$is_link        = isset( $attributes['isLink'] ) && $attributes['isLink'];
 	$size_slug      = isset( $attributes['sizeSlug'] ) ? $attributes['sizeSlug'] : 'post-thumbnail';
-	$post_title     = trim( strip_tags( get_the_title( $post_ID ) ) );
 	$attr           = get_block_core_post_featured_image_border_attributes( $attributes );
 	$overlay_markup = get_block_core_post_featured_image_overlay_element_markup( $attributes );
 
 	if ( $is_link ) {
-		$attr['alt'] = $post_title;
+		if ( get_the_title( $post_ID ) ) {
+			$attr['alt'] = trim( strip_tags( get_the_title( $post_ID ) ) );
+		} else {
+			$attr['alt'] = sprintf(
+				// translators: %d is the post ID.
+				__( 'Untitled post %d' ),
+				$post_ID
+			);
+		}
+	}
+
+	$extra_styles = '';
+
+	// Aspect ratio with a height set needs to override the default width/height.
+	if ( ! empty( $attributes['aspectRatio'] ) ) {
+		$extra_styles .= 'width:100%;height:100%;';
+	} elseif ( ! empty( $attributes['height'] ) ) {
+		$extra_styles .= "height:{$attributes['height']};";
+	}
+
+	if ( ! empty( $attributes['scale'] ) ) {
+		$extra_styles .= "object-fit:{$attributes['scale']};";
+	}
+
+	if ( ! empty( $extra_styles ) ) {
+		$attr['style'] = empty( $attr['style'] ) ? $extra_styles : $attr['style'] . $extra_styles;
 	}
 
 	$featured_image = get_the_post_thumbnail( $post_ID, $size_slug, $attr );
 	if ( ! $featured_image ) {
 		return '';
 	}
-	$wrapper_attributes = get_block_wrapper_attributes();
 	if ( $is_link ) {
 		$link_target    = $attributes['linkTarget'];
 		$rel            = ! empty( $attributes['rel'] ) ? 'rel="' . esc_attr( $attributes['rel'] ) . '"' : '';
+		$height         = ! empty( $attributes['height'] ) ? 'style="' . esc_attr( safecss_filter_attr( 'height:' . $attributes['height'] ) ) . '"' : '';
 		$featured_image = sprintf(
-			'<a href="%1$s" target="%2$s" %3$s>%4$s%5$s</a>',
+			'<a href="%1$s" target="%2$s" %3$s %4$s>%5$s%6$s</a>',
 			get_the_permalink( $post_ID ),
 			esc_attr( $link_target ),
 			$rel,
+			$height,
 			$featured_image,
 			$overlay_markup
 		);
@@ -49,24 +74,20 @@ function render_block_core_post_featured_image( $attributes, $content, $block ) 
 		$featured_image = $featured_image . $overlay_markup;
 	}
 
-	$has_width  = ! empty( $attributes['width'] );
-	$has_height = ! empty( $attributes['height'] );
-	if ( ! $has_height && ! $has_width ) {
-		return "<figure {$wrapper_attributes}>{$featured_image}</figure>";
+	$aspect_ratio = ! empty( $attributes['aspectRatio'] )
+		? esc_attr( safecss_filter_attr( 'aspect-ratio:' . $attributes['aspectRatio'] ) ) . ';'
+		: '';
+	$width        = ! empty( $attributes['width'] )
+		? esc_attr( safecss_filter_attr( 'width:' . $attributes['width'] ) ) . ';'
+		: '';
+	$height       = ! empty( $attributes['height'] )
+		? esc_attr( safecss_filter_attr( 'height:' . $attributes['height'] ) ) . ';'
+		: '';
+	if ( ! $height && ! $width && ! $aspect_ratio ) {
+		$wrapper_attributes = get_block_wrapper_attributes();
+	} else {
+		$wrapper_attributes = get_block_wrapper_attributes( array( 'style' => $aspect_ratio . $width . $height ) );
 	}
-
-	if ( $has_width ) {
-		$wrapper_attributes = get_block_wrapper_attributes( array( 'style' => "width:{$attributes['width']};" ) );
-	}
-
-	if ( $has_height ) {
-		$image_styles = "height:{$attributes['height']};";
-		if ( ! empty( $attributes['scale'] ) ) {
-			$image_styles .= "object-fit:{$attributes['scale']};";
-		}
-		$featured_image = str_replace( 'src=', 'style="' . esc_attr( $image_styles ) . '" src=', $featured_image );
-	}
-
 	return "<figure {$wrapper_attributes}>{$featured_image}</figure>";
 }
 
@@ -163,12 +184,12 @@ function get_block_core_post_featured_image_border_attributes( $attributes ) {
 
 	// Border color.
 	$preset_color           = array_key_exists( 'borderColor', $attributes ) ? "var:preset|color|{$attributes['borderColor']}" : null;
-	$custom_color           = _wp_array_get( $attributes, array( 'style', 'border', 'color' ), null );
+	$custom_color           = $attributes['style']['border']['color'] ?? null;
 	$border_styles['color'] = $preset_color ? $preset_color : $custom_color;
 
 	// Individual border styles e.g. top, left etc.
 	foreach ( $sides as $side ) {
-		$border                 = _wp_array_get( $attributes, array( 'style', 'border', $side ), null );
+		$border                 = $attributes['style']['border'][ $side ] ?? null;
 		$border_styles[ $side ] = array(
 			'color' => isset( $border['color'] ) ? $border['color'] : null,
 			'style' => isset( $border['style'] ) ? $border['style'] : null,

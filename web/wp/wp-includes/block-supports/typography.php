@@ -10,28 +10,31 @@
  * Registers the style and typography block attributes for block types that support it.
  *
  * @since 5.6.0
+ * @since 6.3.0 Added support for text-columns.
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_typography_support( $block_type ) {
-	if ( ! property_exists( $block_type, 'supports' ) ) {
+	if ( ! ( $block_type instanceof WP_Block_Type ) ) {
 		return;
 	}
 
-	$typography_supports = _wp_array_get( $block_type->supports, array( 'typography' ), false );
+	$typography_supports = isset( $block_type->supports['typography'] ) ? $block_type->supports['typography'] : false;
 	if ( ! $typography_supports ) {
 		return;
 	}
 
-	$has_font_family_support     = _wp_array_get( $typography_supports, array( '__experimentalFontFamily' ), false );
-	$has_font_size_support       = _wp_array_get( $typography_supports, array( 'fontSize' ), false );
-	$has_font_style_support      = _wp_array_get( $typography_supports, array( '__experimentalFontStyle' ), false );
-	$has_font_weight_support     = _wp_array_get( $typography_supports, array( '__experimentalFontWeight' ), false );
-	$has_letter_spacing_support  = _wp_array_get( $typography_supports, array( '__experimentalLetterSpacing' ), false );
-	$has_line_height_support     = _wp_array_get( $typography_supports, array( 'lineHeight' ), false );
-	$has_text_decoration_support = _wp_array_get( $typography_supports, array( '__experimentalTextDecoration' ), false );
-	$has_text_transform_support  = _wp_array_get( $typography_supports, array( '__experimentalTextTransform' ), false );
+	$has_font_family_support     = isset( $typography_supports['__experimentalFontFamily'] ) ? $typography_supports['__experimentalFontFamily'] : false;
+	$has_font_size_support       = isset( $typography_supports['fontSize'] ) ? $typography_supports['fontSize'] : false;
+	$has_font_style_support      = isset( $typography_supports['__experimentalFontStyle'] ) ? $typography_supports['__experimentalFontStyle'] : false;
+	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
+	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
+	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
+	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
+	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
+	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
+	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	$has_typography_support = $has_font_family_support
 		|| $has_font_size_support
@@ -39,8 +42,10 @@ function wp_register_typography_support( $block_type ) {
 		|| $has_font_weight_support
 		|| $has_letter_spacing_support
 		|| $has_line_height_support
+		|| $has_text_columns_support
 		|| $has_text_decoration_support
-		|| $has_text_transform_support;
+		|| $has_text_transform_support
+		|| $has_writing_mode_support;
 
 	if ( ! $block_type->attributes ) {
 		$block_type->attributes = array();
@@ -72,6 +77,7 @@ function wp_register_typography_support( $block_type ) {
  *
  * @since 5.6.0
  * @since 6.1.0 Used the style engine to generate CSS and classnames.
+ * @since 6.3.0 Added support for text-columns.
  * @access private
  *
  * @param WP_Block_Type $block_type       Block type.
@@ -79,11 +85,13 @@ function wp_register_typography_support( $block_type ) {
  * @return array Typography CSS classes and inline styles.
  */
 function wp_apply_typography_support( $block_type, $block_attributes ) {
-	if ( ! property_exists( $block_type, 'supports' ) ) {
+	if ( ! ( $block_type instanceof WP_Block_Type ) ) {
 		return array();
 	}
 
-	$typography_supports = _wp_array_get( $block_type->supports, array( 'typography' ), false );
+	$typography_supports = isset( $block_type->supports['typography'] )
+		? $block_type->supports['typography']
+		: false;
 	if ( ! $typography_supports ) {
 		return array();
 	}
@@ -92,14 +100,16 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
-	$has_font_family_support     = _wp_array_get( $typography_supports, array( '__experimentalFontFamily' ), false );
-	$has_font_size_support       = _wp_array_get( $typography_supports, array( 'fontSize' ), false );
-	$has_font_style_support      = _wp_array_get( $typography_supports, array( '__experimentalFontStyle' ), false );
-	$has_font_weight_support     = _wp_array_get( $typography_supports, array( '__experimentalFontWeight' ), false );
-	$has_letter_spacing_support  = _wp_array_get( $typography_supports, array( '__experimentalLetterSpacing' ), false );
-	$has_line_height_support     = _wp_array_get( $typography_supports, array( 'lineHeight' ), false );
-	$has_text_decoration_support = _wp_array_get( $typography_supports, array( '__experimentalTextDecoration' ), false );
-	$has_text_transform_support  = _wp_array_get( $typography_supports, array( '__experimentalTextTransform' ), false );
+	$has_font_family_support     = isset( $typography_supports['__experimentalFontFamily'] ) ? $typography_supports['__experimentalFontFamily'] : false;
+	$has_font_size_support       = isset( $typography_supports['fontSize'] ) ? $typography_supports['fontSize'] : false;
+	$has_font_style_support      = isset( $typography_supports['__experimentalFontStyle'] ) ? $typography_supports['__experimentalFontStyle'] : false;
+	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
+	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
+	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
+	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
+	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
+	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
+	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	// Whether to skip individual block support features.
 	$should_skip_font_size       = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontSize' );
@@ -107,9 +117,11 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$should_skip_font_style      = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontStyle' );
 	$should_skip_font_weight     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontWeight' );
 	$should_skip_line_height     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'lineHeight' );
+	$should_skip_text_columns    = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textColumns' );
 	$should_skip_text_decoration = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textDecoration' );
 	$should_skip_text_transform  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textTransform' );
 	$should_skip_letter_spacing  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'letterSpacing' );
+	$should_skip_writing_mode    = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'writingMode' );
 
 	$typography_block_styles = array();
 	if ( $has_font_size_support && ! $should_skip_font_size ) {
@@ -119,11 +131,11 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$custom_font_size                    = isset( $block_attributes['style']['typography']['fontSize'] )
 			? $block_attributes['style']['typography']['fontSize']
 			: null;
-			$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
-				array(
-					'size' => $custom_font_size,
-				)
-			);
+		$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
+			array(
+				'size' => $custom_font_size,
+			)
+		);
 	}
 
 	if ( $has_font_family_support && ! $should_skip_font_family ) {
@@ -159,7 +171,15 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	}
 
 	if ( $has_line_height_support && ! $should_skip_line_height ) {
-		$typography_block_styles['lineHeight'] = _wp_array_get( $block_attributes, array( 'style', 'typography', 'lineHeight' ) );
+		$typography_block_styles['lineHeight'] = isset( $block_attributes['style']['typography']['lineHeight'] )
+			? $block_attributes['style']['typography']['lineHeight']
+			: null;
+	}
+
+	if ( $has_text_columns_support && ! $should_skip_text_columns && isset( $block_attributes['style']['typography']['textColumns'] ) ) {
+		$typography_block_styles['textColumns'] = isset( $block_attributes['style']['typography']['textColumns'] )
+			? $block_attributes['style']['typography']['textColumns']
+			: null;
 	}
 
 	if (
@@ -193,6 +213,15 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 			$block_attributes['style']['typography']['letterSpacing'],
 			'letter-spacing'
 		);
+	}
+
+	if ( $has_writing_mode_support &&
+		! $should_skip_writing_mode &&
+		isset( $block_attributes['style']['typography']['writingMode'] )
+	) {
+		$typography_block_styles['writingMode'] = isset( $block_attributes['style']['typography']['writingMode'] )
+			? $block_attributes['style']['typography']['writingMode']
+			: null;
 	}
 
 	$attributes = array();
@@ -348,8 +377,17 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
 		$unit  = $options['coerce_to'];
 	}
 
+	/*
+	 * No calculation is required if swapping between em and rem yet,
+	 * since we assume a root size value. Later we might like to differentiate between
+	 * :root font size (rem) and parent element font size (em) relativity.
+	 */
+	if ( ( 'em' === $options['coerce_to'] || 'rem' === $options['coerce_to'] ) && ( 'em' === $unit || 'rem' === $unit ) ) {
+		$unit = $options['coerce_to'];
+	}
+
 	return array(
-		'value' => $value,
+		'value' => round( $value, 3 ),
 		'unit'  => $unit,
 	);
 }
@@ -359,6 +397,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
  * width and min/max font sizes.
  *
  * @since 6.1.0
+ * @since 6.3.0 Checks for unsupported min/max viewport values that cause invalid clamp values.
  * @access private
  *
  * @param array $args {
@@ -380,13 +419,16 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 	$minimum_font_size_raw      = isset( $args['minimum_font_size'] ) ? $args['minimum_font_size'] : null;
 	$scale_factor               = isset( $args['scale_factor'] ) ? $args['scale_factor'] : null;
 
-	// Grab the minimum font size and normalize it in order to use the value for calculations.
+	// Normalizes the minimum font size in order to use the value for calculations.
 	$minimum_font_size = wp_get_typography_value_and_unit( $minimum_font_size_raw );
 
-	// We get a 'preferred' unit to keep units consistent when calculating, otherwise the result will not be accurate.
+	/*
+	 * We get a 'preferred' unit to keep units consistent when calculating,
+	 * otherwise the result will not be accurate.
+	 */
 	$font_size_unit = isset( $minimum_font_size['unit'] ) ? $minimum_font_size['unit'] : 'rem';
 
-	// Grab the maximum font size and normalize it in order to use the value for calculations.
+	// Normalizes the maximum font size in order to use the value for calculations.
 	$maximum_font_size = wp_get_typography_value_and_unit(
 		$maximum_font_size_raw,
 		array(
@@ -394,12 +436,12 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 		)
 	);
 
-	// Protect against unsupported units.
+	// Checks for mandatory min and max sizes, and protects against unsupported units.
 	if ( ! $maximum_font_size || ! $minimum_font_size ) {
 		return null;
 	}
 
-	// Use rem for accessible fluid target font scaling.
+	// Uses rem for accessible fluid target font scaling.
 	$minimum_font_size_rem = wp_get_typography_value_and_unit(
 		$minimum_font_size_raw,
 		array(
@@ -421,14 +463,20 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 		)
 	);
 
+	// Protects against unsupported units in min and max viewport widths.
+	if ( ! $minimum_viewport_width || ! $maximum_viewport_width ) {
+		return null;
+	}
+
 	/*
 	 * Build CSS rule.
 	 * Borrowed from https://websemantics.uk/tools/responsive-font-calculator/.
 	 */
 	$view_port_width_offset = round( $minimum_viewport_width['value'] / 100, 3 ) . $font_size_unit;
 	$linear_factor          = 100 * ( ( $maximum_font_size['value'] - $minimum_font_size['value'] ) / ( $maximum_viewport_width['value'] - $minimum_viewport_width['value'] ) );
-	$linear_factor          = round( $linear_factor, 3 ) * $scale_factor;
-	$fluid_target_font_size = implode( '', $minimum_font_size_rem ) . " + ((1vw - $view_port_width_offset) * $linear_factor)";
+	$linear_factor_scaled   = round( $linear_factor * $scale_factor, 3 );
+	$linear_factor_scaled   = empty( $linear_factor_scaled ) ? 1 : $linear_factor_scaled;
+	$fluid_target_font_size = implode( '', $minimum_font_size_rem ) . " + ((1vw - $view_port_width_offset) * $linear_factor_scaled)";
 
 	return "clamp($minimum_font_size_raw, $fluid_target_font_size, $maximum_font_size_raw)";
 }
@@ -439,6 +487,10 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * formula depending on available, valid values.
  *
  * @since 6.1.0
+ * @since 6.1.1 Adjusted rules for min and max font sizes.
+ * @since 6.2.0 Added 'settings.typography.fluid.minFontSize' support.
+ * @since 6.3.0 Using layout.wideSize as max viewport width, and logarithmic scale factor to calculate minimum font scale.
+ * @since 6.4.0 Added configurable min and max viewport width values to the typography.fluid theme.json schema.
  *
  * @param array $preset                     {
  *     Required. fontSizes preset value as seen in theme.json.
@@ -465,19 +517,41 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	}
 
 	// Checks if fluid font sizes are activated.
-	$typography_settings         = wp_get_global_settings( array( 'typography' ) );
-	$should_use_fluid_typography = isset( $typography_settings['fluid'] ) && true === $typography_settings['fluid'] ? true : $should_use_fluid_typography;
+	$global_settings     = wp_get_global_settings();
+	$typography_settings = isset( $global_settings['typography'] ) ? $global_settings['typography'] : array();
+	$layout_settings     = isset( $global_settings['layout'] ) ? $global_settings['layout'] : array();
+
+	if (
+		isset( $typography_settings['fluid'] ) &&
+		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] ) )
+	) {
+		$should_use_fluid_typography = true;
+	}
 
 	if ( ! $should_use_fluid_typography ) {
 		return $preset['size'];
 	}
 
+	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] )
+		? $typography_settings['fluid']
+		: array();
+
 	// Defaults.
-	$default_maximum_viewport_width   = '1600px';
-	$default_minimum_viewport_width   = '768px';
-	$default_minimum_font_size_factor = 0.75;
-	$default_maximum_font_size_factor = 1.5;
-	$default_scale_factor             = 1;
+	$default_maximum_viewport_width       = '1600px';
+	$default_minimum_viewport_width       = '320px';
+	$default_minimum_font_size_factor_max = 0.75;
+	$default_minimum_font_size_factor_min = 0.25;
+	$default_scale_factor                 = 1;
+	$default_minimum_font_size_limit      = '14px';
+
+	// Defaults overrides.
+	$minimum_viewport_width = isset( $fluid_settings['minViewportWidth'] ) ? $fluid_settings['minViewportWidth'] : $default_minimum_viewport_width;
+	$maximum_viewport_width = isset( $layout_settings['wideSize'] ) && ! empty( wp_get_typography_value_and_unit( $layout_settings['wideSize'] ) ) ? $layout_settings['wideSize'] : $default_maximum_viewport_width;
+	if ( isset( $fluid_settings['maxViewportWidth'] ) ) {
+		$maximum_viewport_width = $fluid_settings['maxViewportWidth'];
+	}
+	$has_min_font_size       = isset( $fluid_settings['minFontSize'] ) && ! empty( wp_get_typography_value_and_unit( $fluid_settings['minFontSize'] ) );
+	$minimum_font_size_limit = $has_min_font_size ? $fluid_settings['minFontSize'] : $default_minimum_font_size_limit;
 
 	// Font sizes.
 	$fluid_font_size_settings = isset( $preset['fluid'] ) ? $preset['fluid'] : null;
@@ -494,24 +568,67 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	// Font sizes.
 	$preferred_size = wp_get_typography_value_and_unit( $preset['size'] );
 
-	// Protect against unsupported units.
+	// Protects against unsupported units.
 	if ( empty( $preferred_size['unit'] ) ) {
 		return $preset['size'];
 	}
 
-	// If no fluid min or max font sizes are available, create some using min/max font size factors.
-	if ( ! $minimum_font_size_raw ) {
-		$minimum_font_size_raw = ( $preferred_size['value'] * $default_minimum_font_size_factor ) . $preferred_size['unit'];
+	/*
+	 * Normalizes the minimum font size limit according to the incoming unit,
+	 * in order to perform comparative checks.
+	 */
+	$minimum_font_size_limit = wp_get_typography_value_and_unit(
+		$minimum_font_size_limit,
+		array(
+			'coerce_to' => $preferred_size['unit'],
+		)
+	);
+
+	// Don't enforce minimum font size if a font size has explicitly set a min and max value.
+	if ( ! empty( $minimum_font_size_limit ) && ( ! $minimum_font_size_raw && ! $maximum_font_size_raw ) ) {
+		/*
+		 * If a minimum size was not passed to this function
+		 * and the user-defined font size is lower than $minimum_font_size_limit,
+		 * do not calculate a fluid value.
+		 */
+		if ( $preferred_size['value'] <= $minimum_font_size_limit['value'] ) {
+			return $preset['size'];
+		}
 	}
 
+	// If no fluid max font size is available use the incoming value.
 	if ( ! $maximum_font_size_raw ) {
-		$maximum_font_size_raw = ( $preferred_size['value'] * $default_maximum_font_size_factor ) . $preferred_size['unit'];
+		$maximum_font_size_raw = $preferred_size['value'] . $preferred_size['unit'];
+	}
+
+	/*
+	 * If no minimumFontSize is provided, create one using
+	 * the given font size multiplied by the min font size scale factor.
+	 */
+	if ( ! $minimum_font_size_raw ) {
+		$preferred_font_size_in_px = 'px' === $preferred_size['unit'] ? $preferred_size['value'] : $preferred_size['value'] * 16;
+
+		/*
+		 * The scale factor is a multiplier that affects how quickly the curve will move towards the minimum,
+		 * that is, how quickly the size factor reaches 0 given increasing font size values.
+		 * For a - b * log2(), lower values of b will make the curve move towards the minimum faster.
+		 * The scale factor is constrained between min and max values.
+		 */
+		$minimum_font_size_factor     = min( max( 1 - 0.075 * log( $preferred_font_size_in_px, 2 ), $default_minimum_font_size_factor_min ), $default_minimum_font_size_factor_max );
+		$calculated_minimum_font_size = round( $preferred_size['value'] * $minimum_font_size_factor, 3 );
+
+		// Only use calculated min font size if it's > $minimum_font_size_limit value.
+		if ( ! empty( $minimum_font_size_limit ) && $calculated_minimum_font_size <= $minimum_font_size_limit['value'] ) {
+			$minimum_font_size_raw = $minimum_font_size_limit['value'] . $minimum_font_size_limit['unit'];
+		} else {
+			$minimum_font_size_raw = $calculated_minimum_font_size . $preferred_size['unit'];
+		}
 	}
 
 	$fluid_font_size_value = wp_get_computed_fluid_typography_value(
 		array(
-			'minimum_viewport_width' => $default_minimum_viewport_width,
-			'maximum_viewport_width' => $default_maximum_viewport_width,
+			'minimum_viewport_width' => $minimum_viewport_width,
+			'maximum_viewport_width' => $maximum_viewport_width,
 			'minimum_font_size'      => $minimum_font_size_raw,
 			'maximum_font_size'      => $maximum_font_size_raw,
 			'scale_factor'           => $default_scale_factor,
