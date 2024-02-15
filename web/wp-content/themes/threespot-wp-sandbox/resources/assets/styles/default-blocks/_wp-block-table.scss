@@ -1,0 +1,56 @@
+//------------------------------------------------------------------------
+// Default table block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/table/style.scss
+//
+// <figure class="wp-block-table [alignwide|alignfull]">
+//   <table class="[has-fixed-layout]">
+//     <thead>
+//       <tr>
+//         <th class="has-text-align-[left|right|center]" data-align="[left|right|center]">Column 1</th>
+//       </tr>
+//     </thead>
+//     <tbody>
+//       <tr>
+//         <td class="has-text-align-[left|right|center]" data-align="[left|right|center]">Example…</td>
+//       </tr>
+//     </tbody>
+//     <tfoot>
+//       <tr>
+//         <td class="has-text-align-[left|right|center]" data-align="[left|right|center]">Footer</td>
+//       </tr>
+//     </tfoot>
+//   </table>
+//   <figcaption>Table caption…</figcaption>
+// </figure>
+//------------------------------------------------------------------------
+.wp-block-table {
+  display: block !important;// override WP admin styles
+  margin-bottom: 2em !important;// override WP admin styles
+  margin-top: 2em !important;// override WP admin styles
+  overflow-x: scroll;// allow horz scroll when needed
+  -webkit-overflow-scrolling: touch;// iOS “momentum” scrolling
+  width: 100% !important;// override WP admin styles
+
+  @if $is-admin-stylesheet {
+    th,
+    td {
+      border: 0;
+    }
+  }
+
+  table {
+    @include table-styles;
+    @include fs-scale(font-size, (375px: 16px, $layout-text-scale-end-bp: 20px));
+  }
+
+  // 1. We’re allowing tables to scroll horizontally so pverride default WP style
+  th,
+  td {
+    word-break: normal !important;// [1]
+  }
+
+  figcaption {
+    @include caption;
+    margin-top: fs-rem(25px);
+  }
+} // end wp-block-table

@@ -1,19 +1,46 @@
 // -------------------------------------------------------------------------
 // Layout Vars
 //------------------------------------------------------------------------
-$layout-max-width: 1050px;
-$layout-max-width-narrow: 680px;
-$layout-max-width-wide: 1200px;
+$layout-max-width: 1140px;// FIXME
+$layout-max-width-narrow: 840px;// FIXME
 
-// Left/right padding
-//---------------------------------
-$layout-padding: (
-  'default': 10px,
-  320px: 15px,
-  400px: 20px,
-  600px: 30px
-);
+// Horizontal padding used by l-padding helper class
+$layout-padding-min: 15px;
+$layout-padding-max: 30px;
+$layout-padding-min-bp: 320px;
+$layout-padding-max-bp: 600px;
 
-// 50% columns
-//---------------------------------
-$layout-equal-cols-bp: 860px;
+// Calculate when wrappers reach their max-width
+$layout-max-width-bp: $layout-max-width + ($layout-padding-max * 2);
+$layout-max-width-narrow-bp: $layout-max-width-narrow + ($layout-padding-max * 2);
+
+// Text scaling breakpoint
+$layout-text-scale-end-bp: $layout-max-width-narrow-bp;
+
+// Block margin
+$layout-block-vert-margin-min: 50px;
+$layout-block-vert-margin-max: 100px;
+$layout-block-vert-margin-min-bp: 360px;
+$layout-block-vert-margin-max-bp: 900px;
+
+// Column blocks
+$layout-block-column-vert-margin: 40px;
+
+// Navigation
+$layout-nav-bp: 1000px;
+
+// Sidebar layout
+$layout-sidebar-bp: 1024px;
+$layout-sidebar-gutter: 100px;
+$layout-sidebar-width: 280px;
+
+// Gutenberg block breakpoints
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
+$break-huge: 1440px;
+$break-wide: 1280px;
+$break-xlarge: 1080px;
+$break-large: 960px;	// admin sidebar auto folds
+$break-medium: 782px;	// adminbar goes big
+$break-small: 600px;
+$break-mobile: 480px;
+$break-zoomed-in: 280px;

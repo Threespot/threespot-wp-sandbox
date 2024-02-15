@@ -1,0 +1,14 @@
+//------------------------------------------------------------------------
+// Default separator (i.e. horz rule) block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/code/style.scss
+//
+// <hr class="wp-block-separator">
+//------------------------------------------------------------------------
+.wp-block-separator {
+  background-color: mediumvioletred;
+  border: 0;
+  display: block;
+  height: 1px;
+  margin: 2em auto;
+  max-width: fs-rem($layout-max-width-narrow) !important;// override default WP styles
+}

@@ -14,3 +14,13 @@ fi
 if [ -d "web/wp/wp-content" ]; then
   rm -rf web/wp/wp-content
 fi
+
+# Remove old Pantheon mu-plugin if it exists
+# https://github.com/pantheon-systems/wordpress-composer/issues/29
+if [ -d "web/wp-content/mu-plugins/pantheon/" ]; then
+  rm -rf web/wp-content/mu-plugins/pantheon
+fi
+
+if [ -f "web/wp-content/mu-plugins/pantheon.php" ]; then
+  rm web/wp-content/mu-plugins/pantheon.php
+fi

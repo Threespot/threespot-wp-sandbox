@@ -1,54 +1,45 @@
 //------------------------------------------------------------------------
 // Rich text heading styles
 //
-// <h1> should be reserved for the page title (see _custom-text-styles.scss).
-// We are automatically stepping headings down a level in markdown.rb,
-// but if an <h1> somehow makes it into a rich-text field, it will be styled
-// to look like an <h2> (see _richtext.scss)
-//
-// Use fs-scale() to override “f-scale-body” styles for body copy
-// since headings typically need to scale at different rates.
+// Note: Be aware that “text-rendering: optimizeLegibility” can sometimes
+//       result in edge-case issues. Make sure to test if using it.
 //------------------------------------------------------------------------
-
-// FIXME: These are example styles
-
-// h2
-//---------------------------------
-@mixin h2 {
-  @include fs-scale(font-size, 30px, 40px, 320px, 900px);
+@mixin h2($color: $c-default) {
+  @include fs-scale(font-size, (360px: 34px, $layout-text-scale-end-bp: 48px));
+  color: $color;
+  font-family: $serif;
   font-weight: bold;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
-// h3
-//---------------------------------
-@mixin h3 {
-  @include fs-scale(font-size, 22px, 32px, 320px, 900px);
+@mixin h3($color: $c-default) {
+  @include fs-scale(font-size, (360px: 28px, $layout-text-scale-end-bp: 43px));
+  color: $color;
+  font-family: $serif;
   font-weight: normal;
-  line-height: 1.24;
+  line-height: 1.3;
 }
 
-// h4
-//---------------------------------
-@mixin h4 {
-  @include fs-scale(font-size, 18px, 28px, 320px, 900px);
-  font-weight: bold;
-  line-height: 1.333;
+@mixin h4($color: $c-default) {
+  @include fs-scale(font-size, (360px: 26px, $layout-text-scale-end-bp: 32px));
+  color: $color;
+  font-family: $serif;
+  font-weight: normal;
+  line-height: 1.4;
 }
 
-// h5
-//---------------------------------
-@mixin h5 {
-  @include fs-scale(font-size, 16px, 22px, 320px, 900px);
+@mixin h5($color: $c-default) {
+  @include fs-scale(font-size, (360px: 22px, $layout-text-scale-end-bp: 26px));
+  color: $color;
+  font-family: $sans-serif;
   font-weight: bold;
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
-// h6
-//---------------------------------
-@mixin h6 {
-  @include fs-scale(font-size, 16px, 18px, 320px, 900px);
+@mixin h6($color: $c-default) {
+  @include fs-scale(font-size, (360px: 16px, $layout-text-scale-end-bp: 22px));
+  color: $color;
+  font-family: $sans-serif;
   font-weight: bold;
-  line-height: 1.2;
-  text-transform: uppercase;
+  line-height: 1.4;
 }

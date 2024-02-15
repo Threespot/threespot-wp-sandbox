@@ -1,0 +1,67 @@
+// -------------------------------------------------------------------------
+// Tables
+// -------------------------------------------------------------------------
+// Default table styles (do not apply globally, they should be opt-in)
+// 1. Collapsing the borders causes extra 1px width, triggering horz scroll bar (browser bug)
+// 2. Makes numbers all the same height (requires OpenType support)
+@mixin table-styles {
+  $border-color: $input-border-color;
+  --cell-horz-padding: #{fs-rem(10px)};
+  border-collapse: separate; // [1]
+  font-feature-settings: "lnum" on;// [2]
+  min-width: 100%;
+
+  // Add padding for wider viewports
+  @include fs-min-width(500px) {
+    --cell-horz-padding: #{fs-rem(16px)};
+  }
+
+  caption {
+    @include h4;
+    margin-bottom: 1em;
+  }
+
+  thead,
+  tfoot {
+    font-weight: bold;
+  }
+
+  thead {
+    th {
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 1em;
+      padding-left: var(#{--cell-horz-padding});
+      padding-right: var(#{--cell-horz-padding});
+    }
+  }// end thead
+
+  tbody {
+    td {
+      border-bottom: 1px solid $border-color;
+      // border-right: 1px solid $border-color;
+      padding: fs-rem(24px) var(#{--cell-horz-padding});
+
+      // &:last-child {
+      //   border-right: 0;
+      // }
+    }
+
+    tr:last-child {
+      th,
+      td {
+        border-bottom: 0;
+      }
+    }
+  }// end tbody
+
+  tfoot {
+    td,
+    th {
+      border-bottom: 0;
+      border-top: 2px solid currentColor;
+      padding-left: var(#{--cell-horz-padding});
+      padding-right: var(#{--cell-horz-padding});
+      padding-top: 1em;
+    }
+  }// end tfoot
+}

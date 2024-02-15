@@ -1,0 +1,58 @@
+/**
+ * Prefix your imports with `~` to grab from node_modules/
+ * @see https://github.com/webpack-contrib/sass-loader#imports
+ */
+
+// Threespot Sass library
+// http://threespot.github.io/frontline-sass/documentation/
+@import "~frontline-sass";
+
+// Project styles
+@import "vars/*";
+@import "functions/*";
+@import "mixins/*";
+
+body {
+  background-color: #f0f0f1;
+}
+
+#backtoblog,
+#nav {
+  a {
+    font-size: fs-rem(16px) !important;
+
+    @include fs-attention {
+      text-decoration: underline !important;
+    }
+  }
+}
+
+#login h1 a {
+  background-image: fs-svg-url("wordpress", (fill: #fff));
+  opacity: 0.75;
+  transition: opacity 150ms ease-in-out;
+
+  @include fs-attention {
+    opacity: 1;
+  }
+}
+
+#loginform {
+  background-color: rgba(#fff, 0.65);
+  border: 0;
+  border-radius: 7px;
+  box-shadow: 0 0 20px 0 rgba(#000, 0.1);
+  padding-bottom: fs-rem(26px);
+
+  label {
+    font-size: fs-rem(16px) !important;
+  }
+}
+
+#wp-submit {
+  font-size: fs-rem(14px);
+
+  @include button-attention {
+    text-decoration: underline;
+  }
+}

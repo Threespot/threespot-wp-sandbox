@@ -1,0 +1,323 @@
+/* WP editor styles */
+// NOTE: WP prepends “.editor-styles-wrapper” to all rules and adds the CSS inline
+
+// This variable allows us to write separate styles for the WP admin
+$is-admin-stylesheet: true;
+
+// Threespot Sass library
+// http://threespot.github.io/frontline-sass/documentation/
+@import "~frontline-sass";
+
+// Web fonts
+@import "fonts";
+
+// Threespot CSS reset
+// https://github.com/Threespot/frontline-css-reset
+@import "./node_modules/frontline-css-reset/frontline-css-reset";
+
+// Project styles
+@import "vars/*";
+
+// Admin sidebar vars
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
+$admin-menu-bp: 783px;
+$admin-menu-wide-bp: 961px;
+$admin-menu-width: 36px;
+$admin-menu-width-wide: 160px;
+$admin-sidebar-width: 281px;
+
+@import "functions/*";
+@import "mixins/*";
+@import "base";
+@import "helpers/*";
+@import "components/*";
+@import "default-blocks/*";
+@import "print";
+
+// Not needed in WP 5.8
+//---------------------------------
+// html.wp-toolbar,
+// body.wp-admin {
+//   height: auto !important;
+//   min-height: 100%;
+// }
+
+// #wpwrap {
+//   min-height: unset !important;
+// }
+//---------------------------------
+
+#wpwrap {
+  min-height: unset !important;
+}
+
+// Prevent util links from wrapping (below post titles in list views)
+@include fs-media((min-width: $admin-menu-bp)) {
+  // stylelint-disable no-duplicate-selectors
+  .wp-list-table {
+    &.pages,
+    &.posts {
+      td.title {
+        padding-bottom: fs-rem(30px);
+        position: relative;
+      }
+
+      .row-actions {
+        bottom: 8px;
+        position: absolute !important;
+        white-space: nowrap;
+      }
+
+      .comment-item:hover .row-actions,
+      .mobile .row-actions,
+      .no-js .row-actions,
+      .row-actions.visible,
+      tr:hover .row-actions {
+        left: 11px;
+      }
+    }
+  }
+
+  // Fix bug with ACF table layout
+  .column-acf-json {
+    position: relative;
+  }
+}
+
+// TinyMCE editor body
+.mce-content-body,
+.mceContentBody {
+  font-family: $body-copy-font;
+}
+
+// Custom Gutenberg editor overrides
+.interface-interface-skeleton__content {
+  & > .edit-post-visual-editor {
+    @include default-padding;
+
+    background-color: $bg-default;
+  }
+}
+
+// NOTE: No longer needed starting in WP 5.9
+//
+// // Reset the following <p> styles from wp-admin/css/common.css
+// //
+// //   p,
+// //   .wp-die-message {
+// //     font-size: 13px;
+// //     line-height: 1.5;
+// //     margin: 1em 0;
+// //   }
+// p {
+//   font-size: inherit;
+//   line-height: inherit;
+//   margin-bottom: 0;
+//   margin-top: 0;
+// }
+
+.editor-styles-wrapper {
+  font-family: $body-copy-font !important;
+  padding: 0 !important;
+
+  .wp-block[data-align="full"] {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}// end editor-styles-wrapper
+
+.edit-post-visual-editor {
+  // Parent wrapper of editor content
+  .is-root-container {
+    @include richtext;
+    @include text-size-scale;
+
+    margin-left: auto;
+    margin-right: auto;
+    max-width: fs-rem($layout-max-width-narrow);
+  }
+
+  .editor-post-title {
+    // Use top padding instead of margin since parent height
+    // is set to 100% and will overlap the metaboxes otherwise.
+    margin-top: 0 !important;
+    padding-top: 2em;
+
+    &__input {
+      @include post-title;
+      // Don’t use uppercase so authors can see any capitalization errors
+      text-transform: none !important;
+    }
+  }
+
+  // Remove SVG margin coming from our default link styles on the WP buttons
+  .has-icon svg {
+    margin-left: 0;
+  }
+}// end editor-styles-wrapper
+
+// Custom paragraph block style
+.is-style-intro {
+  @include intro-text;
+}
+
+// Disable drop cap styles in block style thumbnails since we’ve
+// disabled them in setup.php via add_filter('block_editor_settings')
+.has-drop-cap::first-letter {
+  float: none !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: inherit !important;
+  margin: inherit !important;
+  text-transform: inherit !important;
+  font-style: inherit !important;
+}
+
+// Ensure custom blocks that support left/right alignement are clickable
+.block-editor-block-list__block {
+  &[data-align] {
+    z-index: 2;
+  }
+}
+
+// Fix line-height in block style thumbnail previews
+.wp-block.has-drop-cap.rich-text {
+  line-height: 1.5;
+
+  &.is-style-intro {
+    font-size: 32px !important;
+  }
+}
+
+// Add outlines and labels to groups on hover/focus to improve UX (WP 5.9)
+.wp-block-group {
+  $outline-width: 1px;
+
+  outline: $outline-width dotted transparent;
+  position: relative;
+  transition: outline 150ms ease-in-out;
+
+  &::before {
+    background-color: #eee;
+    color: #444;
+    font-family: sans-serif;
+    font-weight: normal;
+    font-size: fs-rem(11px);
+    left: -$outline-width;
+    line-height: 1;
+    opacity: 0;
+    padding: fs-rem(4px 6px);
+    position: absolute;
+    transition: opacity 150ms ease-in-out;
+  }
+
+  &::before {
+    bottom: 100%;
+    content: "Group";
+  }
+
+  &:hover,
+  &:focus-within,
+  &.has-child-selected {
+    outline-color: #ccc;
+
+    &:before {
+      opacity: 1;
+    }
+  }// end hover
+}// end .wp-block-group
+
+// Add outlines and labels to groups on hover/focus to improve UX (WP 5.8)
+//.wp-block-group {
+//  $selector: &;
+//  $outline-color: #eee;
+//  $outline-width: 1px;
+//
+//  &__inner-container {
+//    outline: $outline-width dotted transparent;
+//    position: relative;
+//    transition: outline 150ms ease-in-out;
+//
+//    &:before,
+//    &:after {
+//      background-color: $outline-color;
+//      color: #444;
+//      font-family: sans-serif;
+//      font-weight: normal;
+//      font-size: fs-rem(11px);
+//      left: -$outline-width;
+//      line-height: 1;
+//      opacity: 0;
+//      padding: fs-rem(4px 6px);
+//      position: absolute;
+//      transition: opacity 150ms ease-in-out;
+//    }
+//
+//    &:before {
+//      bottom: 100%;
+//      content: 'Group';
+//    }
+//
+//    &:after {
+//      content: 'end group';
+//      top: 100%;
+//    }
+//
+//    #{$selector}__inner-container {
+//      &:before {
+//        content: 'Child group';
+//      }
+//    }
+//  }
+//
+//  &:hover,
+//  &:focus-within,
+//  &.is-selected {
+//    #{$selector}__inner-container {
+//      outline-color: $outline-color;
+//
+//      &:before,
+//      &:after {
+//        opacity: 1;
+//      }
+//    }
+//  }// end hover
+//}// end .wp-block-group
+
+// Custom field metaboxes
+.postbox-header {
+  // Increase font-weight of headings
+  .hndle {
+    font-weight: 500;
+  }
+}
+
+// Don’t float ACF block wrappers when using default left/right alignment
+// (floats should be applied to the block itself)
+.wp-block {
+  &[data-align="left"],
+  &[data-align="right"] {
+    height: auto;
+
+    .acf-block-component {
+      float: none;
+    }
+  }
+
+  &[data-align="left"] {
+    .acf-block-component {
+      margin-right: 0;
+    }
+  }
+
+  &[data-align="right"] {
+    .acf-block-component {
+      margin-left: 0;
+    }
+  }
+}// end wp-block
+
+// Update line-height on metabox select fields to avoid cutting off descenders
+.components-panel select {
+  line-height: 1.1 !important;
+}

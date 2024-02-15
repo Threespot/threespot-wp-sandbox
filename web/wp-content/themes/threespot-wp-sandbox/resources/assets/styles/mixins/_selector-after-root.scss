@@ -1,0 +1,22 @@
+//------------------------------------------------------------------------
+// Add selector after root but before current selector
+//
+// Demo: https://www.sassmeister.com/gist/5b8eb4b386180f0a465d3e6212b3025d
+//------------------------------------------------------------------------
+@mixin selector-after-root($selector) {
+  $old-selector: & + '';// convert to string
+  $space-index: str-index($old-selector, ' ');// find first space
+
+  @if (type-of($space-index) == number) {
+    $new-selector: str-insert($old-selector, ' ' + $selector, $space-index);
+
+    @at-root #{$new-selector} {
+      @content;
+    }
+  }
+  @else {
+    #{$selector} & {
+      @content;
+    }
+  }
+}

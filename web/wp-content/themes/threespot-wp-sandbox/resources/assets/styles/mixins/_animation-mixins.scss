@@ -1,0 +1,44 @@
+// Animation helper mixin with sensible defaults
+@mixin animation(
+  $name,
+  $duration: 1s,
+  $timing-fn: ease,
+  $delay: 0s,
+  $count: 1,
+  $direction: normal,
+  $fill: both
+) {
+  // animation-delay: $delay;
+  // animation-direction: $direction;
+  // animation-duration: $duration;
+  // animation-fill-mode: $fill;
+  // animation-iteration-count: $count;
+  // animation-name: $name;
+  // animation-timing-function: $timing-fn;
+  animation: $name $duration $timing-fn $delay $count $direction $fill;
+}
+
+
+// fadeInSlideUp() example
+//------------------------------------------------------------------------
+// @keyframes fadeInSlideUp {
+//   0% {
+//     opacity: 0;
+//     transform: translateY(6px);
+//   }
+//   100% {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+// }
+//
+// @mixin fadeInSlideUp(
+//   $duration: 1s,
+//   $timing-fn: ease,
+//   $delay: 0s,
+//   $count: 1,
+//   $direction: normal,
+//   $fill: both
+// ) {
+//   @include animation(fadeInSlideUp, $duration, $timing-fn, $delay, $count, $direction, $fill);
+// }
