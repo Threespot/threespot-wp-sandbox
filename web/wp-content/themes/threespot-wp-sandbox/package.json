@@ -34,7 +34,7 @@
     "test": "npm run -s lint"
   },
   "engines": {
-    "node": ">= 21.6.1"
+    "node": ">= 18.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

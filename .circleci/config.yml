@@ -126,7 +126,7 @@ jobs:
   build_yarn:
     <<: *defaults
     docker:
-      - image: circleci/node:21.6.1
+      - image: circleci/node:18.4.0
 
     steps:
       - checkout
