@@ -1,0 +1,158 @@
+//------------------------------------------------------------------------
+// Layout mixins
+//------------------------------------------------------------------------
+// Allow element to span viewport width regardless of parent width
+// NOTE: These styles only work when the parent wrapper is centered.
+// NOTE: These styles will break blocks with parallax backgrounds (e.g. cover)
+@mixin layout-fullwidth($important: false) {
+  left: 50% #{if($important, ' !important', '')};
+  position: relative #{if($important, ' !important', '')};
+  transform: translateX(-50%) #{if($important, ' !important', '')};
+  width: 100vw #{if($important, ' !important', '')};
+
+  // In the admin, we need to account for the WP menu and the sidebar
+  @if $is-admin-stylesheet {
+    @include fs-media((min-width: $admin-menu-bp)) {
+      // Admin menu
+      body:not(.is-fullscreen-mode) .edit-post-layout:not(.is-sidebar-opened) & {
+        width: calc(100vw - #{$admin-menu-width});
+      }
+
+      // Admin menu with sidebar
+      body:not(.is-fullscreen-mode) .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{$admin-menu-width + $admin-sidebar-width});
+      }
+
+      // Fullscreen mode with sidebar
+      body.is-fullscreen-mode .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{$admin-sidebar-width});
+      }
+    }
+
+    @include fs-media((min-width: $admin-menu-wide-bp)) {
+      // Wide admin menu
+      body:not(.is-fullscreen-mode) .edit-post-layout:not(.is-sidebar-opened) & {
+        width: calc(100vw - #{$admin-menu-width-wide});
+      }
+
+      // Wide admin menu with sidebar
+      body:not(.is-fullscreen-mode) .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{$admin-menu-width-wide + $admin-sidebar-width});
+      }
+    }
+  }
+
+  // We need to recalculate the left offset when there’s a sidebar
+  // .l-sidebar & {
+  //   @include fs-min-width($layout-sidebar-bp) {
+  //     left: calc(50% - (#{$layout-sidebar-width} / 2));
+  //   }
+  // }
+}
+
+// Helper mixin for setting widths that extend beyond the parent wrapper
+// NOTE: These styles will break blocks with parallax backgrounds (e.g. cover)
+@mixin layout-max-width($max-width) {
+  max-width: fs-rem($max-width);
+
+  // Only needed if nested inside of another “l-wrap” class
+  // Note: Just checking for [class*="l-wrap"] can result in false positives
+  //       e.g. “Modal-wrap” would match
+  [class^="l-wrap"] &,
+  [class*=" l-wrap"] & {
+    @include fs-min-width($layout-max-width-narrow-bp) {
+      left: 50%;
+      position: relative;
+      transform: translateX(-50%);
+      width: calc(100vw - #{$layout-padding-max * 2});
+    }
+  }
+
+  @if $is-admin-stylesheet {
+    @include fs-min-width($layout-max-width-narrow-bp) {
+      left: 50%;
+      position: relative;
+      transform: translateX(-50%);
+      width: calc(100vw - #{$layout-padding-max * 2});
+    }
+
+    @include fs-media((min-width: $admin-menu-bp)) {
+      // Admin menu
+      body:not(.is-fullscreen-mode) .edit-post-layout:not(.is-sidebar-opened) & {
+        width: calc(100vw - #{($layout-padding-max * 2) + $admin-menu-width});
+      }
+
+      // Admin menu and sidebar
+      body:not(.is-fullscreen-mode) .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{($layout-padding-max * 2) + $admin-menu-width + $admin-sidebar-width});
+      }
+
+      // Fullscreen mode with sidebar
+      body.is-fullscreen-mode .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{($layout-padding-max * 2) + $admin-sidebar-width});
+      }
+    }
+
+    @include fs-media((min-width: $admin-menu-wide-bp)) {
+      // Wide admin menu
+      body:not(.is-fullscreen-mode) .edit-post-layout:not(.is-sidebar-opened) & {
+        width: calc(100vw - #{($layout-padding-max * 2) + $admin-menu-width-wide});
+      }
+
+      // Wide admin menu and sidebar
+      body:not(.is-fullscreen-mode) .edit-post-layout.is-sidebar-opened & {
+        width: calc(100vw - #{($layout-padding-max * 2) + $admin-menu-width-wide + $admin-sidebar-width});
+      }
+    }
+  }
+}
+
+// Custom max-width mixins
+@mixin layout-wide() {
+  @include layout-max-width($layout-max-width);
+}
+
+// Global left/right padding mixin, used by _layout-helpers.scss
+@mixin default-padding() {
+  @include fs-scale(padding-left padding-right, (
+    $layout-padding-min-bp: $layout-padding-min,
+    $layout-padding-max-bp: $layout-padding-max
+  ));
+
+  @media print {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+// Default block vertical margin
+@mixin block-vert-margin($props: margin-bottom margin-top) {
+  &:not(:first-child) {
+    margin-top: 2em;
+  }
+
+  &:not(:last-child) {
+    margin-bottom: 2em;
+  }
+
+  @if $is-admin-stylesheet {
+    margin-bottom: 2em !important;
+    margin-top: 2em !important;
+  }
+}
+
+// Custom block vertical margin
+@mixin custom-block-vert-margin($props: margin-bottom margin-top) {
+  @include fs-scale($props, (
+    $layout-block-vert-margin-min-bp: $layout-block-vert-margin-min,
+    $layout-block-vert-margin-max-bp: $layout-block-vert-margin-max
+  ));
+}
+
+// FIXME: Default vert padding on strata with background colors
+@mixin strata-vert-padding() {
+  @include fs-scale(padding-bottom padding-top, (
+    $layout-padding-min-bp: 60px,
+    $layout-padding-max-bp: 100px
+  ));
+}

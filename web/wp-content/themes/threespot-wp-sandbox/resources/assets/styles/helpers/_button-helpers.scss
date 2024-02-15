@@ -4,6 +4,16 @@
 // scss-lint:disable ImportantRule, ColorVariable
 // sass-lint:disable no-important, no-color-literals
 // -------------------------------------------------------------------------
-.btn {
+[class*="btn"] {
   @include button-base;
+}
+
+.btn {
+  &-solid {
+    @include button-solid;
+  }
+
+  &-border {
+    @include button-border;
+  }//end btn-border
 }// end btn

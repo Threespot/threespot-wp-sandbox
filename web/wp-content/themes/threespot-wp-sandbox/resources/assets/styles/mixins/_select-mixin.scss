@@ -2,43 +2,58 @@
 // Custom select styles
 //------------------------------------------------------------------------
 @mixin select {
-  $border-width: 2px;
-  $border-radius: 0;
-  $horz-padding: 16px;
-  $vert-padding: 12px;
-  $icon-width: 12px;
-  $icon-margin: 10px;
+  $border-width: 1px;
+  $border-radius: $input-border-radius;
+  $top-padding: 12px;
+  $bottom-padding: 11px;
+  $icon-width: 13px;
+  $icon-margin: 15px;
   appearance: none;
   background-color: transparent;
-  background-image: url(fs-svg('caretDown', #000));// can’t use currentColor :(
-  background-position: right 10px top 50%;
+  background-image: fs-svg-url('chevDown', (fill: $bg-navy));
+  background-position: right $icon-margin top 50%;
   background-repeat: no-repeat;
-  background-size: $icon-width $icon-width;
+  background-size: $icon-width auto;
+  border: $border-width solid $input-border-color;
   border-radius: $border-radius;
-  border: $border-width solid currentColor;
   color: currentColor;
   cursor: pointer;
-  line-height: 1;
-  padding: fs-rem($vert-padding ($horz-padding + $icon-width + $icon-margin) $vert-padding $horz-padding);
+  font-size: 1em;
+  line-height: 1.2;
+  padding: fs-rem($top-padding (13px + $icon-width + $icon-margin) $bottom-padding 10px);
   position: relative;
   transition: all 150ms ease-in-out;
   width: 100%;
   z-index: 2;
 
-  // @include button-attention {
-  //   background-image: url(fs-svg('caretDown', #fff));
-  // }
+  @include button-attention {
+    border-color: mediumvioletred;
+  }
+
+  &:disabled {
+    color: $input-disabled-border;
+    cursor: not-allowed;
+  }
+
+  // Use mixin to allow class namespace in gutenberg.scss
+  @include selector-after-root('.is-style-bg-dark') {
+    background-color: transparent;
+    border-color: currentColor;
+    color: #fff;
+
+    @include button-attention {
+      text-decoration: underline;
+    }
+
+    &:disabled {
+      color: $input-disabled-color;
+    }
+  }
 
   // Hide native UI in IE 10
   &::-ms-expand {
     opacity: 0;
     visibility: hidden;
-  }
-
-  // Use default arrow in IE 9- since we can't hide it
-  .lte-ie9 & {
-    background-image: none;
-    padding-right: 0;
   }
 
   // Firefox requires adding padding back to option elements (removed by CSS reset)
@@ -54,5 +69,4 @@
   &.is-invalid {
     border-color: $input-error-color;
   }
-
 }

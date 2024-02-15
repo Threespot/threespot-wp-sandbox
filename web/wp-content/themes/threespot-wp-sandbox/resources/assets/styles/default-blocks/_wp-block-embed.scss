@@ -1,0 +1,46 @@
+//------------------------------------------------------------------------
+// Default image block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/embed/style.scss
+//
+// <figure class="wp-block-embed l-block wp-block-embed is-type-rich is-provider-embed-handler wp-block-embed-embed-handler wp-embed-aspect-16-9 wp-has-aspect-ratio">
+//   <div class="wp-block-embed__wrapper">
+//     <iframe loading="lazy" title="Example" width="500" height="281" src="https://www.youtube.com/embed/123456?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+//   </div>
+//   <figcaption>Wide YouTube embed</figcaption>
+// </figure>
+//------------------------------------------------------------------------
+.wp-block-embed {
+
+  &.alignright,
+  [data-align="right"] & {
+    margin-left: auto;
+  }
+
+  &__wrapper {
+    display: flex;
+
+    .aligncenter &,
+    [data-align="center"] & {
+      justify-content: center;
+    }
+
+    .alignright &,
+    [data-align="right"] & {
+      justify-content: flex-end;
+    }
+  }// end __wrapper
+
+  figcaption {
+    @include caption;
+    margin-bottom: 0;// override default WP styles
+    margin-top: 1em;
+  }// end figcaption
+
+  // Override default caption style when centered
+  &.aligncenter,
+  [data-align="center"] & {
+    figcaption {
+      text-align: center;
+    }
+  }
+}// end wp-block-image

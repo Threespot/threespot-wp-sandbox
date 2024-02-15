@@ -3,22 +3,26 @@
  * @see https://github.com/webpack-contrib/sass-loader#imports
  */
 
+// This variable should only be set to “true” in gutenberg.scss
+$is-admin-stylesheet: false;
+
 // Threespot Sass library
 // http://threespot.github.io/frontline-sass/documentation/
-@import '~frontline-sass';
+@import "~frontline-sass";
 
 // Web fonts
-@import 'fonts';
+@import "fonts";
 
 // Threespot CSS reset
 // https://github.com/Threespot/frontline-css-reset
-@import './node_modules/frontline-css-reset/frontline-css-reset';
+@import "./node_modules/frontline-css-reset/frontline-css-reset";
 
 // Project styles
-@import 'vars/*';
-@import 'functions/*';
-@import 'mixins/*';
-@import 'base';
-@import 'helpers/*';
-@import 'components/*';
-@import 'print';
+@import "vars/*";
+@import "functions/*";
+@import "mixins/*";
+@import "base";
+@import "helpers/*";
+@import "components/*";
+@import "default-blocks/*";
+@import "print";

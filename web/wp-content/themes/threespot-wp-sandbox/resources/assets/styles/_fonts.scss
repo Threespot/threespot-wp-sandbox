@@ -1,33 +1,47 @@
 //------------------------------------------------------------------------
 // Web fonts
-// - Add preload links in _head.html.erb for all woff2 files
-// - Add FontFaceObserver tests for each font file in font-face.js
-//
-// Note: Only woff and woff2 are required
+// Note: Only woff and woff2 are required for modern browsers
 // https://css-tricks.com/snippets/css/using-font-face/#article-header-id-1
+//
+// In the future, we could consider not loading fonts if “data-saver” mode is enabled
+// https://css-tricks.com/responsible-conditional-loading/
+// https://caniuse.com/mdn-css_at-rules_media_prefers-reduced-data
 //------------------------------------------------------------------------
-// NOTE: If using Typekit, save fonts locally by using links in CSS file,
-//       e.g. https://use.typekit.net/PROJECT_ID.css, and copy legal info here.
-//       This technically officially supported, but should be fine as long
-//       as we’re linking to Typekit’s tracker (see application.html.erb).
 
-// *** below file path is updated for WP builds. and different than shortline
+// We’re using “font-display: fallback” on the public site as a compromise
+// between performance and minimizing the chances of a FOIT or FOUC.
+//
+//   “The browser will hide the text for about 100ms and, if the font
+//   has not yet been downloaded, will use the fallback text. It will
+//   swap to the new font after it is downloaded, but only during a
+//   short swap period (probably 3 seconds).”
+//   https://css-tricks.com/almanac/properties/f/font-display/
+//
+// In the admin, the web font can take longer than 3 sec to load,
+// so we’re switching to “font-display: swap” to allow an unlimited
+// swap window.
+$font-display: if($is-admin-stylesheet, swap, fallback);
+
+// Custom emoji font to standardize appearance across platforms
+// https://www.client9.com/css-color-emoji-stack/
+// https://nolanlawson.com/2022/04/08/the-struggle-of-using-native-emoji-on-the-web/
+@font-face {
+  font-family: "color-emoji";
+  src: local("Apple Color Emoji"),
+    local("Twemoji Mozilla"),
+    local("Segoe UI Emoji"),
+    local("Segoe UI Symbol"),
+    local("Noto Color Emoji"),
+    local("EmojiOne Color"),
+    local("Android Emoji");
+}
+
+// Montserrat Medium
 // @font-face {
-//   font-display: swap;
-//   font-family: 'Open Sans';
+//   font-display: $font-display;
+//   font-family: "Montserrat";
 //   font-style: normal;
-//   font-weight: 300;
-//   src: local('Open Sans'),
-//        asset_url('../fonts/open-sans/opensans-light.woff2') format('woff2'),
-//        asset_url('../fonts/open-sans/opensans-light.woff') format('woff');
-// }
-
-// @font-face {
-//   font-display: swap;
-//   font-family: 'Open Sans';
-//   font-style: italic;
-//   font-weight: 300;
-//   src: local('Open Sans'),
-//        asset_url('../fonts/open-sans/opensans-lightitalic.woff2') format('woff2'),
-//        asset_url('../fonts/open-sans/opensans-lightitalic.woff') format('woff');
+//   font-weight: 400;
+//   src: url("../fonts/montserrat/montserrat-regular.woff2") format("woff2"),
+//        url("../fonts/montserrat/montserrat-regular.woff") format("woff");
 // }

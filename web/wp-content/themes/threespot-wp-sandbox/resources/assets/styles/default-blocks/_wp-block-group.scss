@@ -1,0 +1,49 @@
+//------------------------------------------------------------------------
+// Default group block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/group/style.scss
+//
+// NOTE: We’re adding custom classes in gutenberg.js and setup.php
+//------------------------------------------------------------------------
+.wp-block-group {
+  $selector: &;
+
+  // Custom styles for when group has a background color
+  &.has-background {
+    // Remove vertical margin from “l-block” class (added via gutenberg.js)
+    // on full-width groups with background colors.
+    // Note: The “l-block” class isn’t at the top level in the admin so there
+    //       will still be some default margin between groups.
+    &.alignfull {
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+
+    @if $is-admin-stylesheet {
+      // Add padding to groups with background colors in admin
+      // (not needed on live site since we’re adding custon classes via setup.php)
+      &.wp-block-group {
+        @include default-padding;
+        @include strata-vert-padding;
+      }
+    }
+  }
+
+  @if $is-admin-stylesheet {
+    &__inner-container {
+      @include richtext;
+    }
+  }
+
+  // FYI alignment styles are defined in _wp-alignment.scss
+  //
+  // Note: Wide and full-width mixins break parallax backgrounds,
+  //       since “background-attachment: fixed” is affected by
+  //       left offset and translateX.
+  //
+  // &.alignwide,
+  // [data-align="wide"] & {}
+  //
+  // &.alignfull,
+  // [data-align="full"] & {}
+
+}// end wp-block-group

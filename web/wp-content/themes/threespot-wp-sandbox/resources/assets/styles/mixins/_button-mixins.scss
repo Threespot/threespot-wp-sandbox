@@ -3,7 +3,7 @@
 // -------------------------------------------------------------------------
 @mixin button-reset {
   background-color: transparent;
-  background-image: none;// for Firefox mobile
+  background-image: none; // for Firefox mobile
   border: 0;
   color: inherit;
   cursor: pointer;
@@ -11,38 +11,91 @@
   line-height: 1;
   text-align: center;
   transition: background-color 150ms ease-in-out,
+              background-position 150ms ease,
               border 150ms ease-in-out,
-              color 150ms ease-in-out,
-              transform 50ms ease-in-out;
+              color 150ms ease-in-out;
 }
 
-// Default button style (border)
-//---------------------------------
-// FIXME: These are demo styles
 @mixin button-base {
-  @include fs-font-smoothing;
   @include button-reset;
-  border: 2px solid currentColor;
-  color: $c-default;
-  font-size: fs-rem(22px);
-  padding: fs-rem(18px 42px);
+  border-radius: $button-border-radius;
+  font-size: fs-rem(18px);
+  font-weight: bold;
+  padding: fs-rem($button-padding-vert $button-padding-horz);
+}
+
+// FIXME: Update button style to match design
+@mixin button-solid($color: #fff, $bg-color: mediumvioletred) {
+  @include fs-font-smoothing;
+  background-color: var(--button-bg-color, $bg-color);
+  border: 2px solid transparent;
+  color: var(--button-color, $color);
 
   @include button-attention {
-    background-color: navy;
-    border-color: navy;
-    color: #fff;
-    text-decoration: none;// for links
+    background-color: var(--button-color, $color);
+    border-color: currentColor;
+    color: var(--button-bg-color, $bg-color);
+    text-decoration: none;// for link tags
   }
+}
 
-  &:active {
-    transform: scale(0.97);
-  }
+// FIXME: Update button style to match design
+@mixin button-border($color: mediumvioletred, $hover-color: #fff) {
+  background-color: transparent;
+  border: 2px solid var(--button-color, $color);
+  color: var(--button-color, $color);
 
-  // Disabled Button Styles
-  &:disabled {
-    background-color: #eee !important;
-    border-color: #bbb !important;
-    color: #666 !important;
-    cursor: not-allowed !important;
+  // Example: Switch to white on dark backgrounds (requires setting up custom color palette)
+  // TODO: Automate this by including dark/light info in $block-colors map
+  // .has-navy-background-color & {
+  //   --button-color: #fff;
+  //   --button-hover-color: navy;
+  // }
+
+  @include button-attention {
+    @include fs-font-smoothing;
+    background-color: var(--button-color, $color);
+    color: var(--button-hover-color, $hover-color);
+    text-decoration: none;// for link tags
   }
-}// end button-base
+}
+
+// Example styles to append an icon based on the URL
+// @mixin button-icon($bg-color, $color) {
+//   $icon-width: 15px;
+//   $icon-margin-left: 10px;
+//   $icon-margin-right: 15px;
+//   background-image: fs-svg-url('arrowRight', (fill: $color));
+//   background-repeat: no-repeat;
+//   background-position: right $icon-margin-right center;
+//   background-size: $icon-width auto;
+//   padding-right: fs-rem($icon-margin-left + $icon-width + $icon-margin-right);
+//
+//   @include button-attention {
+//     background-image: fs-svg-url('arrowRight', (fill: $bg-color));
+//   }
+//
+//   // Update icon for external links
+//   &[href^="http"]:not([href*="lndo.site"]):not([href*="//localhost"]):not([href*="pantheonsite.io"]):not([href*="fixme.org"]) {
+//     $icon-width: 13px;
+//     background-image: fs-svg-url('external', (fill: $color));
+//     background-size: $icon-width auto;
+//     padding-right: fs-rem($icon-margin-left + $icon-width + $icon-margin-right);
+//
+//     @include button-attention {
+//       background-image: fs-svg-url('external', (fill: $bg-color));
+//     }
+//   }
+//
+//   // Use download icon for internal links to files in media library
+//   &[href^="/"][href*="/wp-content/uploads/"] {
+//     $icon-width: 12px;
+//     background-image: fs-svg-url('download', (fill: $color));
+//     background-size: $icon-width auto;
+//     padding-right: fs-rem($icon-margin-left + $icon-width + $icon-margin-right);
+//
+//     @include button-attention {
+//       background-image: fs-svg-url('download', (fill: $bg-color));
+//     }
+//   }
+// }

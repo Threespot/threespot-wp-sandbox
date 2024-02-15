@@ -1,0 +1,29 @@
+//------------------------------------------------------------------------
+// Default code block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/code/style.scss
+//
+// <pre class="wp-block-code">
+//   <code>…</code>
+// </pre>
+//------------------------------------------------------------------------
+.wp-block-code {
+  @include block-vert-margin;
+
+  // Reset styles coming from the ACF Extended plugin
+  @if $is-admin-stylesheet {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+  }
+
+  code {
+    background-color: $bg-offwhite;
+    border-radius: $input-border-radius;
+    display: block;
+    font-family: $monospace;
+    font-size: 1rem;
+    overflow-x: scroll;
+    padding: fs-rem(15px 20px);
+    white-space: pre !important;// override WP admin styles
+  }
+}

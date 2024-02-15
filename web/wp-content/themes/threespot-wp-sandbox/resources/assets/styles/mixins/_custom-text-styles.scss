@@ -5,16 +5,32 @@
 //
 // For rich text heading styles (e.g. h2–h6), see _rich-text-headings.scss
 //------------------------------------------------------------------------
-// FIXME: Set breakpoints
-@mixin body-copy-size() {
-  @include fs-scale(font-size, $body-copy-min-size, $body-copy-max-size, 360px, 600px);
+@mixin text-size-scale($min: $body-copy-min-size, $max: $body-copy-max-size) {
+  @include fs-scale(font-size, (375px: $min, $layout-text-scale-end-bp: $max));
 }
 
-// FIXME: This is an example
-// Article page title (e.g. blog post, press release)
-// @mixin article-title {
-//   @include fs-scale(font-size, 42px, 55px, 320px, 900px);
-//   @include fs-scale(line-height, 42px * 1.2, 55px * 1.15, 320px, 900px);
-//   font-family: $sans-serif;
-//   font-weight: bold;
-// }
+// FIXME
+@mixin post-title() {
+  @include fs-scale(font-size, (375px: 28px, 1100px: 42px));
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+// Optional intro text style
+// Note: This can be applied as a custom paragraph block style (see gutenberg.js).
+//       If so, search for “@include intro-text” and uncomment the styles.
+@mixin intro-text() {
+  @include fs-scale(font-size, (375px: 26px, $layout-text-scale-end-bp: 32px));
+  line-height: 1.3;
+
+  &:not(:last-child) {
+    margin-bottom: 2em;
+  }
+}
+
+// Optional image caption styles
+@mixin caption() {
+  @include fs-scale(font-size, (375px: 14px, 900px: 18px));
+  color: $c-default;
+  line-height: 1.55;
+}

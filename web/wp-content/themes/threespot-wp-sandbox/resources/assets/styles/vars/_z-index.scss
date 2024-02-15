@@ -3,5 +3,9 @@
 // Using a single map allows us to see all layers at once to avoid conflicts
 // -------------------------------------------------------------------------
 $fs-zindex: (
-  'skip-links': 999
+  "skip-links": 999,
+  "modal": 900,
+  "nav": 800,
+  "header": 700,
+  "main": 100
 );

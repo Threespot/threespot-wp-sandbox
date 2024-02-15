@@ -1,0 +1,103 @@
+//------------------------------------------------------------------------
+// Pagination
+// Note: Markup is generated using paginate_links()
+// https://developer.wordpress.org/reference/functions/paginate_links/
+//------------------------------------------------------------------------
+.Pagination {
+  $bp-full: 505px;
+  $horz-margin: 6px;
+  $number-horz-padding: 6px;
+  $prev-next-gutter: 16px;
+
+  a {
+    @include fs-all-states {
+      color: mediumvioletred;
+    }
+  }
+
+  &--mobile {
+    @include fs-min-width($bp-full) {
+      display: none;
+    }
+
+    .page-numbers {
+      justify-content: center;
+    }
+  }// end -mobile
+
+  &--desktop {
+    @include fs-max-width($bp-full - 1px) {
+      display: none;
+    }
+  }// end -desktop
+
+  .page-numbers {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: fs-rem(18px);
+    line-height: 1;
+
+    // Note: Links have the same class name as the parent list
+    .page-numbers {
+      // Since we don’t control the pagination markup we have
+      // to rely on the :not() selector to get just the numbers.
+      &:not(.prev):not(.next):not(.dots) {
+        margin-left: fs-rem($horz-margin / 2);
+        margin-right: fs-rem($horz-margin / 2);
+        padding-left: fs-rem($number-horz-padding);
+        padding-right: fs-rem($number-horz-padding);
+      }
+    }// end page-numbers
+
+    // Current number
+    .current {
+      color: $c-default;
+    }// end current
+
+    .prev,
+    .next {
+      align-items: center;
+      display: flex;
+      text-transform: uppercase;
+
+      @include fs-attention {
+        text-decoration: underline;
+      }
+
+      .text {
+        @include fs-max-width($bp-full - 1px) {
+          display: none;
+        }
+      }
+
+      .icon {
+        fill: currentColor;
+        height: auto;
+        width: fs-rem(20px);
+
+        @include fs-min-width($bp-full) {
+          width: fs-rem(15px);
+        }
+      }
+    }// end prev/next
+
+    .prev {
+      margin-right: fs-rem($prev-next-gutter);
+
+      .icon {
+        margin-right: fs-rem(5px);
+        transform: rotate(180deg);
+      }
+    }// end prev
+
+    .next {
+      margin-left: fs-rem($prev-next-gutter);
+
+      .icon {
+        margin-left: fs-rem(5px);
+      }
+    }// end next
+  }// end page-numbers
+
+}// end Pagination

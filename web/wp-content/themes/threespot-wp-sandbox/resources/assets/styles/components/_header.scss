@@ -2,22 +2,36 @@
 // Header
 //------------------------------------------------------------------------
 .Header {
-  background-color: #333;
-  padding: 30px;
-  text-align: center;
+  $selector: &;
+  position: relative;
+  z-index: fs-zindex('header');
 
   &-logo {
-    color: #fff;
-    display: inline-block;
+    &-link {
+      color: $c-default;
+      display: block;
+      max-width: fs-rem(140px);
 
-    @include fs-attention {
-      color: #ffda00;
+      @include fs-attention {
+        color: mediumvioletred;
+      }
+
+      @include fs-min-width($layout-nav-bp) {
+        max-width: fs-rem(200px);
+      }
     }
+
+    &-image {
+      display: block;
+      fill: currentColor;
+      width: 100%;
+    }// end image
 
     svg {
       display: block;
-      fill: currentColor;
-    }
+      height: auto;
+      width: 100%;
+    }// end img
   }// end logo
 
 }// end Header

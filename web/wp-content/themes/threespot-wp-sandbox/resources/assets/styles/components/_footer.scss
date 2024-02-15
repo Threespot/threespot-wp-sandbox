@@ -2,8 +2,33 @@
 // Footer
 //------------------------------------------------------------------------
 .Footer {
-  // FIXME: Example styles
-  background-color: #333;
-  padding: 20px;
-  text-align: center;
+  background-color: $bg-offwhite;
+  @include fs-scale(padding-top padding-bottom, (375px: 50px, 900px: 100px));
+
+  &-social {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    &-link {
+      color: currentColor;
+      display: block;
+      padding: fs-rem(8px);
+
+      @include fs-attention {
+        color: $c-red;
+
+        svg {
+          transform: scale(1.1);
+        }
+      }
+
+      svg {
+        display: block;
+        fill: currentColor;
+        transition: transform 150ms ease-in-out;
+      }
+    }// end link
+  }// end social
+
 }// end Footer
