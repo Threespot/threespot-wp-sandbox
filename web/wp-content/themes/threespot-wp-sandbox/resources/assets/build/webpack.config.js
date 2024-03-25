@@ -181,23 +181,23 @@ let webpackConfig = {
   ],
 };
 
-if (config.enabled.optimize) {
-  webpackConfig = merge(webpackConfig, require('./webpack.config.optimize'));
-}
+// if (config.enabled.optimize) {
+//   webpackConfig = merge(webpackConfig, require('./webpack.config.optimize'));
+// }
 
-if (config.enabled.cacheBusting) {
-  const WebpackAssetsManifest = require('webpack-assets-manifest');
+// if (config.enabled.cacheBusting) {
+//   const WebpackAssetsManifest = require('webpack-assets-manifest');
 
-  webpackConfig.plugins.push(
-    new WebpackAssetsManifest({
-      output: 'assets.json',
-      space: 2,
-      writeToDisk: false,
-      assets: config.manifest,
-      replacer: require('./util/assetManifestsFormatter'),
-    })
-  );
-}
+//   webpackConfig.plugins.push(
+//     new WebpackAssetsManifest({
+//       output: 'assets.json',
+//       space: 2,
+//       writeToDisk: false,
+//       assets: config.manifest,
+//       replacer: require('./util/assetManifestsFormatter'),
+//     })
+//   );
+// }
 
 if (config.enabled.watcher) {
   webpackConfig.entry = require('./util/addHotMiddleware')(webpackConfig.entry);
