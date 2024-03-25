@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "build": "webpack --progress --config resources/assets/build/webpack.config.js",
-    "build:production": "webpack --env.production --progress --config resources/assets/build/webpack.config.js",
+    "build:production": "webpack --env production --progress --config resources/assets/build/webpack.config.js",
     "build:profile": "webpack --progress --profile --json --config resources/assets/build/webpack.config.js",
     "start": "webpack --watch --config resources/assets/build/webpack.config.js",
     "rmdist": "rimraf dist",
