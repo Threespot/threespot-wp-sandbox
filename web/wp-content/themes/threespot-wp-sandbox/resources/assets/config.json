@@ -12,8 +12,8 @@
       "./styles/login.scss"
     ]
   },
-  "publicPath": "/wp-content/themes/FIXME_app_name",
-  "devUrl": "https://FIXME_app_name.lndo.site",
+  "publicPath": "/wp-content/themes/threespot-wp-sandbox",
+  "devUrl": "https://threespot-wp-sandbox.lndo.site",
   "proxyUrl": "https://localhost:3000",
   "cacheBusting": "[name]_[contenthash]",
   "watch": [
