@@ -278,6 +278,8 @@ workflows:
       # - static_tests
       - build_yarn
       - build_php
+          context: 
+            - acf_license
       - deploy_to_pantheon:
           requires:
             # - static_tests
