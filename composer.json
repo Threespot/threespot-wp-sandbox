@@ -13,25 +13,12 @@
       "url": "https://github.com/pantheon-systems/wordpress-composer"
     },
     {
-      "type": "package",
-      "package": {
-        "name": "advanced-custom-fields/advanced-custom-fields-pro",
-        "version": "5.11.4",
-        "type": "wordpress-plugin",
-        "dist": {
-          "type": "zip",
-          "url": "https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k={%ACF_PRO_KEY}&t={%version}"
-        },
-        "require": {
-          "composer/installers": "^1.12",
-          "ffraenz/private-composer-installer": "^5.0"
-        }
-      }
+      "type":"composer",
+      "url":"https://connect.advancedcustomfields.com"
     }
   ],
   "require": {
     "php": ">=7.4",
-    "advanced-custom-fields/advanced-custom-fields-pro": "*",
     "composer/installers": "^1.12",
     "ffraenz/private-composer-installer": "^5.0",
     "filp/whoops": "^2.14",
@@ -63,7 +50,8 @@
     "wpackagist-plugin/wordpress-seo": "^18.1",
     "wpackagist-plugin/wp-native-php-sessions": "^1.2",
     "wpackagist-theme/twentytwentyone": "^1.1",
-    "wpackagist-theme/twentytwentytwo": "^1.0"
+    "wpackagist-theme/twentytwentytwo": "^1.0",
+    "wpengine/advanced-custom-fields-pro": "6.3.1.2"
   },
   "require-dev": {
     "behat/mink-goutte-driver": "^2.0.0",
@@ -143,6 +131,12 @@
     ],
     "lint": "find web/wp-content -name '*.php' -exec php -l {} \\;",
     "deploy:test": "terminus env:deploy threespot-wp-sandbox.test && terminus env:clear-cache threespot-wp-sandbox.test",
-    "deploy:live": "terminus env:deploy threespot-wp-sandbox.live"
+    "deploy:live": "terminus env:deploy threespot-wp-sandbox.live",
+    "deploy:all": [
+      "@deploy:test",
+      "@deploy:live",
+      "terminus env:deploy aspen-challenge-wp.live && terminus env:clear-cache aspen-challenge-wp.live"
+    ],
+    "env": "printenv COMPOSER_AUTH" 
   }
 }
