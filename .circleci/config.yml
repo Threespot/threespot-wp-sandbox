@@ -277,7 +277,7 @@ workflows:
       - configure_env_vars
       # - static_tests
       - build_yarn
-      - build_php
+      - build_php:
           context: 
             - acf_license
       - deploy_to_pantheon:
