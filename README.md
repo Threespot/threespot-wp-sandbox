@@ -5,6 +5,48 @@
 [![Dev Site threespot-wp-sandbox](https://img.shields.io/badge/site-threespot_wp_sandbox-blue.svg)](http://dev-threespot-wp-sandbox.pantheonsite.io/)
 [![WordPress Core](https://img.shields.io/badge/WordPress-5.3.1-blue.svg)](https://wordpress.org/download/)
 
+## Outline
+
+- [Threespot WordPress Sandbox](#threespot-wordpress-sandbox)
+  - [Outline](#outline)
+  - [Pantheon Environments](#pantheon-environments)
+    - [Front End](#front-end)
+    - [WordPress Admin](#wordpress-admin)
+- [About](#about)
+- [Child Theme](#child-theme)
+- [Hosting](#hosting)
+- [Local Development](#local-development)
+    - [Prerequisites](#prerequisites)
+    - [Add ENV File](#add-env-file)
+    - [Starting local server](#starting-local-server)
+      - [Troubleshooting](#troubleshooting)
+    - [Starting Webpack with live reload](#starting-webpack-with-live-reload)
+      - [Troubleshooting](#troubleshooting-1)
+  - [Updating Dependencies](#updating-dependencies)
+  - [Deployment](#deployment)
+- [Tech Stack](#tech-stack)
+    - [Back End](#back-end)
+      - [CSS](#css)
+      - [JavaScript](#javascript)
+
+## Pantheon Environments
+
+### Front End
+
+| Environment | Homepage URL |
+|:-|:-|
+| **Live** | https://live-threespot-wp-sandbox.pantheonsite.io/ |
+| **Test** | https://test-threespot-wp-sandbox.pantheonsite.io/ |
+| **Dev** | https://dev-threespot-wp-sandbox.pantheonsite.io/ |
+
+### WordPress Admin
+
+| Environment | CMS Login URL |
+|:-|:-|
+| **Live** | https://live-threespot-wp-sandbox.pantheonsite.io/wp/wp-admin/ |
+| **Test** | https://test-threespot-wp-sandbox.pantheonsite.io/wp/wp-admin/ |
+| **Dev** | https://dev-threespot-wp-sandbox.pantheonsite.io/wp/wp-admin/ |
+
 # About
 
 This is a repository to try out custom plugins, custom Gutenberg blocks, etc. Get wild, but not too wild.
@@ -38,10 +80,9 @@ In order to more easily recreate the production environment locally, [Lando](htt
 1. Install NodeJS 8.x ([Windows](https://nodejs.org/dist/latest-v8.x/node-v8.16.0-x64.msi), [macOS](https://nodejs.org/dist/latest-v8.x/node-v8.16.0.pkg))
    - Note: We recommend [asdf](https://github.com/asdf-vm/asdf) for managing multiple versions of Node
 1. Install Yarn ([Windows](https://yarnpkg.com/en/docs/install#windows-stable), [macOS](https://yarnpkg.com/en/docs/install#mac-stable))
-
    - Note: Yarn is a faster alternative to `npm install`
 
-   ### Add ENV File
+### Add ENV File
 
 Create a `.env` file.
 Update it so that it looks something like the following:
@@ -71,8 +112,6 @@ NONCE_SALT='generateme'
 
 #plugin keys
 ACF_PRO_KEY=`pluginkey`
-
-
 ```
 
 ### Starting local server
@@ -276,12 +315,13 @@ After the updates have been tested, you can deploy to the live site by following
   - [picturefill ](https://www.npmjs.com/package/picturefill)
   - [what-input](https://www.npmjs.com/package/what-input)
 
-    </details>
+  </details>
 
-    - Custom JS modules can be found in the [`/resources/assets/scripts`](https://github.com/Threespot/threespot-wp-sandbox/tree/master/web/wp-content/themes/threespot-wp-sandbox/resources/assets/scripts) folder
+- Custom JS modules can be found in the [`/resources/assets/scripts`](https://github.com/Threespot/threespot-wp-sandbox/tree/master/web/wp-content/themes/threespot-wp-sandbox/resources/assets/scripts) folder
 
 - The site JS is split into three files:
 
   - [`critical.js`](https://github.com/Threespot/threespot-wp-sandbox/blob/master/web/wp-content/themes/threespot-wp-sandbox/resources/assets/scripts/critical.js)—Contains code that needs to run before content is displayed in the browser to prevent a [FOUC](https://en.wikipedia.org/wiki/Flash_of_unstyled_content) (e.g. check is JS is enabled, check if fonts have previously loaded)
     - NOTE: This code must be manually minified and copied to [`critical-js.blade.php`](https://github.com/Threespot/threespot-wp-sandbox/blob/master/web/wp-content/themes/threespot-wp-sandbox/resources/views/partials/critical-js.blade.php) (easier than setting up a custom build script since this code won’t change often)
+  - [`gutenberg.js`](https://github.com/Threespot/threespot-wp-sandbox/blob/master/web/wp-content/themes/threespot-wp-sandbox/resources/assets/scripts/gutenberg.js)—Custom block editor overrides
   - [`main.js`](https://github.com/Threespot/threespot-wp-sandbox/blob/master/web/wp-content/themes/threespot-wp-sandbox/resources/assets/scripts/main.js)—Contains all other site JS, with the exception of image galleries; loaded at the bottom the `<body>` tag
