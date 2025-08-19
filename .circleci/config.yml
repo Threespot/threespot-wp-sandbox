@@ -148,7 +148,7 @@ jobs:
       - run:
           name: build theme assets
           # If non-hashed versions of site assets are needed for 3rd parties, also run `yarn build:nohash`
-          command: cd web/wp-content/themes/threespot-wp-sandbox && yarn build:production
+          command: cd web/wp-content/themes/threespot-wp-sandbox && yarn build
 
       - save_cache:
           name: cache Yarn files
@@ -178,12 +178,10 @@ jobs:
           name: setup-environment-vars
           command: /build-tools-ci/scripts/set-environment
 
-      # Rsync the build artifact pieces web directory and the dist directory
+      # Rsync the build artifact pieces web directory
       - run:
-          name: sync build artifacts
-          command: |
-            rsync -lrz /tmp/web /tmp/vendor .
-            rsync -lrz /tmp/web/wp-content/themes/threespot-wp-sandbox/dist ./web/wp-content/themes/threespot-wp-sandbox/
+          name: sync build artifact
+          command: rsync -lrz /tmp/web /tmp/vendor .
 
       # Deploy to Pantheon
       - run:
