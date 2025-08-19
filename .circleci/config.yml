@@ -136,7 +136,7 @@ jobs:
             - yarn-packages-{{ checksum "web/wp-content/themes/threespot-wp-sandbox/yarn.lock" }}
             - yarn-packages- # used if checksum fails
 
-      # nasm reaquired if using imagemin and mozjpeg
+      # nasm required if using imagemin and mozjpeg
       # - run:
       #     name: install nasm dependency
       #     command: sudo apt-get update && sudo apt-get install -y nasm
@@ -178,10 +178,12 @@ jobs:
           name: setup-environment-vars
           command: /build-tools-ci/scripts/set-environment
 
-      # Rsync the build artifact pieces web directory
+      # Rsync the build artifact pieces web directory and the dist directory
       - run:
-          name: sync build artifact
-          command: rsync -lrz /tmp/web /tmp/vendor .
+          name: sync build artifacts
+          command: |
+            rsync -lrz /tmp/web /tmp/vendor .
+            rsync -lrz /tmp/web/wp-content/themes/threespot-wp-sandbox/dist ./web/wp-content/themes/threespot-wp-sandbox/
 
       # Deploy to Pantheon
       - run:
