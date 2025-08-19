@@ -1,0 +1,521 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div class="row">
+    <div class="col-4"></div>
+    <div class="mapsvg-toolbar-title col-4">
+      Actions
+    </div>
+    <div class="col-4"></div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="mapsvg-view-padding">
+      <form class=" ">
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-map-afterload">On map load</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-map-afterload-selectregion"
+                             class="form-check-input"
+                             name="actions[map][afterLoad][selectRegion]"
+                             {{#if actions.map.afterLoad.selectRegion}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-map-afterload-selectregion">
+                          Trigger Region.click event (if URL contains Region ID)
+                      </label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-map-afterload-selectmarker"
+                             class="form-check-input"
+                             name="actions[map][afterLoad][selectMarker]"
+                             {{#if actions.map.afterLoad.selectMarker}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-map-afterload-selectmarker">
+                          Trigger Marker.click event (if URL contains DB Object ID)
+                      </label>
+                  </div>
+              </div>
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-region-click">Region click</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input class="form-check-input"
+                             id="mapsvg-actions-region-click-addidtourl"
+                             type="checkbox"
+                             name="actions[region][click][addIdToUrl]"
+                             {{#if actions.region.click.addIdToUrl}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-region-click-addidtourl">
+                          Add Region ID to the URL
+                      </label>
+                      <p class="form-text">Example: <b>example.com/my-map/#/m/r/USA</b>
+                          <br>If the user opens such a link, the Region click event will trigger on map load for the region with ID "USA".</p>
+                  </div>
+
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-region-click-filterdirectory"
+                             class="form-check-input"
+                             name="actions[region][click][filterDirectory]"
+                             {{#if actions.region.click.filterDirectory}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-region-click-filterdirectory">
+                          Filter directory by Region
+                      </label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-region-click-zoom"
+                             class="form-check-input"
+                             name="actions[region][click][zoom]"
+                             {{#if actions.region.click.zoom}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-region-click-zoom">
+                          Zoom to Region
+                      </label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">Zoom level
+                      <select class="form-control mapsvg-select2"
+                              id="mapsvg-actions-region-click-zoomtolevel"
+                              name="actions[region][click][zoomToLevel]"
+                              data-live="change"
+                              data-type="int">
+                          <option value=" ">Auto</option>{{#each zoomLevels}}
+                          <option {{#ifeq this @root.actions.region.click.zoomToLevel}}selected{{/ifeq}}>{{.}}</option>{{/each}}
+                      </select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-region-click-showdetails"
+                             class="form-check-input"
+                             name="actions[region][click][showDetails]"
+                             {{#if actions.region.click.showDetails}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-region-click-showdetails">Show details view</label>
+                      <p class="form-text"><i>Region</i> object is passed to <a href="#" class="mapsvg-template-link" data-template="detailsViewRegion">
+                        <i>Region details view template</i></a>.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-region-click-detailsviewtemplate"
+                            name="actions[region][click][detailsViewTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.details}}
+                            <option {{#ifeq name @root.actions.region.click.detailsViewTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-region-click-showpopover"
+                             class="form-check-input"
+                             name="actions[region][click][showPopover]"
+                             {{#if actions.region.click.showPopover}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-region-click-showpopover">Show popover</label>
+                      <p class="form-text"><i>Region</i> object is passed to <a href="#" class="mapsvg-template-link" data-template="popoverRegion"><i>Region popover template</i></a>.</p>
+                      <p class="form-text">It is recommended to turn on <em>Settings > Popovers > Center map on popover</em> and <em>Settings > Scroll</em> options
+                        to always show popovers in the center of the map. This prevents contents of popover going outside of the view.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-region-click-popovertemplate"
+                            name="actions[region][click][popoverTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.details}}
+                            <option {{#ifeq name @root.actions.region.click.popoverTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+                  <div class="form-check pt-2">
+                          <input type="checkbox" class="form-check-input" disabled="disabled">
+                            <label class="form-check-label">Open a link</label>
+                            {{{premiumFeatureAlert}}}
+                  </div>
+                  
+                  <div class="form-check pt-2" style="margin-top: 10px;">
+                      <input type="checkbox" class="form-check-input" disabled="disabled">
+                        <label class="form-check-label">Show another map</label>
+                        {{{premiumFeatureAlert}}}
+                  </div>
+
+                  
+              </div>
+          </div>
+
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-region-mouseover">Region mouseover</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input class="form-check-input"
+                             id="mapsvg-actions-region-mouseover-showtooltip"
+                             type="checkbox"
+                             name="actions[region][mouseover][showTooltip]"
+                             {{#if actions.region.mouseover.showTooltip}}checked{{/if}}
+                             data-live="change"/>
+                      <label class="form-check-label" for="mapsvg-actions-region-mouseover-showtooltip">
+                        Show tooltip
+                      </label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-region-mouseover-tooltiptemplate"
+                            name="actions[region][mouseover][tooltipTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.tooltip.region}}
+                            <option {{#ifeq name @root.actions.region.mouseover.tooltipTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+              </div>
+          </div>
+
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-marker-mouseover">Marker mouseover</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input class="form-check-input"
+                             id="mapsvg-actions-marker-mouseover-showtooltip"
+                             type="checkbox"
+                             name="actions[marker][mouseover][showTooltip]"
+                             {{#if actions.marker.mouseover.showTooltip}}checked{{/if}}
+                             data-live="change"/>
+                      <label class="form-check-label" for="mapsvg-actions-marker-mouseover-showtooltip">
+                        Show tooltip
+                      </label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-marker-mouseover-tooltiptemplate"
+                            name="actions[marker][mouseover][tooltipTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.tooltip.object}}
+                            <option {{#ifeq name @root.actions.marker.mouseover.tooltipTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+              </div>
+          </div>
+
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-region-touch">Region touch</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input class="form-check-input"
+                             id="mapsvg-actions-region-touch-showpopover"
+                             type="checkbox"
+                             name="actions[region][touch][showPopover]"
+                             {{#if actions.region.touch.showPopover}}checked{{/if}}
+                             data-live="change"/>
+                      <label class="form-check-label" for="mapsvg-actions-region-touch-showpopover">
+                        Show tooltip
+                      </label>
+                      <p class="form-text"><i>Region</i> object is passed to <a href="#" class="mapsvg-template-link"
+                        data-template="popoverRegion"><i>Region
+      popover template</i></a>.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-region-touch-tooltiptemplate"
+                            name="actions[region][touch][tooltipTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.tooltip.region}}
+                            <option {{#ifeq name @root.actions.region.touch.tooltipTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+              </div>
+          </div>
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-marker-click">Marker click</label>
+              <div class="col-md-9">
+                <div class="form-check pt-2">
+                    <input class="form-check-input" type="checkbox" class="form-check-input"
+                           name="actions[marker][click][addIdToUrl]"
+                           id="marker-click-addIdToUrl"
+                           {{#if actions.marker.click.addIdToUrl}}checked{{/if}}
+                           data-live="change">
+                    <label for="marker-click-addIdToUrl" class="form-check-label">
+                        Add DB Object ID to the URL</label>
+                </div>
+                <p class="form-text">Example: <b>example.com/my-map/#/m/db/124</b>
+                    <br>If the user opens this link, the Marker.click event will trigger on map load for the object with ID 124. If the object wasn't loaded initially due to pagination, it will be fetched from the database.
+                </p>
+
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-marker-click-showdetails"
+                             class="form-check-input"
+                             name="actions[marker][click][showDetails]"
+                             {{#if actions.marker.click.showDetails}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-marker-click-showdetails">
+                          Show details view
+                      </label>
+                      <p class="form-text">Parent <i>Database Object</i> of the Marker is passed to <a href="#" class="mapsvg-template-link" data-template="detailsView"><i>DB Object details view template</i></a>.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-marker-click-detailsviewtemplate"
+                            name="actions[marker][click][detailsViewTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.details}}
+                            <option {{#ifeq name @root.actions.marker.click.detailsViewTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-marker-click-showpopover"
+                             class="form-check-input"
+                             name="actions[marker][click][showPopover]"
+                             {{#if actions.marker.click.showPopover}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-marker-click-showpopover">
+                          Show popover
+                      </label>
+                      <p class="form-text">Parent <i>Database Object</i> of the Marker is passed to <a href="#" class="mapsvg-template-link" data-template="popoverMarker"><i>DB Object popover template</i></a>.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-marker-click-popovertemplate"
+                            name="actions[marker][click][popoverTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.popover}}
+                            <option {{#ifeq name @root.actions.marker.click.popoverTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-marker-click-zoom"
+                             class="form-check-input"
+                             name="actions[marker][click][zoom]"
+                             {{#if actions.marker.click.zoom}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-marker-click-zoom">
+                          Zoom to Marker
+                      </label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">Zoom level
+                      <select class="form-control mapsvg-select2"
+                              id="mapsvg-actions-marker-click-zoomtolevel"
+                              name="actions[marker][click][zoomToLevel]"
+                              data-live="change"
+                              data-type="int">
+                          <option value=" ">Auto</option>
+                          {{#each zoomLevels}}
+                              <option {{#ifeq this @root.actions.marker.click.zoomtolevel}}selected{{/ifeq}}>{{.}}</option>
+                          {{/each}}
+                      </select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input" disabled="disabled">
+                        <label class="form-check-label">Open a link</label>
+                        {{{premiumFeatureAlert}}}
+                  </div>
+                  
+              </div>
+          </div>
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-marker-touch">Marker touch</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-marker-touch-showpopover"
+                             class="form-check-input"
+                             name="actions[marker][touch][showPopover]"
+                             {{#if actions.marker.touch.showPopover}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-marker-touch-showpopover">
+                          Show popover
+                      </label>
+                      <p class="form-text">Parent <i>Database Object</i> of the Marker is passed to <a href="#" class="mapsvg-template-link" data-template="popoverMarker"><i>DB Object popover template</i></a>.</p>
+                  </div>
+
+                  <div class="mapsvg-form-subgroup">
+                    Template
+                    <select class="form-control mapsvg-select2"
+                            id="mapsvg-actions-marker-touch-popovertemplate"
+                            name="actions[marker][touch][popoverTemplate]"
+                            data-live="change">
+                        {{#each defTemplates.popover}}
+                            <option {{#ifeq name @root.actions.marker.touch.popoverTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                        {{/each}}
+                    </select>
+                  </div>
+              </div>
+          </div>
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label">Directory item click</label>
+              <div class="col-md-9">
+                <div class="form-check pt-2">
+                    <input class="form-check-input" type="checkbox" class="form-check-input"
+                           id="mapsvg-actions-directoryitem-click-addidtourl"
+                           name="actions[directoryItem][click][addIdToUrl]"
+                           {{#if actions.directoryItem.click.addIdToUrl}}checked{{/if}}
+                           data-live="change">
+                    <label class="form-check-label" for="mapsvg-actions-directoryitem-click-addidtourl">
+                        Add Object or Region ID to the URL
+                    </label>
+                    <p class="form-text">Depending on the Directory source, either Object or Region ID is added to the URL</b>
+                </div>
+
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-directoryitem-click-showdetails"
+                             class="form-check-input"
+                             name="actions[directoryItem][click][showDetails]"
+                             {{#if actions.directoryItem.click.showDetails}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-showdetails">
+                          Show details view</label>
+                          <p class="form-text">You have chosen <i>Directory > Source > [<span
+                            id="mapsvg-dir-source">{{directorySource}}</span>]</i>.
+                        Clicked <i><span id="mapsvg-dir-object">{{directoryObject}}</span></i> in
+                        directory is passed to <i><a href="#" id="mapsvg-dir-link" class="mapsvg-template-link"
+                                                     data-template="detailsView">DB Object details view template</a></i>.
+                    </p>
+                  </div>
+
+                      <div class="mapsvg-form-subgroup">
+                        Template
+                        <select class="form-control mapsvg-select2" name="actions[directoryItem][click][detailsViewTemplate]" data-live="change">
+                            {{#each defTemplates.details}}
+                                <option {{#ifeq name @root.actions.directoryItem.click.detailsViewTemplate}}selected{{/ifeq}} value="{{name}}">{{label}}</option>
+                            {{/each}}
+                        </select>
+                      </div>
+
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-directoryitem-click-selectregion"
+                             class="form-check-input"
+                             name="actions[directoryItem][click][selectRegion]"
+                             {{#if actions.directoryItem.click.selectRegion}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-selectregion">
+                          Select associated Region(s)
+                      </label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-directoryitem-click-fireregionclick"
+                             class="form-check-input"
+                             name="actions[directoryItem][click][fireRegionOnClick]"
+                             {{#if actions.directoryItem.click.fireRegionOnClick}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-fireregionclick">
+                          Trigger <i>click</i> event for associated Region(s)
+                      </label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox"
+                             id="mapsvg-actions-directoryitem-click-firemarkerclick"
+                             class="form-check-input"
+                             name="actions[directoryItem][click][fireMarkerOnClick]"
+                             {{#if actions.directoryItem.click.fireMarkerOnClick}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-firemarkerclick">
+                          Trigger <i>click</i> event for associated Marker
+                      </label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input"
+                             id="mapsvg-actions-directoryitem-click-showregionpopover"
+                             name="actions[directoryItem][click][showRegionPopover]"
+                             {{#if  actions.directoryItem.click.showRegionPopover}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-showregionpopover">
+                          Trigger <i>show popover</i> action for associated Region (if more
+                          that 1
+                          Region is attached - popover is shown only for the first one)</label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input"
+                             id="mapsvg-actions-directoryitem-click-showmarkerpopover"
+                             name="actions[directoryItem][click][showMarkerPopover]"
+                             {{#if  actions.directoryItem.click.showMarkerPopover}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-showmarkerpopover">
+                          Trigger <i>show popover</i> action for associated Marker</label>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input" name="actions[directoryItem][click][zoom]"
+                             id="mapsvg-actions-directoryitem-click-zoom"
+                             class="form-check-input"
+                             name="actions[directoryItem][click][zoom]"
+                             {{#if actions.directoryItem.click.zoom}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-zoom">
+                          Zoom to associated Region(s)</label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">Zoom level
+                      <select class="form-control mapsvg-select2" name="actions[directoryItem][click][zoomToLevel]"
+                              data-live="change" data-type="int">
+                          <option value=" ">Auto</option>{{#each zoomLevels}}
+                          <option {{#ifeq this @root.actions.directoryItem.click.zoomToLevel}}selected{{/ifeq}} >{{.}}</option>{{/each}}</select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input"
+                             id="mapsvg-actions-directoryitem-click-zoomtomarker"
+                             name="actions[directoryItem][click][zoomToMarker]"
+                             {{#if actions.directoryItem.click.zoomToMarker}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-click-zoomtomarker">
+                          Zoom to associated Marker
+                      </label>
+                  </div>
+                  <div class="mapsvg-form-subgroup">Zoom level
+                      <select class="form-control mapsvg-select2"
+                              name="actions[directoryItem][click][zoomToMarkerLevel]"
+                              data-live="change" data-type="int">
+                          <option value=" ">Auto</option>{{#each zoomLevels}}
+                          <option {{#ifeq this
+                                           @root.actions.directoryItem.click.zoomToMarkerLevel}}selected{{/ifeq}} >{{.}}</option>{{/each}}
+                      </select>
+                  </div>
+                  <div class="form-check pt-2">
+                      <input type="checkbox" class="form-check-input" disabled="disabled">
+                        <label class="form-check-label">Open a link</label>
+                        {{{premiumFeatureAlert}}}
+                  </div>
+                  
+                  <div class="form-check pt-2" style="margin-top: 10px;">
+                      <input type="checkbox" class="form-check-input" disabled="disabled">
+                      <label class="form-check-label">Show another map</label>
+                      {{{premiumFeatureAlert}}}
+                  </div>
+                  
+              </div>
+          </div>
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label" for="mapsvg-actions-directoryitem-hover">Directory item hover</label>
+              <div class="col-md-9">
+                  <div class="form-check pt-2">
+                      <input id="mapsvg-actions-directoryitem-hover-centeronmarker" type="checkbox" class="form-check-input"
+                             name="actions[directoryItem][hover][centerOnMarker]"
+                             {{#if  actions.directoryItem.hover.centerOnMarker}}checked{{/if}}
+                             data-live="change">
+                      <label class="form-check-label" for="mapsvg-actions-directoryitem-hover-centeronmarker">
+                        Center on Marker</label>
+                  </div>
+              </div>
+          </div>
+      </form>
+  </div>
+</script>

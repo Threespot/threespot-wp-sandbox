@@ -1,0 +1,29 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div class="row">
+    <div class="col-4">
+      <!--<ul class="nav nav-pills" id="mapsvg-css-menu">-->
+      <!--<li role="presentation" class="active"><a href="#mapsvg-css-custom">Custom</a></li>-->
+      <!--<li role="presentation"><a href="#mapsvg-css-default">Default</a></li>-->
+      <!--</ul>-->
+    </div>
+    <div class="mapsvg-toolbar-title col-4">
+      CSS
+    </div>
+    <div class="col-4">
+      {{premiumFeatureAlert}}
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="tab-content">
+    <div class="tab-pane active" id="mapsvg-css-custom">
+      <textarea id="mapsvg-css-editor" class="form-control" rows="20" name="css" data-live="change">
+        {{css}}
+      </textarea>
+    </div>
+    <div class="tab-pane" id="mapsvg-css-default">
+      <textarea id="mapsvg-css-default-editor" class="form-control"></textarea>
+    </div>
+  </div>
+</script>

@@ -1,0 +1,48 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-view">
+ <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <!--<select name="marker_id" class="form-control">-->
+                <!--<option></option>-->
+                <!--{{#each options}}-->
+                    <!--<option value="{{id}}" {{#ifeq id ../value}}selected{{/ifeq}}>{{id}}</option>-->
+                <!--{{/each}}-->
+            <!--</select>-->
+            <p class="form-text" style="margin-top: 0;"><em>Click on the map to add a marker</em></p>
+            <div class="input-group mapsvg-new-marker" style="display: none;">
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>
+                </div>
+                <input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+        </div>
+    </div> <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <!--<select name="marker_id" class="form-control">-->
+                <!--<option></option>-->
+                <!--{{#each options}}-->
+                    <!--<option value="{{id}}" {{#ifeq id ../value}}selected{{/ifeq}}>{{id}}</option>-->
+                <!--{{/each}}-->
+            <!--</select>-->
+            <p class="form-text" style="margin-top: 0;"><em>Click on the map to add a marker</em></p>
+            <div class="input-group mapsvg-new-marker" style="display: none;">
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>
+                </div>
+                <input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+        </div>
+    </div>
+
+</script>

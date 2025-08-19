@@ -1,0 +1,58 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <table class="table mapsvg-data-list-table table-borderless" id="mapsvg-data-list-table">
+      <thead>
+      <tr>{{#each fields}}
+          <th>{{name}}</th>{{/each}}
+          <th style="width: 20px;"></th>
+      </tr>
+      </thead>
+      <tbody>{{#each data}} {{>databaseListItemPartial fields=../fields params=this}}
+      {{/each}}</tbody>
+  </table>
+  <div class="mapsvg-pagination-container"></div>
+  <div class="mapsvg-view-padding" id="mapsvg-setup-database-msg"
+       style="display: none;">
+      <div class="card bg-light card-body mb-3">
+          <p class="form-text">Please set up the data structure. Click on the <b><i
+            class="bi bi-pencil"></i> Edit fields</b> icon in the toolbar.</p>
+      </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-data-{{params.id}}" data-id="{{params.id}}" class="mapsvg-data-row">
+      {{#each fields}}
+          {{#switch type}}
+              {{#case "image" break=true}}
+                  <td>{{getThumbs ../params name}}</td>{{/case}}
+                  {{#case "location" break=true}}
+                  <td style="max-width: 170px;">{{getMarkerImage ../params name}}</td>{{/case}} {{#case "text" break=true}}
+                  <td>{{lookup ../params name}}</td>{{/case}}
+                  {{#case "textarea" break=true}}
+                  <td>{{lookup ../params name}}</td>{{/case}}
+                  {{#case "region" break=true}}
+                  <td>{{getRegions ../params name}}</td>{{/case}}
+                  {{#case "checkbox" break=true}}
+                  <td>{{lookup ../params name}}</td>{{/case}}
+                  {{#case "post" break=true}}
+                    <td>{{getPostTitle ../params name}}</td>{{/case}}
+                  {{#case "select" break=true}}
+                  <td>{{#ifjson ../params name}} {{getSelectedOptions ../params name}} {{/ifjson}}
+                      {{#ifnotjson ../params name}} {{getLabel options ../params name}} {{/ifnotjson}}</td>{{/case}}
+                  {{#case "radio" break=true}}
+                      <td>{{#ifjson ../params name}} {{getSelectedOptions ../params name}} {{/ifjson}}
+                          {{#ifnotjson ../params name}} {{getLabel options ../params name}} {{/ifnotjson}}</td>{{/case}}
+                  {{#default break=true}}
+                      <td>{{lookup ../params name}}</td>{{/default}}
+          {{/switch}}
+      {{/each}}
+      <td>
+          <div class="btn btn-sm btn-outline-secondary mapsvg-data-copy toggle-tooltip"
+                  title="Copy"><i class="bi bi-copy"></i>
+          </div>
+          <div class="btn btn-sm btn-outline-secondary mapsvg-data-delete toggle-tooltip"
+                  title="Delete"><i class="bi bi-trash"></i>
+          </div>
+      </td>
+  </tr>
+</script>

@@ -1,0 +1,54 @@
+{
+  "name": "regions_%MAP_ID%",
+  "objectNameSingular": "region",
+  "objectNamePlural": "regions",
+  "type": "object",
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "varchar(255)",
+      "visible": true,
+      "protected": true,
+      "searchable": true
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true,
+      "searchable": true
+    },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "status",
+      "db_type": "int(11)",
+      "visible": true,
+      "options": [
+        {
+          "label": "Enabled",
+          "value": 1,
+          "disabled": false,
+          "color": ""
+        },
+        {
+          "label": "Disabled",
+          "value": 0,
+          "disabled": true,
+          "color": ""
+        }
+      ],
+      "db_default": 1
+    },
+    {
+      "name": "link",
+      "label": "Link",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    }
+  ]
+}

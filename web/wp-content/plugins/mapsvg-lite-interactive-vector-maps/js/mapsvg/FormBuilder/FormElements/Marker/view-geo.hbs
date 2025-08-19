@@ -1,0 +1,24 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-geo-view">
+
+  <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <input type="hidden" name="{{name}}" value="{{value}}" class="mapsvg-marker-hidden-input" />
+            <input type="text" class="form-control typeahead" autocomplete="off" placeholder="New marker: enter address or coordinates"/>
+            <div class="mapsvg-new-marker" style="display: none;">
+                {{>dataMarkerPartial marker}}
+                <!--<div class="input-group-btn">-->
+                    <!--<button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>-->
+                <!--</div>-->
+                <!--<input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>-->
+                <!--<div class="input-group-btn">-->
+                    <!--<button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>-->
+                <!--</div>-->
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+
+        </div>
+    </div>
+
+</script>

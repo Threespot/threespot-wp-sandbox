@@ -1,0 +1,18 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-radio-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Options</label> <textarea name="options"
+  class="form-control">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea> </div>
+  <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea name="help"
+  class="form-control">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+</script>

@@ -1,0 +1,36 @@
+{
+  "name": "logs",
+  "type": "logs",
+  "objectNameSingular": "log",
+  "objectNamePlural": "logs",
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true,
+      "auto_increment": true
+    },
+    {
+      "name": "message",
+      "label": "Message",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "type",
+      "label": "Type",
+      "type": "select",
+      "db_type": "text",
+      "visible": true,
+      "options": [
+        { "label": "Warning", "value": "WARNING" },
+        { "label": "Error", "value": "ERROR" },
+        { "label": "Info", "value": "INFO" }
+      ]
+    }
+  ]
+}

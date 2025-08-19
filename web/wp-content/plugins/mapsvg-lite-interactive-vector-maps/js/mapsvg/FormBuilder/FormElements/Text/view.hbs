@@ -1,0 +1,12 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-text-view">
+  <div class="form-group mb-3 row"> <label class="col-sm-3 col-form-label with-name">{{label}}
+  <div class="field-name">{{_name}}</div></label> <div class="col-sm-9">
+  {{#if readonly}}
+    <input type="hidden" name="{{name}}" value="{{value}}" /> <input type="text" name="{{name}}_disabled"
+    value="{{value}}" class="form-control" autocomplete="off" disabled="disabled" />
+  {{else}}
+    <input type="text" name="{{name}}" value="{{value}}" class="form-control" autocomplete="off"
+    placeholder="{{placeholder}}" />
+  {{/if}}
+  <p class="form-text">{{help}}</p> </div> </div>
+</script>

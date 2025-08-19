@@ -1,0 +1,16 @@
+{
+  "name": "objects_%MAP_ID%",
+  "objectNameSingular": "object",
+  "objectNamePlural": "objects",
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true,
+      "auto_increment": true
+    }
+  ]
+}

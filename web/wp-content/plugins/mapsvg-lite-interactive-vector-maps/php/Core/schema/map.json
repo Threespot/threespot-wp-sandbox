@@ -1,0 +1,74 @@
+{
+  "name": "maps",
+  "objectNameSingular": "map",
+  "objectNamePlural": "maps",
+  "apiEndpoints": [
+    { "url": "maps", "method": "GET", "name": "index" },
+    { "url": "maps/[:id]", "method": "GET", "name": "show" },
+    { "url": "maps", "method": "POST", "name": "create" },
+    { "url": "maps/createFromV2", "method": "POST", "name": "createFromV2" },
+    { "url": "maps/[:id]", "method": "POST", "name": "copy" },
+    { "url": "maps/[:id]", "method": "PUT", "name": "update" },
+    { "url": "maps/[:id]", "method": "DELETE", "name": "delete" },
+    { "url": "maps", "method": "DELETE", "name": "clear" }
+  ],
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "ID",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "options",
+      "label": "Options",
+      "type": "textarea",
+      "db_type": "longtext",
+      "visible": true
+    },
+    {
+      "name": "svgFilePath",
+      "label": "SVG file path",
+      "type": "text",
+      "db_type": "varchar(512)",
+      "visible": true
+    },
+    {
+      "name": "svgFileLastChanged",
+      "label": "SVG file last changed",
+      "type": "text",
+      "db_type": "int(11)",
+      "visible": true
+    },
+    {
+      "name": "version",
+      "label": "Version",
+      "type": "text",
+      "db_type": "varchar(50)",
+      "visible": true
+    },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "text",
+      "db_type": "tinyint",
+      "visible": false
+    },
+    {
+      "name": "statusChangedAt",
+      "label": "Status Changed At",
+      "type": "text",
+      "db_type": "timestamp",
+      "visible": false
+    }
+  ]
+}

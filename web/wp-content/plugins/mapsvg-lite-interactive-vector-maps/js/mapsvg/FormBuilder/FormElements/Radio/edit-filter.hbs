@@ -1,0 +1,51 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-radio-control">
+  <div class="form-group mb-3 ">
+        <label class="form-label">Label</label>
+        <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off"/>
+        <p class="form-text">
+            Label can be empty
+        </p>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label">What fields to filter by</label>
+        <select class="form-control mapsvg-select2" name="parameterName" data-live="change">
+            <option value="">...</option>
+            {{#if external.regionFieldsFilterable}}
+                <optgroup label="Region">
+                    {{#each external.regionFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+            {{#if external.databaseFieldsFilterable}}
+                <optgroup label="Database Object">
+                    {{#each external.databaseFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+        </select>
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Default option text</label>
+        <input type="text" name="placeholder" class="form-control" value="{{placeholder}}"/>
+        <p class="form-text">
+            Shows all objects if selected
+        </p>
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Options</label>
+        <textarea name="options" class="form-control" rows="5">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea>
+        <button style="margin-top: 7px;" class="btn btn-outline-secondary  btn-sm mapsvg-filter-insert-options">Insert options from <span class="mapsvg-filter-param-name">{{parameterName}}</span></button>
+    </div>
+
+
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea name="help" class="form-control">{{help}}</textarea>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>

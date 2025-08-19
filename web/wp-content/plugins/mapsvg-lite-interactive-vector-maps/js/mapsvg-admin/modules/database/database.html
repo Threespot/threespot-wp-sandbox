@@ -1,0 +1,96 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div id="mapsvg-data-toolbar">
+    <div class="row">
+      <div class="col-5" style="padding-right: 0;">
+        <ul class="nav nav-pills" id="mapsvg-data-menu">
+          <li
+            role="presentation"
+            class="nav-item toggle-tooltip"
+            data-bs-placement="bottom"
+            title="Data sources"
+          ><a href="#mapsvg-data-source" class="nav-link"><i class="bi bi-chevron-left"></i>
+              <i class="bi bi-database"></i></a></li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="List"><a
+              href="#mapsvg-data-list"
+              class="active nav-link"
+            ><i class="bi bi-list-ul"></i></a></li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="Edit&#xA0;fields"><a
+              id="mapsvg-btn-database-structure"
+              href="#mapsvg-data-structure"
+              class="nav-link"
+            ><i class="bi bi-pencil"></i></a></li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="Settings"><a
+              href="#mapsvg-data-settings"
+              class="nav-link"
+            ><i class="bi bi-gear"></i></a></li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="Import"><a
+              id="mapsvg-btn-csv-import"
+              href="#mapsvg-data-csv"
+              class="nav-link"
+            ><i class="bi bi-upload"></i></a></li>
+        </ul>
+      </div>
+      <div class="mapsvg-toolbar-title col-2">Table</div>
+      <div class="mapsvg-toolbar-buttons col-5">
+        <table style="width: 100%">
+          <tr>
+            <td><i
+                class="bi bi-search"
+                style="cursor: pointer;"
+                onclick="document.getElementById(`mapsvg-data-search`).select().focus()"
+              ></i>
+            </td>
+            <td style="padding-right: 5px;">
+              <!--<div class="input-group" style="width: 100%;">-->
+              <!--<span class="input-group-addon" id="basic-addon1"><i class="bi bi-search"></i></span>-->
+              <input
+                id="mapsvg-data-search"
+                onclick="this.select();"
+                type="text"
+                class="form-control"
+                placeholder="Search..."
+                aria-describedby="basic-addon2"
+                autocomplete="off"
+              />
+              <!--</div>-->
+            </td>
+            <td style="width: 100px;">
+              <div class="btn-group dropdown toggle-tooltip" title="Show/hide columns">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                ><i class="bi bi-eye"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right mapsvg-data-cols"></ul>
+              </div>
+              <button
+                style="margin-right: 5px;"
+                class="btn btn-outline-secondary toggle-tooltip"
+                title="Add object"
+                id="mapsvg-btn-data-add"
+                data-popper-placement="left"
+              ><i class="bi bi-plus-lg"></i>
+              </button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="mapsvg-toolbar-filters"></div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="tab-content full-flex">
+    <div
+      class="tab-pane full-flex active mapsvg-with-pagination"
+      id="mapsvg-data-list"
+      data-controller="list"
+    ></div>
+    <div class="tab-pane full-flex" id="mapsvg-data-structure" data-controller="structure"></div>
+    <div class="tab-pane full-flex" id="mapsvg-data-settings" data-controller="settings"></div>
+    <div class="tab-pane full-flex" id="mapsvg-data-csv" data-controller="csv"></div>
+  </div>
+</script>

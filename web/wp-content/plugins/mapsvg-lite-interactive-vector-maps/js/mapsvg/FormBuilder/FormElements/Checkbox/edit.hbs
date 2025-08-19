@@ -1,0 +1,16 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkbox-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3"> <label class="form-label">Checkbox label</label> <input type="text"
+  class="form-control" name="checkboxLabel" value="{{checkboxLabel}}" autocomplete="off" /> </div>
+  <div class="form-group mb-3"> <label class="form-label">Show as switch</label> <div
+  class="form-switch form-switch-md"> <input type="checkbox" name="showAsSwitch"
+  class="form-check-input"
+  {{#if showAsSwitch}}checked {{/if}}
+  data-live="change"> </div> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea class="form-control" name="help">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>

@@ -1,0 +1,77 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div id="mapsvg-data-toolbar">
+    <div class="row">
+      <div class="col-sm-5">
+        <ul class="nav nav-pills" id="mapsvg-source-menu-left">
+          <li role="presentation" class="nav-item"><a
+              id="mapsvg-btn-add-datasource"
+              href="#"
+              class="nav-link toggle-tooltip"
+              title="Add source"
+            ><i class="bi bi-plus-lg"></i></a></li>
+        </ul>
+      </div>
+      <div class="mapsvg-toolbar-title col-sm-3">
+        Data&nbsp;Sources
+      </div>
+
+      <div class="mapsvg-toolbar-buttons col-sm-4">
+        <ul class="nav nav-pills pull-right" id="mapsvg-source-menu-right" class="pull-right">
+          <li role="presentation"><a
+              href="#"
+              id="mapsvg-go-to-table"
+              class="nav-link toggle-tooltip"
+              title="Table"
+            ><i class="bi bi-chevron-right"></i></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mapsvg-toolbar-filters"></div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+
+  <table class="table mapsvg-data-list-table" id="mapsvg-data-list-table">
+    <thead>
+    <tr>
+      <!--<th>id</th>-->
+      <!--<th>Title</th>-->
+      <th>Table name</th>
+      <th style="width: 20px;"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each schemas}}
+      {{>databaseSourceItemPartial params=this defaultTable=../defaultTable}}
+    {{/each}}
+    </tbody>
+  </table>
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-datasource-{{params.id}}" data-id="{{params.id}}" class="mapsvg-data-row">
+      <!--<td>-->
+      <!--{{params.id}}-->
+      <!--</td>-->
+      <!--<td>-->
+      <!--{{#if params.title}}params.title{{else}}{{params.name}}{{/if}}-->
+      <!--</td>-->
+      <td>
+          {{#if params.title}}{{params.title}}{{else}}{{params.name}}{{/if}}
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary" data-action="edit-data-source" data-table-name="{{params.name}}" data-schema-id="{{params.id}}">
+          Edit
+        </button>
+          {{#ifeq defaultTable params.name}}
+              <span class="badge bg-secondary">Connected</span>
+          {{/ifeq}}
+          {{#ifnoteq defaultTable params.name}}
+              <button class="btn btn-sm btn-outline-secondary" data-action="set-data-source" data-table-name="{{params.name}}" data-schema-id="{{params.id}}">
+                  Connect
+              </button>
+          {{/ifnoteq}}
+      </td>
+  </tr>
+</script>

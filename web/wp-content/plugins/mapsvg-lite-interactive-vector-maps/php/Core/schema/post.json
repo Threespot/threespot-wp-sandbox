@@ -1,0 +1,40 @@
+{
+  "name": "posts_",
+  "objectNameSingular": "post",
+  "objectNamePlural": "posts",
+  "apiEndpoints": [
+    { "url": "objects/%name%", "method": "GET", "name": "index" },
+    { "url": "objects/%name%/[:id]", "method": "GET", "name": "show" },
+    { "url": "objects/%name%", "method": "POST", "name": "create" },
+    { "url": "objects/%name%/[:id]", "method": "PUT", "name": "update" },
+    { "url": "objects/%name%/[:id]", "method": "DELETE", "name": "delete" },
+    { "url": "objects/%name%", "method": "DELETE", "name": "clear" }
+  ],
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true,
+      "auto_increment": true
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "location",
+      "db_type": "text",
+      "visible": true,
+      "searchable": true
+    },
+    {
+      "name": "post",
+      "label": "Post",
+      "type": "post",
+      "db_type": "int(11)",
+      "visible": true,
+      "readonly": true
+    }
+  ]
+}

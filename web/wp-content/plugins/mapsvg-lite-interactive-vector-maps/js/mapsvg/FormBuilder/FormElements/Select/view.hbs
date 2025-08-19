@@ -1,0 +1,45 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-select-view">
+ <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}}<div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control" {{#if multiselect}}multiple="multiple"{{/if}} data-value="{{value}}">
+
+                {{#if optionsGrouped}}
+    {{#each options}}
+                            <optgroup label="{{title}}">{{title}}</optgroup>
+                        {{#if options}}
+        {{#unless ../multiselect}}
+            {{#each options}}
+                                    <option value="{{value}}" {{#ifeq value ../../value}}selected{{/ifeq}}>{{label}}</option>
+                                {{/each}}
+        {{/unless}}
+        {{#if ../multiselect}}
+            {{#each options}}
+                                    <option value="{{value}}" {{#ifselected value ../../value}}selected{{/ifselected}}>{{label}}</option>
+                                {{/each}}
+        {{/if}}
+    {{/if}}
+        {{#unless options}}
+                            <option disabled>empty</option>
+                        {{/unless}}
+    {{/each}}
+{{/if}}
+    {{#unless optionsGrouped}}
+        {{#unless multiselect}}
+                        <option value="" {{#ifeq value ../../value}}selected{{/ifeq}}>...</option>
+                        {{#each options}}
+                            <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                        {{/each}}
+        {{/unless}}
+        {{#if multiselect}}
+            {{#each options}}
+                            <option value="{{value}}" {{#ifselected value ../value}}selected{{/ifselected}}>{{label}}</option>
+                        {{/each}}
+        {{/if}}
+    {{/unless}}
+
+            </select>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>

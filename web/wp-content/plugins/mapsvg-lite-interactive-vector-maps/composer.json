@@ -1,0 +1,9 @@
+{
+  "config": {
+    "platform-check": false
+  },
+  "require": {
+    "itsgoingd/clockwork": "^5.0",
+    "guzzlehttp/guzzle": "^7.9"
+  }
+}

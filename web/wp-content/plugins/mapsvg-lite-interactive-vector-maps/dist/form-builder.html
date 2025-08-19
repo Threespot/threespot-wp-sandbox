@@ -1,0 +1,1297 @@
+<script type="text/x-handlebars-template" id="mapsvg-form-editor-tmpl-ui">
+  <div class="mapsvg-data-wrap mapsvg-data-limited-scrollable mapsvg-data-flex-row">
+    <div class="mapsvg-data-preview mapsvg-data-flex-column">
+      <div id="mapsvg-data-edit-controls">
+        <div class="mapsvg-data-form-buttons mapsvg-data-container" id="mapsvg-data-buttons-add">
+          {{#each types}}
+            {{#if premium}}
+              <button
+                class="btn btn-outline-secondary btn-xs mapsvg-premium-feature-alert"
+                data-bs-toggle="popover"
+                data-premium="true"
+              >
+                {{label}}
+              </button>
+            {{else}}
+              <button
+                class="btn btn-outline-secondary btn-xs mapsvg-form-type-btn"
+                id="mapsvg-data-btn-{{name}}"
+                data-create="{{name}}"
+              >
+                {{label}}
+              </button>
+            {{/if}}
+          {{/each}}
+        </div>
+
+        <div id="mapsvg-data-save-container">
+          <button class="btn btn-primary btn-sm" id="mapsvg-data-btn-save-schema">
+            Save fields
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mapsvg-data-edit mapsvg-data-scrollable mapsvg-data-form-controller">
+      <!--text field-->
+      <form class="mapsvg-data-container" id="mapsvg-data-form-edit">
+      </form>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkbox-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3"> <label class="form-label">Checkbox label</label> <input type="text"
+  class="form-control" name="checkboxLabel" value="{{checkboxLabel}}" autocomplete="off" /> </div>
+  <div class="form-group mb-3"> <label class="form-label">Show as switch</label> <div
+  class="form-switch form-switch-md"> <input type="checkbox" name="showAsSwitch"
+  class="form-check-input"
+  {{#if showAsSwitch}}checked {{/if}}
+  data-live="change"> </div> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea class="form-control" name="help">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkbox-view">
+    <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+
+        <div class="col-sm-9">
+            <div name="checkboxToSwitch" class=" checkbox {{#if showAsSwitch}} form-switch form-switch-md{{/if}}">
+                <input class="form-check-input" type="checkbox" name="{{name}}" {{#if value}}checked{{/if}}>
+                <label class="form-check-label">
+                    {{checkboxLabel}}
+                </label>
+            </div>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-checkboxes-control">
+ <div class="form-group mb-3 ">
+        <label class="form-label">Label</label>
+        <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off"/>
+        <p class="form-text">
+            Label can be empty
+        </p>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label">What fields to filter by</label>
+        <select class="form-control mapsvg-select2" name="parameterName" data-live="change">
+            <option value="">...</option>
+            {{#if external.regionFields}}
+                <optgroup label="Region">
+                    {{#each external.regionFields}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+    {{#if external.databaseFields}}
+                <optgroup label="Database Object">
+                    {{#each external.databaseFields}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+        </select>
+    </div>
+    <!--<div class="form-group mb-3 row">-->
+        <!--<label class="form-label">Default option text</label>-->
+        <!--<input type="text" name="placeholder" class="form-control" value="{{placeholder}}"/>-->
+        <!--<p class="form-text">-->
+            <!--Shows all objects if selected-->
+        <!--</p>-->
+    <!--</div>-->
+    <div class="form-group mb-3 ">
+        <label class="form-label">Options</label>
+        <textarea name="options" class="form-control" rows="5">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea>
+        <button style="margin-top: 7px;" class="btn btn-outline-secondary  btn-sm mapsvg-filter-insert-options">Insert options from <span class="mapsvg-filter-param-name">{{parameterName}}</span></button>
+    </div>
+
+
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea name="help" class="form-control">{{help}}</textarea>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkboxes-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off"/> <p class="form-text">
+  Label can be empty </p> </div> <!--<div class="form-group mb-3 row">--> <!--<label
+  class="form-label">Default option text</label>--> <!--<input type="text" name="placeholder"
+  class="form-control" value="{{placeholder}}"/>--> <!--<p class="form-text">--> <!--Shows all
+  objects if selected--> <!--</p>--> <!--</div>--> <div class="form-group mb-3 "> <label
+  class="form-label">Options</label> <textarea name="options" class="form-control" rows="5">{{#each
+    options
+  }}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea name="help" class="form-control">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-checkboxes-view">
+    <div class="form-group mb-3  mapsvg-checkbox-group">
+        <label class="col-sm-3 col-form-label row mapsvg-filter-label">{{label}}</label>
+
+        <div class="col-sm-9">
+            {{#each options}}
+                <div class="checkbox">
+                    <input class="form-check-input" type="checkbox" name="{{../parameterNameShort}}[]" value="{{value}}" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{../parameterNameShort}}">
+                    <label class="form-check-label">
+                             {{label}}
+                    </label>
+                </div>
+            {{/each}}
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkboxes-view">
+ <div class="form-group mb-3 row mapsvg-checkbox-group">
+        <label class="col-sm-3 col-form-label mapsvg-filter-label">{{label}}</label>
+
+        <div class="col-sm-9">
+            {{#each options}}
+                <div class="checkbox">
+                    <input class="form-check-input" type="checkbox" name="{{../name}}[]" value="{{value}}" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{../name}}">
+
+                    <label class="form-check-label">
+                        {{label}}
+                    </label>
+                </div>
+            {{/each}}
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-colorpicker-view">
+   <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <div class="input-group cpicker colorpicker-element">
+                <span class="input-group-text"><i></i></span>
+                <input type="text" name="{{name}}" class="form-control cpicker" value="{{value}}" />
+            </div>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-date-control">
+ <div class="form-group mb-3 ">
+        <label class="form-label">Label</label>
+        <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" name="name" value="{{name}}" autocomplete="off" />
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Language</label>
+        <select class="mapsvg-select2 form-control" name="language">
+            {{#each languages}}<option {{#ifeq this ../language}}selected{{/ifeq}}>{{.}}</option>{{/each}}
+        </select>
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea name="help" class="form-control">{{help}}</textarea>
+    </div>
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-date-view">
+
+  <div class="form-group mb-3 row"> <label class="col-sm-3 col-form-label with-name">{{label}}
+  <div class="field-name">{{_name}}</div></label> <div class="col-sm-9"> <div class="input-group
+  date" data-provide="datepicker" data-date-language="{{language}}" data-date-autoclose="true"
+  data-date-today-highlight="true"> <input type="text" name="{{name}}" class="form-control" value="{{value}}"
+  /> <div class="input-group-text"> <i class="bi bi-calendar"></i> </div> </div> <p
+  class="form-text">{{help}}</p> </div> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-distance-control">
+  <div class="form-group mb-3 ">
+       <label class="form-label">Label</label>
+       <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+       <p class="form-text">
+           Label can be empty
+       </p>
+   </div>
+   <div class="form-group mb-3">
+       <label class="form-label">What field to filter by</label>
+       <input type="text" class="form-control" value="Location" disabled="disabled"/>
+   </div>
+
+   <div class="form-group mb-3">
+       <label class="form-label">Search field placeholder</label>
+       <div>
+           <input type="text" class="form-control" name="addressFieldPlaceholder"  value="{{addressFieldPlaceholder}}" />
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">User location button</label>
+       <div class="form-switch form-switch-md">
+
+           <input type="checkbox" class="form-check-input" name="userLocationButton"  {{#if userLocationButton}}checked{{/if}} />
+       </div>
+           <p class="form-text">
+               Click on the button searches for nearby locations within given radius.
+               This feature users browser's built-in HTML5 geolocation feature that works only under HTTPS connection.
+           </p>
+       </div>
+
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Search by ZIP/postcode only</label>
+       <div>
+           {{premiumFeatureAlert}}
+           <p class="form-text">
+               Enable this if you don't want autosuggestion drop-down with the list of addresses to appear when user is typing in the search field.
+           </p>
+       </div>
+   </div>
+
+    
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Limit search results by country</label>
+       {{premiumFeatureAlert}}
+   </div>
+
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Distance units</label>
+       <div>
+           <div class="btn-group" data-toggle="buttons">
+
+               <input id="mapsvg-filters-km" class="btn-check" type="radio" name="distanceUnits" value="km" {{#ifeq distanceUnits 'km'}}checked{{/ifeq}} data-live="change"/>
+               <label for="mapsvg-filters-km" class="btn btn-outline-secondary ">
+                      kilometers
+               </label>
+               <input id="mapsvg-filters-miles"class="btn-check" type="radio" name="distanceUnits" value="mi" {{#ifeq distanceUnits 'mi'}}checked{{/ifeq}} data-live="change"/>
+               <label for="mapsvg-filters-miles" class="btn btn-outline-secondary ">
+
+                   miles
+               </label>
+           </div>
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Distance units label</label>
+       <div>
+           <input type="text" class="form-control" name="distanceUnitsLabel"  value="{{distanceUnitsLabel}}" />
+       </div>
+   </div>
+
+   <div class="form-group mb-3">
+       <div class="form-group mb-3 ">
+           <label class="form-label">Distances list</label>
+           <table class="table table-condensed">
+               <thead>
+               <tr>
+                   <th style="width: 25%;">Distance</th>
+                   <th>Default</th>
+               </tr>
+               </thead>
+               <tbody>
+               {{#each options}}
+                   <tr class="mapsvg-edit-distance-row">
+                       <td>
+                           <input type="text" autocomplete="off" data-param="value" data-array="true" name="options" class="form-control" value="{{value}}" />
+                       </td>
+                       <td>
+                           <input type="radio" data-param="default" data-array="true" class="form-check-input mapsvg-distance-default"  name="options_default" {{#if default}}checked{{/if}} />
+                       </td>
+                   </tr>
+               {{/each}}
+               </tbody>
+           </table>
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+   </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-distance-view">
+  <div class="form-group">
+
+      {{#if label}}
+          <label class="col-form-label mapsvg-filter-label">{{label}}</label>
+      {{/if}}
+
+      <div class="mapsvg-distance-fields">
+
+
+          <div class="mapsvg-distance-field-1">
+              <input type="hidden" data-parameter-name="distanceLatLng" name="distanceGeoPoint" value="{{value.geoPoint}}"/>
+              <input type="hidden" name="distanceUnits" value="{{units}}"/>
+              <div class="distance-search-wrap {{#if userLocationButton}}with-user-location-button{{/if}}">
+                  <input type="text" class="form-control mapsvg-address-search typeahead" value="{{value.address}}" name="distance" placeholder="{{addressFieldPlaceholder}}" autocomplete="off" {{#if searchByZip}}maxlength="{{zipLength}}"{{/if}}/>
+                  {{#if userLocationButton}}
+                      <svg class="user-location-button" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 447.342 447.342" style="enable-background:new 0 0 447.342 447.342;" xml:space="preserve"><path d="M443.537,3.805c-3.84-3.84-9.686-4.893-14.625-2.613L7.553,195.239c-4.827,2.215-7.807,7.153-7.535,12.459 c0.254,5.305,3.727,9.908,8.762,11.63l129.476,44.289c21.349,7.314,38.125,24.089,45.438,45.438l44.321,129.509 c1.72,5.018,6.325,8.491,11.63,8.762c5.306,0.271,10.244-2.725,12.458-7.535L446.15,18.429 C448.428,13.491,447.377,7.644,443.537,3.805z"/></svg>
+                  {{/if}}
+              </div>
+          </div>
+
+
+          <div class="mapsvg-distance-field-2">
+              {{#switch distanceControl}}
+                  {{#case "none"}}{{distanceDefault}}{{/case}}
+                  {{#case "select" break=true}}
+                      <select style="width: 100%;" class="select2" name="distanceLength" data-parameter-name="distanceLength">
+                          <!--<option value="" {{#ifeq value ../value}}selected{{/ifeq}}>{{placeholder}}</option>-->
+                          {{#each options}}
+                              <option value="{{value}}" {{#if default}}selected{{/if}}>+{{value}}{{../distanceUnitsLabel}}</option>
+                          {{/each}}
+                      </select>
+                  {{/case}}
+                  {{#case "text" break=true}}
+                      <input type="text" name="distanceLength" class="form-control" placeholder="{{placeholder}}" style="width: 100px;" />
+                  {{/case}}
+                  {{#default}}{{/default}}
+              {{/switch}}
+          </div>
+
+
+
+          <!--<div class="input-group">-->
+          <!--<span class="input-group-btn">-->
+          <!--<button class="btn btn-outline-secondary " type="button">Go!</button>-->
+          <!--</span>-->
+          <!--<input type="text" class="form-control" placeholder="Search for...">-->
+          <!--</div>&lt;!&ndash; /input-group &ndash;&gt;-->
+          <!--<div style="width: 200px; display: inline-block; vertical-align: middle;">-->
+          <!--<div class="input-group">-->
+          <!--<div class="" style="position: relative;">-->
+          <!--<span style="">From</span>-->
+          <!--</div>-->
+          <!--<span class="input-group-btn">-->
+          <!--<button class="btn btn-outline-secondary "><svg style="vertical-align: middle;" width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1593 349l-640 1280q-17 35-57 35-5 0-15-2-22-5-35.5-22.5t-13.5-39.5v-576h-576q-22 0-39.5-13.5t-22.5-35.5 4-42 29-30l1280-640q13-7 29-7 27 0 45 19 15 14 18.5 34.5t-6.5 39.5z"/></svg></button>-->
+          <!--</span>-->
+          <!--</div>-->
+          <!--</div>-->
+
+          <p class="form-text">{{help}}</p>
+      </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-edit-distance-row">
+    <tr class="mapsvg-edit-distance-row">
+        <td>
+            <input type="text" autocomplete="off" data-param="value" data-array="true"  class="form-control mapsvg-edit-distance-value" />
+        </td>
+        <td>
+            <input class="form-check-input" type="radio" data-param="default" data-array="true" name="options_default" />
+        </td>
+    </tr>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-empty-view">
+  <div class="form-group mb-3 row" style="margin: 20px;"> <p class="form-text">You can add custom
+  fields into regions by clicking on <span class="label label-default" style="font-size: 14px;"><i
+  class="bi bi-pencil"></i></span> <i>Edit fields</i> icon in the toolbar.</p> <button class="btn
+  btn-outline-secondary btn-close">Close</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-id-view">
+ <div class="form-group mb-3 row {{#unless value}}hidden{{/unless}}">
+        <label class="col-sm-3 col-form-label with-name">ID</label>
+        <div class="col-sm-9 col-form-label" style="text-align:left;">
+            {{value}}
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-image-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Button text</label> <input type="text"
+  class="form-control" name="button_text" value="{{button_text}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Help</label> <textarea name="help"
+  class="form-control">{{help}}</textarea> </div> <div class="form-group mb-3 "> <button class="btn
+  btn-outline-secondary mapsvg-remove"><i class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-image-view">
+  <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <div>
+                <button class="btn btn-outline-secondary btn-sm mapsvg-upload-image">{{button_text}}</button>
+            </div>
+
+            <p class="form-text">{{help}}</p>
+
+            <div class="mapsvg-data-images">
+            </div>
+            <input type="hidden" name="{{name}}" />
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location-control">
+
+
+  <div class="form-group mb-3 ">
+      <label class="form-label">Label</label>
+      <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+  </div>
+  <div class="form-group mb-3 ">
+      <label class="form-label">Name</label>
+      <input type="text"  disabled="disabled" class="form-control" name="name" value="location" autocomplete="off" />
+  </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">Markers</label>
+
+      <div class="mapsvg-marker-image-selector">
+          <div class="mapsvg-marker-images"></div>
+          {{premiumFeatureAlert "Upload a custom marker image"}}
+      </div>
+      <p class="form-text">Click on an image to set it as a default marker</p>
+
+      <!--<div class="mapsvg-marker-files">-->
+          <!---->
+              <!--<div class="mapsvg-marker-file">-->
+                  <!---->
+              <!--</div>-->
+      <!--</div>-->
+
+  </div>
+
+
+  <div class="form-group mb-3">
+      <label class="form-label">Markers by field value</label>
+      {{premiumFeatureAlert "Set marker image by field value"}}
+
+
+      <table class="" id="markers-by-field" style="margin-top: 20px;">
+      </table>
+  </div>
+
+  <div class="form-group mb-3 ">
+      <label class="col-form-label">Searchable</label>
+      <div class="form-switch form-switch-md">
+          <input type="checkbox" class="form-check-input" name="searchable"  {{#if searchable}}checked{{/if}} />
+      </div>
+      <p class="form-text">Choose if you want to perform a text search on this field. Please note that
+          when you turn it on, MySQL fulltext index is added for this field, and too many indexes may slow down MySQL.
+          Don't make all fields searchable without the real need.</p>
+
+  </div>
+  <div class="form-group mb-3 ">
+      <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-location-geo-view">
+    <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <input type="hidden" name="{{name}}" value="{{value}}" class="mapsvg-marker-hidden-input" />
+            <input type="text" class="form-control typeahead" autocomplete="off" placeholder="Enter address or lat,lon coordinates"/>
+            <div class="mapsvg-new-marker {{#if markersByFieldEnabled}}mapsvg-markersByFieldEnabled{{/if}}" style="display: none;">
+                {{>dataMarkerPartial}}
+            </div>
+            <div class="mapsvg-marker-image-selector">
+                <div class="mapsvg-marker-images"></div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location-geo-view">
+  <div class="form-group mb-3 row mapsvg-new-marker-form">
+
+         <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+         <div class="col-sm-9">
+             <input type="hidden" name="{{name}}" value="{{value}}" class="mapsvg-marker-hidden-input" />
+             <input type="text" class="form-control typeahead" autocomplete="off" placeholder="Enter address or lat,lon coordinates"/>
+             <div class="mapsvg-new-marker {{#if markersByFieldEnabled}}mapsvg-markersByFieldEnabled{{/if}}" style="display: none;">
+                 {{>dataMarkerPartial}}
+             </div>
+             {{#unless editMode}}
+                 <div class="mapsvg-marker-image-selector" style="display: none;">
+                     <div class="mapsvg-marker-images"></div>
+                     {{premiumFeatureAlert "Upload a custom marker image"}}
+                 </div>
+             {{/unless}}
+         </div>
+     </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location">
+  <div class="mapsvg-marker-names">
+  {{#if lat}}
+    <div class="mapsvg-marker-geocoords"><a href="#" class="editable" data-field="geoCoords">{{#if
+      lat
+    }}{{lat}}, {{lng}}{{/if}}</a></div>
+  {{else}}
+    <div class="mapsvg-marker-coords">x:
+    {{round x}}, y:
+    {{round y}}</div>
+  {{/if}}
+  </div> <div class="mapsvg-region-controls mapsvg-marker-controls"> <button class="btn
+  btn-outline-secondary btn-sm mapsvg-marker-delete toggle-tooltip" title="Delete"><i class="bi
+  bi-trash"></i> </button> <button class="btn btn-outline-secondary btn-sm
+  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn toggle-tooltip" data-marker-id="{{id}}"
+  title="Image"><img src="{{src}}" /> </button> </div>
+
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location-view">
+    <div class="form-group mb-3 row mapsvg-new-marker-form"> <label class="col-sm-3 col-form-label
+  {{#if external.showNames}}with-name{{/if}}">{{label}}
+  <div class="field-name">{{_name}}</div></label> <div class="col-sm-9"> <p class="form-text"
+  style="margin-top: 0;"><em>Click on the map to add a marker</em></p> <div class="input-group
+  mapsvg-new-marker" style="display: none;"> <div class="input-group-btn"> <button class="btn
+  btn-outline-secondary mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img
+  src="{{markerImagePath}}" class="new-marker-img"/> <span class="caret"></span></button> </div>
+  <input type="text" disabled="disabled" class="form-control mapsvg-marker-id"
+  placeholder="marker_id" name="marker_id"/> <div class="input-group-btn"> <button class="btn
+  btn-outline-secondary mapsvg-marker-delete"><i class="bi bi-trash"></i></button> </div> </div>
+  {{#unless editMode}}
+    <div class="mapsvg-marker-image-selector"> <div class="mapsvg-marker-images"></div>
+    {{premiumFeatureAlert "Upload a custom marker image"}}
+    </div>
+  {{/unless}}
+  </div> </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-control">
+  <!--<div class="form-group mb-3 row">-->
+        <!--<label class="col-form-label">Marker is link</label>-->
+        <!--<div>-->
+            <!--<div class="btn-group" data-object="options" data-toggle="buttons">-->
+                <!--<label class="btn btn-outline-secondary  {{#if isLink}}active{{/if}}">-->
+                    <!--<input type="radio" name="isLink" value="1"  {{#if isLink}}checked{{/if}} />-->
+                    <!--On-->
+                <!--</label>-->
+                <!--<label class="btn btn-outline-secondary  {{#unless isLink}}active{{/unless}}">-->
+                    <!--<input type="radio" name="isLink" value="0"  {{#unless isLink}}checked{{/unless}} />-->
+                    <!--Off-->
+                <!--</label>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<p class="form-text">Choose if click on a Marker should work as click on a link. You would need to create another custom "Text" field to store URLs and choose that field in the drop-down list below. Or, if your dataset has "WP Post" field, you may want to choose "post.url" field to be used for redirects on click on Markers.</p>-->
+    <!--</div>-->
+    <!--<div class=form-group mb-3 row">-->
+        <!--<label class="col-form-label">URL field</label>-->
+        <!--<select class="form-control mapsvg-select2" name="urlField">-->
+            <!--<option></option>-->
+            <!--{{#fields}}-->
+                <!--<option {{#ifeq name ../urlField}}selected{{/ifeq}}>{{name}}</option>-->
+            <!--{{/fields}}-->
+        <!--</select>-->
+        <!--<p class="form-text">Choose a field with URL to be used for redirect on click on a Marker.</p>-->
+    <!--</div>-->
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker">
+      <div class="mapsvg-marker-names">
+        <div>{{address.formatted}}</div>
+
+        {{#if geoPoint.lat}}
+            <div class="mapsvg-marker-geocoords">{{#if geoPoint.lat}}{{geoPoint.lat}}, {{geoPoint.lng}}{{/if}}</div>
+        {{else}}
+            <div class="mapsvg-marker-coords">x: {{round svgPoint.x}}, y: {{round svgPoint.y}}</div>
+        {{/if}}
+        {{#if address.formatted}}
+            <a href="#" onclick="jQuery('#mapsvg-location-fields-toggle').toggle();jQuery(this).html(jQuery('#mapsvg-location-fields-toggle').is(':visible')?'Hide location fields':'Show location fields');return false;">Show location fields</a>
+        {{/if}}
+        <div id="mapsvg-location-fields-toggle" style="display: none; font-size: 13px; margin-top: 5px;">
+            {{#each address}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.{{@key}}</span><br />
+                    {{.}}
+                </div>
+            {{/each}}
+            {{#if address.county}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.county</span><br />
+                    {{address.county}}
+                </div>
+            {{/if}}
+            {{#if address.state}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.state</span><br />
+                    {{address.state}}
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.state_short</span><br />
+                    {{address.state_short}}
+                </div>
+            {{/if}}
+            {{#if address.zip}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.zip</span><br />
+                    {{address.zip}}
+                </div>
+            {{/if}}
+            <div style="margin-bottom: 5px;">
+            <span class="text-muted">location.geoPoint.lat</span><br />
+                {{geoPoint.lat}}
+            </div>
+            <div style="margin-bottom: 5px;">
+            <span class="text-muted">location.geoPoint.lng</span><br />
+                {{geoPoint.lng}}
+            </div>
+        </div>
+    </div>
+
+    <div class="mapsvg-region-controls mapsvg-marker-controls">
+        <button class="btn btn-outline-secondary  btn mapsvg-marker-delete toggle-tooltip" title="Delete"><i class="bi bi-trash"></i> </button>
+        <button class="btn btn-outline-secondary  btn mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn toggle-tooltip" data-marker-id="{{marker.id}}" title="Image"><img src="{{imagePath}}" /> </button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-geo-view">
+
+  <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <input type="hidden" name="{{name}}" value="{{value}}" class="mapsvg-marker-hidden-input" />
+            <input type="text" class="form-control typeahead" autocomplete="off" placeholder="New marker: enter address or coordinates"/>
+            <div class="mapsvg-new-marker" style="display: none;">
+                {{>dataMarkerPartial marker}}
+                <!--<div class="input-group-btn">-->
+                    <!--<button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>-->
+                <!--</div>-->
+                <!--<input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>-->
+                <!--<div class="input-group-btn">-->
+                    <!--<button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>-->
+                <!--</div>-->
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+
+        </div>
+    </div>
+
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-markers-by-field-tmpl-partial">
+  <tr data-option-id="{{id}}">
+        <td>{{label}}</td>
+        <td>
+            <button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn"><img src="{{img}}" class="new-marker-img"/><span class="caret"></span></button>
+        </td>
+    </tr>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-view">
+ <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <!--<select name="marker_id" class="form-control">-->
+                <!--<option></option>-->
+                <!--{{#each options}}-->
+                    <!--<option value="{{id}}" {{#ifeq id ../value}}selected{{/ifeq}}>{{id}}</option>-->
+                <!--{{/each}}-->
+            <!--</select>-->
+            <p class="form-text" style="margin-top: 0;"><em>Click on the map to add a marker</em></p>
+            <div class="input-group mapsvg-new-marker" style="display: none;">
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>
+                </div>
+                <input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+        </div>
+    </div> <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <!--<select name="marker_id" class="form-control">-->
+                <!--<option></option>-->
+                <!--{{#each options}}-->
+                    <!--<option value="{{id}}" {{#ifeq id ../value}}selected{{/ifeq}}>{{id}}</option>-->
+                <!--{{/each}}-->
+            <!--</select>-->
+            <p class="form-text" style="margin-top: 0;"><em>Click on the map to add a marker</em></p>
+            <div class="input-group mapsvg-new-marker" style="display: none;">
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn" data-marker-id="{{id}}"><img src="" class="new-marker-img"/> <span class="caret"></span></button>
+                </div>
+                <input type="text" disabled="disabled" class="form-control mapsvg-marker-id" placeholder="marker_id" name="marker_id"/>
+                <div class="input-group-btn">
+                    <button class="btn btn-outline-secondary  mapsvg-marker-delete"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="mapsvg-marker-image-selector"></div>
+
+        </div>
+    </div>
+
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-modal-view">
+  <div class="form-group mb-3 row mapsvg-show-filters">
+        <button class="btn btn-outline-secondary  mapsvg-btn-show-filters">{{showButtonText}}</button>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-ok-view">
+    <div class="form-group mb-3 row">
+        <button class="mapsvg-filter-btn-ok">OK</button>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-post-control">
+ <!--<div class="form-group mb-3 row">-->
+        <!--<label class="form-label">Label</label>-->
+        <!--<input type="text" class="form-control" name="label" value="{{label}}"/>-->
+    <!--</div>-->
+    <!--<div class="form-group mb-3 row">-->
+        <!--<label class="form-label">Name</label>-->
+        <!--<input type="text" class="form-control" name="name" value="{{name}}"/>-->
+    <!--</div>-->
+    <div class="form-group mb-3 ">
+        <label class="form-label">Post type</label>
+        <select class="mapsvg-select2 form-control" name="post_type">
+            {{#each post_types}}<option {{#ifeq this ../post_type}}selected{{/ifeq}}>{{.}}</option>{{/each}}
+        </select>
+        <p class="form-text">
+            Use \{{post}} tag in a template to show full rendered post content.<br /><br />
+
+            Also you can output individual fields:<br />
+            <em>\{{post.id}}</em><br />
+            <em>\{{post.post_title}}</em><br />
+            <em>\{{post.post_content}}</em><br />
+            <em>\{{post.url}}</em><br /><br />
+
+            ACF (Advanced Custom Fields) plugin is supported:<br />
+            <em>\{{post.acf.my_field_name}}</em><br />
+            <em>\{{post.acf.my_another_field}}</em>
+        </p>
+    </div>
+    <!--<div class="form-group mb-3 row">-->
+        <!--<div class="checkbox">-->
+            <!--<label class="form-label">-->
+                <!--<input type="checkbox" name="add_fields" value="1" {{#if add_fields}}checked{{/if}} /> Add MapSVG fields into WordPress Post Edit Screen-->
+            <!--</label>-->
+        <!--</div>-->
+        <!--<p class="form-text">-->
+            <!--You can add MapSVG fields into WordPress Post Edit Screen of chosen <em>post_type</em>.<br><br>-->
+
+            <!--If more than one MapSVG map is connected with a <em>post_type</em>-->
+            <!--then you would be able to choose a MapSVG map on WordPress Post Edit Screen before editing MapSVG fields.-->
+            <!--Use case example - list of dealers in different countries.-->
+            <!--You can show separate maps of countries each on its-->
+            <!--own page - and posts would be attached to each map automatically.-->
+        <!--</p>-->
+    <!--</div>-->
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea class="form-control" name="help">{{help}}</textarea>
+    </div>
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-post-view">
+  <div class="form-group mb-3 row"> <label class="col-sm-3 col-form-label with-name">WP Post <div
+  class="field-name">post</div></label> <div class="col-sm-9"> <select name="post_title"
+  class="mapsvg-find-post select2 form-control" data-skip="1">
+  {{#if post}}<option>{{post.post_title}}</option>{{/if}}
+  </select> <p class="form-text"> <i>post.id:</i> <span class="mapsvg-post-id">{{post.id}}</span><br
+  /> <i>post.url:</i> <a class="mapsvg-post-url" href="{{post.url}}" target="_blank">{{post.url}}</a>
+  </p> </div> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-radio-control">
+  <div class="form-group mb-3 ">
+        <label class="form-label">Label</label>
+        <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off"/>
+        <p class="form-text">
+            Label can be empty
+        </p>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label">What fields to filter by</label>
+        <select class="form-control mapsvg-select2" name="parameterName" data-live="change">
+            <option value="">...</option>
+            {{#if external.regionFieldsFilterable}}
+                <optgroup label="Region">
+                    {{#each external.regionFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+            {{#if external.databaseFieldsFilterable}}
+                <optgroup label="Database Object">
+                    {{#each external.databaseFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+        </select>
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Default option text</label>
+        <input type="text" name="placeholder" class="form-control" value="{{placeholder}}"/>
+        <p class="form-text">
+            Shows all objects if selected
+        </p>
+    </div>
+    <div class="form-group mb-3 ">
+        <label class="form-label">Options</label>
+        <textarea name="options" class="form-control" rows="5">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea>
+        <button style="margin-top: 7px;" class="btn btn-outline-secondary  btn-sm mapsvg-filter-insert-options">Insert options from <span class="mapsvg-filter-param-name">{{parameterName}}</span></button>
+    </div>
+
+
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea name="help" class="form-control">{{help}}</textarea>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-radio-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Options</label> <textarea name="options"
+  class="form-control">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea> </div>
+  <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea name="help"
+  class="form-control">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-radio-view">
+ <div class="form-group mb-3 ">
+        <label class="col-sm-3 col-form-label mapsvg-filter-label">{{label}}</label>
+
+        <div class="col-sm-9">
+            {{#if placeholder}}
+                <div class="radio">
+                    <input class="form-check-input" type="radio" name="{{parameterNameShort}}" value="" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{parameterNameShort}}">
+                    <label class="form-check-label">
+
+                        {{placeholder}}
+                    </label>
+                </div>
+            {{/if}}
+    {{#each options}}
+                <div class="radio">
+                    <input class="form-check-input" type="radio" name="{{../parameterNameShort}}" value="{{value}}" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{../parameterNameShort}}">
+
+                    <label class="form-check-label">
+                         {{label}}
+                    </label>
+                </div>
+            {{/each}}
+            <p class="form-text">{{help}}</p>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-radio-view">
+  <div class="form-group mb-3 row {{#unless visible}}mapsvg-hidden{{/unless}}">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+
+        <div class="col-sm-9">
+            {{#each options}}
+                <div class="form-check {{#if ../readonly}}disabled{{/if}}">
+                    <input class="form-check-input" type="radio" name="{{../name}}" value="{{value}}" {{#ifeq value ../value}}checked{{/ifeq}} {{#if ../readonly}}disabled="disabled"{{/if}} {{#if premium}}disabled="disabled"{{/if}}>
+                    <label class="form-check-label">{{label}}</label>
+                    {{#if premium}}
+                          {{premiumFeatureAlert}}
+                    {{/if}}                                            
+                </div>
+            {{/each}}
+            {{#if readonly}}     
+                <input type="hidden" name="{{name}}" value="{{value}}" />                   
+            {{/if}}
+            
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-region-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  disabled="disabled" class="form-control" value="regions" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="col-form-label">Searchable</label> <div class="form-switch
+  form-switch-md"> <input type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-region-view">
+<div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control" multiple="multiple">
+                {{#each options}}
+                    <option value="{{id}}" {{#ifinr id ../value}}selected{{/ifinr}}>{{#if title}}{{title}}{{/if}}{{#unless title}}{{id}}{{/unless}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-remove">
+  <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-save-view">
+    <div class="form-group mb-3 row">
+        <div class="col-sm-3 col-form-label"></div>
+        <div class="col-sm-9">
+            <button class="btn btn-outline-secondary  btn-save">OK&nbsp;<span class="mapsvg-hotkey-mac">⌘↵</span><span class="mapsvg-hotkey-others">Ctrl+↵</span></button>
+            <button class="btn btn-outline-secondary  mapsvg-close" >Close <span class="mapsvg-hotkey">Esc</span></button>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-select-control">
+  <div class="form-group mb-3 ">
+        <label class="form-label">Label</label>
+        <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+        <p class="form-text">
+            Label can be empty
+        </p>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label">What field to filter by</label>
+        <select class="form-control mapsvg-select2" name="parameterName" data-live="change">
+            <option value="">...</option>
+            {{#if external.regionFieldsFilterable}}
+                <optgroup label="Region">
+                    {{#each external.regionFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+            {{#if external.databaseFieldsFilterable}}
+                <optgroup label="Database Object">
+                    {{#each external.databaseFieldsFilterable}}
+                        <option {{#ifeq ../parameterName this}}selected{{/ifeq}}>{{this}}</option>
+                    {{/each}}
+                </optgroup>
+            {{/if}}
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label">Placeholder</label>
+        <input type="text" name="placeholder" class="form-control" value="{{placeholder}}"/>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <label class="col-form-label">Multiselect</label>
+
+            <div class="form-switch form-switch-md">
+            <input class="form-check-input" type="checkbox"  name="multiselect" {{#if multiselect}}checked{{/if}}   />
+        </div>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <label class="form-label">Options</label>
+        <textarea class="form-control" name="options" rows="5">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea>
+        <button style="margin-top: 7px;" class="btn btn-outline-secondary  btn-sm mapsvg-filter-insert-options">Insert options from <span class="mapsvg-filter-param-name">{{parameterName}}</span></button>
+    </div>
+
+
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea class="form-control" name="help">{{help}}</textarea>
+    </div>
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-select-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Options</label> <textarea class="form-control"
+  name="options">{{#each options}}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea> </div> <div
+  class="form-group mb-3 "> <label class="col-form-label">Multiselect</label> <div
+  class="form-switch form-switch-md"> <input type="checkbox" class="form-check-input"
+  name="multiselect"
+  {{#if multiselect}}checked{{/if}}
+  /> </div> </div> <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea
+  class="form-control" name="help">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-select-view">
+  <div class="form-group">
+          {{#if label}}
+              <label class="col-sm-3 col-form-label mapsvg-filter-label">{{label}}</label>
+          {{/if}}
+          <div {{#if label}}class="col-sm-9"{{/if}} {{#unless label}}class="col-xs-12"{{/unless}}>
+              <select name="{{parameterNameShort}}" {{#if multiselect}}multiple="multiple"{{/if}} class="form-control" style="width: 100%;" data-parameter-name="{{parameterNameShort}}">
+                    {{#if multiselect}}
+                      {{#each options}}
+                          {{#ifnoteq value ''}}
+                              <option value="{{value}}" {{#ifselected value ../value}}selected{{/ifselected}}>{{label}}</option>
+                          {{/ifnoteq}}
+                      {{/each}}
+                    {{else}}
+                      <option value="" {{#ifeq value ../value}}selected{{/ifeq}}>{{placeholder}}</option>
+                      {{#each options}}
+                          <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                      {{/each}}
+                    {{/if}}
+              </select>
+              <p class="form-text">{{help}}</p>
+          </div>
+      </div>
+</script>
+
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-select-view">
+ <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}}<div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control" {{#if multiselect}}multiple="multiple"{{/if}} data-value="{{value}}">
+
+                {{#if optionsGrouped}}
+    {{#each options}}
+                            <optgroup label="{{title}}">{{title}}</optgroup>
+                        {{#if options}}
+        {{#unless ../multiselect}}
+            {{#each options}}
+                                    <option value="{{value}}" {{#ifeq value ../../value}}selected{{/ifeq}}>{{label}}</option>
+                                {{/each}}
+        {{/unless}}
+        {{#if ../multiselect}}
+            {{#each options}}
+                                    <option value="{{value}}" {{#ifselected value ../../value}}selected{{/ifselected}}>{{label}}</option>
+                                {{/each}}
+        {{/if}}
+    {{/if}}
+        {{#unless options}}
+                            <option disabled>empty</option>
+                        {{/unless}}
+    {{/each}}
+{{/if}}
+    {{#unless optionsGrouped}}
+        {{#unless multiselect}}
+                        <option value="" {{#ifeq value ../../value}}selected{{/ifeq}}>...</option>
+                        {{#each options}}
+                            <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                        {{/each}}
+        {{/unless}}
+        {{#if multiselect}}
+            {{#each options}}
+                            <option value="{{value}}" {{#ifselected value ../value}}selected{{/ifselected}}>{{label}}</option>
+                        {{/each}}
+        {{/if}}
+    {{/unless}}
+
+            </select>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-status-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  disabled="disabled" class="form-control" value="status" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Status list</label> <table class="table
+  table-condensed"> <thead> <tr> <th style="width: 25%;">Label</th> <th style="width:
+  25%;">Value</th> <th style="width: 25%;">Region color</th> <th>Disable region</th> </tr> </thead>
+  <tbody>
+  {{#each options}}
+    <tr class="mapsvg-edit-status-row"> <td> <input type="text" autocomplete="off"
+    data-param="label" data-array="true" name="options" class="form-control
+    mapsvg-edit-status-label" value="{{label}}" /> </td> <td> <input type="text" autocomplete="off"
+    data-param="value" data-array="true" name="options[{{@index}}][value]" class="form-control"
+    value="{{value}}" /> </td> <td> <div class="input-group cpicker"> <span
+    class="input-group-text"><i></i></span> <input type="text" autocomplete="off" data-param="color"
+    data-array="true" class=" form-control" name="options[{{@index}}][color]" value="{{color}}"
+    data-live="change"/> </div> </td> <td> <div class="btn-group" data-toggle="buttons"> <input
+    type="checkbox" data-param="disabled" data-array="true" class=" btn-check region_disable
+    mapsvg-region-disabled" name="options[{{@index}}][disabled]"
+    {{#if disabled}}checked{{/if}}
+    /> <label class="btn btn-outline-secondary form-check-label toggle-tooltip" title="Disable" > <i
+    class="bi bi-ban"></i> </label> </div> </td> </tr>
+  {{/each}}
+  </tbody> </table> </div> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea class="form-control" name="help">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-edit-status-row">
+  <tr class="mapsvg-edit-status-row"> <td> <input type="text" autocomplete="off" data-param="label"
+  data-array="true" class="form-control mapsvg-edit-status-label" value="" /> </td> <td> <input
+  type="text" autocomplete="off" data-param="value" data-array="true" class="form-control" value=""
+  /> </td> <td> <div class="input-group cpicker"> <span class="input-group-text"><i></i></span>
+  <input type="text" autocomplete="off" data-param="color" data-array="true" class=" form-control"
+  name="colors[background]" value="" /> </div> </td> <td> <div class="btn-group"
+  data-toggle="buttons"> <input type="checkbox" data-param="disabled" data-array="true"
+  class="region_disable btn-check mapsvg-region-disabled" name="" data-live="change"/> <label
+  class="btn btn-outline-secondary form-check-label toggle-tooltip" title="Disable" > <i class="bi
+  bi-ban"></i> </label> </div> </td> </tr>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-status-view">
+  <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control">
+                {{#each options}}
+                    <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                {{/each}}
+            </select>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-text-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off"
+  {{#unless renamable}}disabled{{/unless}}
+  /> </div> <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea
+  class="form-control" name="help">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Enable this option if you want to include this field in the text
+  search.</p> </div> <div class="form-group mb-3 "> <label class="col-form-label">Search
+  type</label> <div> <div class="btn-group" data-toggle="buttons" id="mapsvg-map-mode-2"> <input
+  id="mapsvg-map-mode-2-fulltext" type="radio" class="btn-check" name="searchType" value="fulltext"
+  autocomplete="off"
+  {{#ifeq searchType "fulltext"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-fulltext"
+  class="btn btn-outline-secondary" data-mode="preview"> Fulltext </label> <input
+  id="mapsvg-map-mode-2-exactMatch" type="radio" class="btn-check" name="searchType" value="exact"
+  autocomplete="off"
+  {{#ifeq searchType "exact"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-exactMatch" class="btn
+  btn-outline-secondary" data-mode="draw"> Exact match = </label> <input id="mapsvg-map-mode-2-like"
+  type="radio" class="btn-check" name="searchType" value="like" autocomplete="off"
+  {{#ifeq searchType "like"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-like" class="btn
+  btn-outline-secondary" data-mode="draw"> LIKE '...%' </label> </div> </div> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-text-view">
+  <div class="form-group mb-3 row"> <label class="col-sm-3 col-form-label with-name">{{label}}
+  <div class="field-name">{{_name}}</div></label> <div class="col-sm-9">
+  {{#if readonly}}
+    <input type="hidden" name="{{name}}" value="{{value}}" /> <input type="text" name="{{name}}_disabled"
+    value="{{value}}" class="form-control" autocomplete="off" disabled="disabled" />
+  {{else}}
+    <input type="text" name="{{name}}" value="{{value}}" class="form-control" autocomplete="off"
+    placeholder="{{placeholder}}" />
+  {{/if}}
+  <p class="form-text">{{help}}</p> </div> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-textarea-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Help</label> <textarea class="form-control"
+  name="help">{{help}}</textarea> </div> <div class="form-group mb-3"> <label
+  class="form-label">HTML highlight</label> <div style="margin-bottom: 10px;" class="form-switch
+  form-switch-md"> <input type="checkbox" class="form-check-input" name="html"
+  {{#if html}}checked{{/if}}
+  /> </div> <p class="form-text"> If you need to output contents of textarea as HTML in a template,
+  use 3 curly braces instead of 2: <b>\{{{your_field_name}}}</b> </p> </div> <div class="form-group
+  mb-3 "> <label class="col-form-label">Searchable</label> <div class="form-switch form-switch-md">
+  <input type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <!--<div
+  class="form-group mb-3 row">--> <!--<label class="form-label">Auto Line breaks</label>-->
+  <!--<input type="checkbox" class="mapsvg-onoff" name="autobr"
+  {{#if autobr}}checked{{/if}}
+  />--> <!--<p class="form-text">--> <!--Automatically convert line breaks to &lt;br /&gt; HTML
+  tag--> <!--</p>--> <!--</div>--> <div class="form-group mb-3 "> <button class="btn
+  btn-outline-secondary mapsvg-remove"><i class="bi bi-trash"></i> Remove</button> </div>
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-textarea-view">
+ <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <textarea name="{{name}}" class="form-control" rows="8">{{value}}</textarea>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-title-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label id="hz" class="form-label">Name</label> <input type="text"
+  class="form-control" disabled="disabled" name="name" value="{{name}}" autocomplete="off" /> </div>
+  <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea
+  class="form-control" name="help">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a + text search on this field.</p>
+  </div> <div class="form-group mb-3 "> <label class="col-form-label">Search type</label> <div> <div
+  class="btn-group" data-toggle="buttons" id="mapsvg-map-mode-2"> <input
+  id="mapsvg-map-mode-2-fulltext" type="radio" class="btn-check" name="searchType" value="fulltext"
+  autocomplete="off"
+  {{#ifeq searchType "fulltext"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-fulltext"
+  class="btn btn-outline-secondary
+  {{#ifeq searchType "fulltext"}}active{{/ifeq}}" data-mode="preview"> Fulltext </label> <input
+  id="mapsvg-map-mode-2-exactMatch" type="radio" class="btn-check" name="searchType" value="exact"
+  autocomplete="off"
+  {{#ifeq searchType "exact"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-exactMatch" class="btn
+  btn-outline-secondary
+  {{#ifeq searchType "exact"}}active{{/ifeq}}" data-mode="draw"> Exact match = </label> <input
+  id="mapsvg-map-mode-2-like" type="radio" class="btn-check" name="searchType" value="like"
+  autocomplete="off"
+  {{#ifeq searchType "like"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-like" class="btn
+  btn-outline-secondary
+  {{#ifeq searchType "like"}}active{{/ifeq}}" data-mode="draw"> LIKE '...%' </label> </div> </div>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+
+</script>
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-title-view">
+ <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <input type="text" name="{{name}}" value="{{value}}" class="form-control" autocomplete="off" placeholder="{{placeholder}}" {{#if readonly}}disabled="disabled"{{/if}} />
+            <p class="form-text">{{help}}</p>
+         </div>
+    </div>
+
+
+</script>

@@ -1,0 +1,178 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div class="row">
+    <div class="col-4"></div>
+    <div class="mapsvg-toolbar-title col-4">Google Maps</div>
+    <div class="col-4"></div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="card bg-light card-body mb-3" id="mapsvg-can-use-gmap">You can't use Google Maps with an ucalibrated SVG
+      file.
+  </div>
+  <form class=" mapsvg-view-padding">
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Enable</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+              <input type="checkbox" id="googleMapsOn" name="googleMaps[on]"
+                     class="form-check-input" {{#if googleMaps.on}}checked{{/if}} data-live="change">
+          </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Search for a location</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control typeahead" onclick="this.focus();this.select()"
+                     id="mapsvg-gm-address" placeholder="Enter address...">
+              <!-- <span class="input-group-btn">-->
+              <!-- <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>-->
+              <!-- </span>-->
+          </div>
+      </div>
+
+      <div class="form-group row mb-3 ">
+          <label class="col-md-3 col-form-label">Map language</label>
+          <div class="col-md-9">
+              <select class="mapsvg-select2 form-control" name="googleMaps[language]" style="text-transform: capitalize;width:100%;" data-live="change">
+                  <option>Automatic, depending on user's location</option>
+                  {{#each languages}}<option {{#ifeq value ../language}}selected{{/ifeq}} value="{{value}}">{{label}}</option>{{/each}}
+              </select>
+              <p class="form-text">Changes the language of locations shown on Google Map.
+                  Also defines the language of addresses returned from the search. You need to save the map settings
+                  and reload the page to apply this setting.</p>
+          </div>
+      </div>
+
+
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Map type</label>
+          <div class="col-md-9">
+              <div class="btn-group btn-group-toggle" data-toggle="buttons" id="mapsvg-controls-cursor">
+
+                  <input id="roadOption" class="btn-check" type="radio" name="googleMaps[type]" value="roadmap"
+                         {{#ifeq googleMaps.type 'roadmap'}}checked{{/ifeq}}  data-live="change">
+                  <label for="roadOption" class="btn btn-outline-secondary ">
+                      Road</label>
+
+                  <input id="satelliteOption" class="btn-check" type="radio" name="googleMaps[type]" value="satellite"
+                         {{#ifeq googleMaps.type 'satellite'}}checked{{/ifeq}}  data-live="change">
+                  <label for="satelliteOption" class="btn btn-outline-secondary  {{#ifeq googleMaps.type 'satellite'}}active{{/ifeq}}">
+                      Satellite</label>
+
+                  <input id="hybridOption" class="btn-check" type="radio" name="googleMaps[type]" value="hybrid"
+                         {{#ifeq googleMaps.type 'hybrid'}}checked{{/ifeq}}  data-live="change">
+                  <label for="hybridOption" class="btn btn-outline-secondary  {{#ifeq googleMaps.type 'hybrid'}}active{{/ifeq}}">
+                      Hybrid</label>
+
+                  <input id="terrainOption" class="btn-check" type="radio" name="googleMaps[type]" value="terrain"
+                         {{#ifeq googleMaps.type 'terrain'}}checked{{/ifeq}}  data-live="change">
+                  <label for="terrainOption" class="btn btn-outline-secondary  {{#ifeq googleMaps.type 'terrain'}}active{{/ifeq}}">
+                      Terrain</label>
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Map style</label>
+          <div class="col-md-9">
+                <div class="form-check">
+                    <input  id="customOpt1" class="form-check-input" name="googleMaps[style]" type="radio" value="default"
+                            {{#ifeq googleMaps.style 'default'}}checked{{/ifeq}}  data-live="change">
+                  <label for="customOpt1" class="form-check-label">
+                      Default</label>
+              </div>
+                <div class="form-check">
+                    <input  id="customOpt2" class="form-check-input" name="googleMaps[style]" type="radio" value="silver"
+                            {{#ifeq googleMaps.style 'silver'}}checked{{/ifeq}}  data-live="change">
+                  <label for="customOpt2" class="form-check-label">
+                      Silver</label>
+              </div>
+                <div class="form-check">
+                    <input  id="customOpt3" class="form-check-input" name="googleMaps[style]" type="radio" value="retro"
+                            {{#ifeq googleMaps.style 'retro'}}checked{{/ifeq}}  data-live="change">
+                  <label for="customOpt3" class="form-check-label">
+                      Retro</label>
+              </div>
+                <div class="form-check">
+                    <input  id="customOpt4" class="form-check-input" name="googleMaps[style]" type="radio" value="dark"
+                            {{#ifeq googleMaps.style 'dark'}}checked{{/ifeq}}
+                            data-live="change">
+                  <label for="customOpt4" class="form-check-label">
+                     Dark</label>
+              </div>
+                <div class="form-check">
+                    <input  id="customOpt5" class="form-check-input" name="googleMaps[style]" type="radio" value="night"
+                            {{#ifeq googleMaps.style 'night'}}checked{{/ifeq}}  data-live="change">
+                  <label for="customOpt5" class="form-check-label">
+
+                      Night</label>
+              </div>
+                <div class="form-check">
+                    <input  id="customOpt6" class="form-check-input" name="googleMaps[style]" type="radio" value="blue"
+                            {{#ifeq googleMaps.style 'blue'}}checked{{/ifeq}}
+                           data-live="change">
+                  <label for="customOpt6" class="form-check-label">
+                      Blue</label>
+              </div>
+                <div class="form-check">
+                    <input id="customOpt7" class="form-check-input" name="googleMaps[style]" type="radio" value="custom"
+                           {{#ifeq googleMaps.style 'custom'}}checked{{/ifeq}}  data-live="change">
+                  <label for="customOpt7" class="form-check-label">
+                      <b >Custom</b>
+                  </label>
+              </div>
+              <div id="mapsvg-gm-custom-style-extra"
+                   style="{{#ifnoteq googleMaps.style 'custom'}}display: none;{{/ifnoteq}}">
+                  <p id="mapsvg-gm-create-custom-style" class="form-text">Create a custom style at <a
+                          href="https://mapstyle.withgoogle.com" target="_blank">mapstyle.withgoogle.com</a>
+                      or
+                      get a ready style at <a href="https://snazzymaps.com/explore" target="_blank">snazzymaps.com</a>
+                      and
+                      paste the code into the field below:</p>
+                  <textarea rows="7" class="form-control"
+                            id="mapsvg-gm-custom-style-textarea" placeholder="Paste in JSON styles">{{jsonToString
+                          googleMaps.styleJSON}}</textarea>
+                  <p id="mapsvg-gm-invalid-json"
+                     class="form-text" style="display:none;color: #a00;">Invalid JSON</p>
+              </div>
+          </div>
+      </div>
+      <div></div>
+      <!-- <div class="form-group row mb-3">
+
+              <label class="col-md-3 col-form-label">SVG file</label>
+
+              <div class="col-md-9">
+
+                  <button type="button" class="btn btn-outline-secondary" id="mapsvg-google-download">Download</button>
+
+                  <p>
+
+                      Get geo-calibrated SVG file with Google Maps screenshot in the background for your custom artwork.
+
+                      Draw vector shapes on top of Google Maps screenshot in any vector editing software and upload
+
+                      the file back into MapSVG. MapSVG automatically removes Google Maps screenshot from the file and
+
+                      places your artwork on live Google Map by geo-coordinates stored in SVG file.
+
+                  </p>
+
+              </div>
+
+          </div>
+
+          -->
+  </form>
+</script>
+
+<script type="text/x-handlebars-template" data-name="download">
+  <!--<div id="mapsvg-google-map-fullscreen-wrap">-->
+  <!--<div id="mapsvg-google-map-fullscreen"></div>-->
+  <!--<div id="mapsvg-google-map-fullscreen-controls" class="well">-->
+  <!--Zoom-in to desired area and download it as SVG file.<br />-->
+  <!--<a class="btn btn-default" id="mapsvg-gm-download">Download SVG file</a>-->
+  <!--<button class="btn btn-default" id="mapsvg-gm-close">Close</button>-->
+  <!--</div>-->
+  <!--</div>-->
+</script>

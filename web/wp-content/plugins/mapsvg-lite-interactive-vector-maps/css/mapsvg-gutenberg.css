@@ -1,0 +1,203 @@
+@import url("../js/vendor/bootstrap-icons/font/bootstrap-icons.min.css");
+
+.mapsvg-form-builder .btn {
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  /*padding: .375rem .75rem;*/
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.mapsvg-form-builder [type="button"],
+.mapsvg-form-builder [type="reset"],
+.mapsvg-form-builder [type="submit"],
+.mapsvg-form-builder button {
+  -webkit-appearance: button;
+}
+.mapsvg-form-builder button,
+.mapsvg-form-builder select {
+  text-transform: none;
+}
+
+.mapsvg-form-builder .btn-check:active + .btn-outline-secondary,
+.mapsvg-form-builder .btn-check:checked + .btn-outline-secondary,
+.mapsvg-form-builder .btn-outline-secondary.active,
+.mapsvg-form-builder .btn-outline-secondary.dropdown-toggle.show,
+.mapsvg-form-builder .btn-outline-secondary:active {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+.mapsvg-form-builder [type="button"]:not(:disabled),
+.mapsvg-form-builder button:not(:disabled) {
+  cursor: pointer;
+}
+.mapsvg-form-builder .btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+.mapsvg-form-builder img,
+.mapsvg-form-builder svg {
+  vertical-align: middle;
+}
+
+.mapsvg-marker-controls .btn {
+  width: 38px;
+  height: 38px;
+}
+/*.mapsvg-marker-image-btn-trigger {*/
+/*    margin-right: 3px !important;*/
+/*}*/
+
+/* FORM */
+.mapsvg-new-marker-form .mapsvg-marker-image-btn img {
+  max-width: 18px;
+  max-height: 18px;
+}
+
+.mapsvg-new-marker-form .mapsvg-markersByFieldEnabled .mapsvg-marker-image-btn {
+  pointer-events: none;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+#mapsvg-data-form-edit .mapsvg-marker-image-btn img {
+  max-width: 22px;
+  max-height: 22px;
+  object-fit: cover;
+}
+
+.mapsvg-markers-list .btn {
+  margin: 2px;
+}
+
+.mapsvg-markers-list {
+  width: 232px;
+  /*transform: translateX(-10px);*/
+}
+
+.mapsvg-markers-list {
+  border: 0 !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.mapsvg-markers-list .arrow {
+  border-bottom-color: #fff !important;
+}
+.col-form-label {
+  font-size: 14px;
+  font-weight: bold;
+}
+input.typeahead.form-control.tt-input {
+  background-color: #fff !important;
+}
+#mapsvg-filters {
+  padding: 5px;
+}
+.components-panel .tt-input {
+  margin: 0 !important;
+}
+.field-name {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  color: #bbb;
+}
+.hide-names .field-name {
+  display: none;
+}
+.mapsvg-marker-image-selector {
+  padding: 5px;
+  background-color: #fff;
+  margin-top: 5px;
+  padding-bottom: 0;
+}
+
+.mapsvg-marker-image-selector:empty {
+  display: none;
+}
+
+.mapsvg-new-marker {
+  overflow: hidden;
+}
+
+.mapsvg-marker-image-btn {
+  /*.mapsvg-marker-image-selector button {*/
+  margin-right: 5px;
+  margin-bottom: 5px;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+}
+.mapsvg-marker-controls {
+  float: right;
+  width: 35%;
+  /*overflow: hidden;*/
+}
+.mapsvg-region-controls > button,
+.mapsvg-region-controls > div,
+.mapsvg-region-controls > input {
+  float: right;
+  margin: 0 3px;
+}
+.mapsvg-region-names,
+.mapsvg-marker-names,
+.mapsvg-marker-names-expand {
+  float: left;
+  width: 65%;
+}
+
+.mapsvg-marker-names .mapsvg-marker-coords {
+  font-weight: normal;
+}
+
+.mapsvg-region-row.active .mapsvg-region-names div {
+  display: block;
+}
+
+.mapsvg-marker-row.active .mapsvg-marker-names div {
+  display: none;
+}
+.mapsvg-new-marker {
+  margin-top: 10px;
+  width: 100%;
+}
+
+#mapsvg-classic-editor-container {
+  display: flex;
+  flex-direction: row;
+}
+#mapsvg-classic-editor-container #mapsvg {
+  flex-grow: 1;
+}
+#mapsvg-classic-editor-container #mapsvg-filters {
+  width: 400px;
+  margin-left: 10px;
+}
+
+@media screen and (max-width: 782px) {
+  #mapsvg-classic-editor-container {
+    flex-direction: column;
+  }
+  #mapsvg-classic-editor-container #mapsvg-filters {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+}

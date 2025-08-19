@@ -1,0 +1,41 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div id="mapsvg-data-toolbar">
+    <div class="row">
+      <div class="mapsvg-toolbar-buttons col-4">
+        <ul class="nav nav-pills" id="mapsvg-layers-menu">
+          <li role="presentation" class="toggle-tooltip nav-item" title="Settings"><a
+              href="#mapsvg-layers-settings"
+              class="active nav-link"
+            ><i class="bi bi-wrench"></i></a>
+          </li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="List"><a
+              href="#mapsvg-layers-list"
+              class="nav-link"
+            ><i class="bi bi-list-ul"></i></a>
+          </li>
+        </ul>
+      </div>
+      <div class="mapsvg-toolbar-title col-4">Visibility toggles</div>
+      <div class="mapsvg-toolbar-buttons col-4">
+        <button
+          style="margin-right: 5px; display: none;"
+          class="btn toggle-tooltip pull-right"
+          title="Add"
+          id="mapsvg-btn-layer-add"
+        ><i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="tab-content full-flex">
+    <div
+      class="tab-pane full-flex active"
+      id="mapsvg-layers-settings"
+      data-controller="settings"
+    ></div>
+    <div class="tab-pane full-flex" id="mapsvg-layers-list" data-controller="list"></div>
+  </div>
+</script>

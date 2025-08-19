@@ -1,0 +1,15 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-location-geo-view">
+    <div class="form-group mb-3 row mapsvg-new-marker-form">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <input type="hidden" name="{{name}}" value="{{value}}" class="mapsvg-marker-hidden-input" />
+            <input type="text" class="form-control typeahead" autocomplete="off" placeholder="Enter address or lat,lon coordinates"/>
+            <div class="mapsvg-new-marker {{#if markersByFieldEnabled}}mapsvg-markersByFieldEnabled{{/if}}" style="display: none;">
+                {{>dataMarkerPartial}}
+            </div>
+            <div class="mapsvg-marker-image-selector">
+                <div class="mapsvg-marker-images"></div>
+            </div>
+        </div>
+    </div>
+</script>

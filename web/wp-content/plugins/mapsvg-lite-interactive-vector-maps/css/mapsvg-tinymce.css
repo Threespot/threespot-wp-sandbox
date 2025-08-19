@@ -1,0 +1,25 @@
+.mapsvg-insert-shortcode {
+    display: block;
+    margin-bottom: 8px;
+}
+#TB_window {
+    overflow: scroll;
+}
+#TB_ajaxContent {
+    width: 100% !important;
+    min-height: 100% !important;
+    height: auto !important;
+    overflow: hidden !important;
+}
+.mapsvg-add-new-button {
+    display: inline-block;
+    -webkit-transform: translateY(-5px);
+    -moz-transform: translateY(-5px);
+    -ms-transform: translateY(-5px);
+    -o-transform: translateY(-5px);
+    transform: translateY(-5px);
+    margin-left: 3px;
+}
+.mapsvg-maps-list {
+    margin-top: 20px;
+}

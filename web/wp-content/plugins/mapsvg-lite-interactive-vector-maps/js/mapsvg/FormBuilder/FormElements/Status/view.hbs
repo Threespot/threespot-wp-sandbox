@@ -1,0 +1,13 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-status-view">
+  <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control">
+                {{#each options}}
+                    <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                {{/each}}
+            </select>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>

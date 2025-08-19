@@ -86,6 +86,9 @@ header {
 }
 
 main {
+  margin-bottom: 20px;
+  padding-inline: 20px;
+
   @if not $is-admin-stylesheet {
     flex-grow: 1;// [2]
     flex-shrink: 0;// [2]

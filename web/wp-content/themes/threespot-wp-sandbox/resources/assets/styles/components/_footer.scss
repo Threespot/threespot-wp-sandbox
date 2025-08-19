@@ -1,6 +1,12 @@
 //------------------------------------------------------------------------
 // Footer
 //------------------------------------------------------------------------
+
+footer {
+  background: #ddd;
+  min-height: 60px;
+}
+
 .Footer {
   background-color: $bg-offwhite;
   @include fs-scale(padding-top padding-bottom, (375px: 50px, 900px: 100px));

@@ -1,0 +1,73 @@
+{
+  "name": "objects_%MAP_ID%",
+  "type": "mapsvg",
+  "objectNameSingular": "object",
+  "objectNamePlural": "objects",
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true,
+      "auto_increment": true
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "textarea",
+      "db_type": "text",
+      "visible": true,
+      "html": true,
+      "help": "Use plain text or HTML"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "location",
+      "db_type": "text",
+      "visible": true
+    },
+    {
+      "name": "regions",
+      "label": "Regions",
+      "type": "region",
+      "db_type": "text",
+      "visible": true
+    },
+    {
+      "name": "category",
+      "label": "Category",
+      "type": "select",
+      "db_type": "text",
+      "visible": true,
+      "options": [
+        { "label": "First", "value": 1 },
+        { "label": "Second", "value": 2 },
+        { "label": "Third", "value": 3 }
+      ]
+    },
+    {
+      "name": "images",
+      "label": "Images",
+      "type": "image",
+      "db_type": "text",
+      "visible": true
+    },
+    {
+      "name": "link",
+      "label": "Link",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    }
+  ]
+}

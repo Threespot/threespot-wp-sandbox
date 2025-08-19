@@ -1,0 +1,18 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location">
+  <div class="mapsvg-marker-names">
+  {{#if lat}}
+    <div class="mapsvg-marker-geocoords"><a href="#" class="editable" data-field="geoCoords">{{#if
+      lat
+    }}{{lat}}, {{lng}}{{/if}}</a></div>
+  {{else}}
+    <div class="mapsvg-marker-coords">x:
+    {{round x}}, y:
+    {{round y}}</div>
+  {{/if}}
+  </div> <div class="mapsvg-region-controls mapsvg-marker-controls"> <button class="btn
+  btn-outline-secondary btn-sm mapsvg-marker-delete toggle-tooltip" title="Delete"><i class="bi
+  bi-trash"></i> </button> <button class="btn btn-outline-secondary btn-sm
+  mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn toggle-tooltip" data-marker-id="{{id}}"
+  title="Image"><img src="{{src}}" /> </button> </div>
+
+</script>

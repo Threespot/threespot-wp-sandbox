@@ -1,0 +1,83 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div id="mapsvg-data-toolbar">
+    <div class="row">
+      <div class="col-4">
+        <ul class="nav nav-pills" id="mapsvg-regions-menu">
+          <li role="presentation" class="nav-item toggle-tooltip" title="List"><a
+              href="#mapsvg-regions-list"
+              class="active nav-link"
+            ><i class="bi-list-ul"></i></a>
+          </li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="Edit fields"><a
+              id="mapsvg-btn-regions-structure"
+              href="#mapsvg-regions-structure"
+              class="nav-link"
+            ><i class="bi-pencil"></i></a>
+          </li>
+          <li
+            role="presentation"
+            class="nav-item toggle-tooltip"
+            title="Settings"
+            title="Settings"
+          ><a href="#mapsvg-regions-settings" class="nav-link"><i class="bi-wrench"></i></a>
+          </li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="CSV import"><a
+              id="mapsvg-btn-r-csv-import-1"
+              href="#mapsvg-data-r-csv"
+              class="nav-link"
+            ><i class="bi-upload"></i></a>
+          </li>
+        </ul>
+      </div>
+      <div class="mapsvg-toolbar-title col-4">Regions</div>
+      <div class="mapsvg-toolbar-buttons col-4">
+        <table style="width: 100%">
+          <tr>
+            <td>
+              <i class="bi-search" style="color: #ccc;"></i>
+            </td>
+            <td style="padding-right: 5px;">
+              <div style="width: 100%;">
+                <input
+                  id="mapsvg-regions-search"
+                  onclick="this.select();"
+                  type="text"
+                  class="form-control"
+                  placeholder="Search..."
+                  aria-describedby="basic-addon2"
+                  autocomplete="off"
+                />
+              </div>
+            </td>
+            <td style="width: 52px;">
+              <div class="dropdown toggle-tooltip" title="View">
+                <button
+                  class="btn btn-secondary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                ><i class="bi-eye"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right mapsvg-data-cols"></ul>
+              </div>
+            </td>
+
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="full-flex">
+    <div
+      class="tab-pane full-flex active mapsvg-with-pagination"
+      id="mapsvg-regions-list"
+      data-controller="list"
+    ></div>
+    <div class="tab-pane full-flex" id="mapsvg-regions-structure" data-controller="structure"></div>
+    <div class="tab-pane full-flex" id="mapsvg-regions-settings" data-controller="settings"></div>
+    <div class="tab-pane full-flex" id="mapsvg-data-r-csv" data-controller="csv"></div>
+  </div>
+</script>

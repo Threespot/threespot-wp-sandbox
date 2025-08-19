@@ -1,0 +1,29 @@
+{
+  "include": [
+    "js/**/*.ts",
+    "./index.d.ts",
+    "js/vendor/handlebars/handlebars-helpers.js",
+    "js/mapsvg/Core/ClusteringWorker.js"
+  ],
+  "compilerOptions": {
+    "target": "es6",
+    "module": "es2020",
+    "lib": ["es2020", "es2022", "dom", "es6"],
+    "baseUrl": "./", // This must be specified if "paths" is.
+    "paths": {
+      "@/vendor/*": ["./js/mapsvg/vendor/*"],
+      "@/*": ["./js/mapsvg/*"],
+      "js/*": ["./js/*"],
+      "jquery1": ["node_modules/jquery/dist/jquery"] // This mapping is relative to "baseUrl"
+    },
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    //        "rootDir": "./js/mapsvg",
+    "rootDir": "./",
+    //    "outDir": "./dist",
+    "removeComments": true,
+    "sourceMap": true
+  },
+  "esModuleInterop": true,
+  "allowSyntheticDefaultImports": true
+}

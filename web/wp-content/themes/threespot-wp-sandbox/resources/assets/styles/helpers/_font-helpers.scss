@@ -4,6 +4,10 @@
 // sass-lint:disable no-important
 // scss-lint:disable ImportantRule
 //------------------------------------------------------------------------
+.page-header {
+  @include post-title;
+}
+
 .f {
 
   // Scale the body copy font-size relative to the viewport width
@@ -39,5 +43,4 @@
   &-title {
     @include post-title;
   }
-
 } // end f

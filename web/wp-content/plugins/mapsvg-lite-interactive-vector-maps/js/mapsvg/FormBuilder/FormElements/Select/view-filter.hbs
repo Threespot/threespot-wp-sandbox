@@ -1,0 +1,24 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-select-view">
+  <div class="form-group">
+          {{#if label}}
+              <label class="col-sm-3 col-form-label mapsvg-filter-label">{{label}}</label>
+          {{/if}}
+          <div {{#if label}}class="col-sm-9"{{/if}} {{#unless label}}class="col-xs-12"{{/unless}}>
+              <select name="{{parameterNameShort}}" {{#if multiselect}}multiple="multiple"{{/if}} class="form-control" style="width: 100%;" data-parameter-name="{{parameterNameShort}}">
+                    {{#if multiselect}}
+                      {{#each options}}
+                          {{#ifnoteq value ''}}
+                              <option value="{{value}}" {{#ifselected value ../value}}selected{{/ifselected}}>{{label}}</option>
+                          {{/ifnoteq}}
+                      {{/each}}
+                    {{else}}
+                      <option value="" {{#ifeq value ../value}}selected{{/ifeq}}>{{placeholder}}</option>
+                      {{#each options}}
+                          <option value="{{value}}" {{#ifeq value ../value}}selected{{/ifeq}}>{{label}}</option>
+                      {{/each}}
+                    {{/if}}
+              </select>
+              <p class="form-text">{{help}}</p>
+          </div>
+      </div>
+</script>

@@ -1,0 +1,106 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-distance-control">
+  <div class="form-group mb-3 ">
+       <label class="form-label">Label</label>
+       <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+       <p class="form-text">
+           Label can be empty
+       </p>
+   </div>
+   <div class="form-group mb-3">
+       <label class="form-label">What field to filter by</label>
+       <input type="text" class="form-control" value="Location" disabled="disabled"/>
+   </div>
+
+   <div class="form-group mb-3">
+       <label class="form-label">Search field placeholder</label>
+       <div>
+           <input type="text" class="form-control" name="addressFieldPlaceholder"  value="{{addressFieldPlaceholder}}" />
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">User location button</label>
+       <div class="form-switch form-switch-md">
+
+           <input type="checkbox" class="form-check-input" name="userLocationButton"  {{#if userLocationButton}}checked{{/if}} />
+       </div>
+           <p class="form-text">
+               Click on the button searches for nearby locations within given radius.
+               This feature users browser's built-in HTML5 geolocation feature that works only under HTTPS connection.
+           </p>
+       </div>
+
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Search by ZIP/postcode only</label>
+       <div>
+           {{premiumFeatureAlert}}
+           <p class="form-text">
+               Enable this if you don't want autosuggestion drop-down with the list of addresses to appear when user is typing in the search field.
+           </p>
+       </div>
+   </div>
+
+    
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Limit search results by country</label>
+       {{premiumFeatureAlert}}
+   </div>
+
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Distance units</label>
+       <div>
+           <div class="btn-group" data-toggle="buttons">
+
+               <input id="mapsvg-filters-km" class="btn-check" type="radio" name="distanceUnits" value="km" {{#ifeq distanceUnits 'km'}}checked{{/ifeq}} data-live="change"/>
+               <label for="mapsvg-filters-km" class="btn btn-outline-secondary ">
+                      kilometers
+               </label>
+               <input id="mapsvg-filters-miles"class="btn-check" type="radio" name="distanceUnits" value="mi" {{#ifeq distanceUnits 'mi'}}checked{{/ifeq}} data-live="change"/>
+               <label for="mapsvg-filters-miles" class="btn btn-outline-secondary ">
+
+                   miles
+               </label>
+           </div>
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <label class="form-label">Distance units label</label>
+       <div>
+           <input type="text" class="form-control" name="distanceUnitsLabel"  value="{{distanceUnitsLabel}}" />
+       </div>
+   </div>
+
+   <div class="form-group mb-3">
+       <div class="form-group mb-3 ">
+           <label class="form-label">Distances list</label>
+           <table class="table table-condensed">
+               <thead>
+               <tr>
+                   <th style="width: 25%;">Distance</th>
+                   <th>Default</th>
+               </tr>
+               </thead>
+               <tbody>
+               {{#each options}}
+                   <tr class="mapsvg-edit-distance-row">
+                       <td>
+                           <input type="text" autocomplete="off" data-param="value" data-array="true" name="options" class="form-control" value="{{value}}" />
+                       </td>
+                       <td>
+                           <input type="radio" data-param="default" data-array="true" class="form-check-input mapsvg-distance-default"  name="options_default" {{#if default}}checked{{/if}} />
+                       </td>
+                   </tr>
+               {{/each}}
+               </tbody>
+           </table>
+       </div>
+   </div>
+
+   <div class="form-group mb-3 ">
+       <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+   </div>
+</script>

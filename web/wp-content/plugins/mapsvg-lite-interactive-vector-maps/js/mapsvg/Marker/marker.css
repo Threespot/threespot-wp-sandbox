@@ -1,0 +1,88 @@
+.mapsvg-marker {
+  -webkit-transition: transform 0.4s;
+  -moz-transition: transform 0.4s;
+  -ms-transition: transform 0.4s;
+  -o-transition: transform 0.4s;
+  transition: transform 0.4s;
+}
+.no-transitions-markers .mapsvg-marker,
+.no-transitions-markers .mapsvg-marker-cluster {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+.no-transitions-labels .mapsvg-region-label,
+.no-transitions-labels .mapsvg-marker-label {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+.no-transitions-bubbles .mapsvg-region-bubble,
+.no-transitions-bubbles .mapsvg-marker-bubble {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+.mapsvg-marker {
+  cursor: pointer;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  max-width: none !important;
+}
+/* prevent clicks on objects inside of the marker container */
+.mapsvg-marker * {
+  pointer-events: none;
+}
+
+.mapsvg-marker-hidden {
+  /*opacity: 0.4;*/
+  display: none !important;
+  pointer-events: none;
+}
+/*.mapsvg-clusters-hidden .mapsvg-marker-cluster {*/
+/*display: none;*/
+/*}*/
+.mapsvg-marker-edit-mode .mapsvg-marker {
+  opacity: 1;
+}
+.mapsvg-marker-edit-mode .mapsvg-marker-cluster {
+  display: none;
+}
+.mapsvg-marker-visible {
+  display: block !important;
+}
+.mapsvg-marker-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-top: 3px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: "Helvetica", sans-serif;
+}
+
+.mapsvg-marker-label {
+  -webkit-transition: transform 0.4s;
+  -moz-transition: transform 0.4s;
+  -ms-transition: transform 0.4s;
+  -o-transition: transform 0.4s;
+  transition: transform 0.4s;
+}
+.mapsvg-user-location {
+  pointer-events: none;
+}
+.mapsvg-out-of-sight {
+  display: none !important;
+}
+
+.mapsvg-marker-label:empty {
+  display: none;
+}

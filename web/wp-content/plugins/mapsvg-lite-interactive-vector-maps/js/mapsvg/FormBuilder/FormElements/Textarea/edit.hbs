@@ -1,0 +1,25 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-textarea-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Help</label> <textarea class="form-control"
+  name="help">{{help}}</textarea> </div> <div class="form-group mb-3"> <label
+  class="form-label">HTML highlight</label> <div style="margin-bottom: 10px;" class="form-switch
+  form-switch-md"> <input type="checkbox" class="form-check-input" name="html"
+  {{#if html}}checked{{/if}}
+  /> </div> <p class="form-text"> If you need to output contents of textarea as HTML in a template,
+  use 3 curly braces instead of 2: <b>\{{{your_field_name}}}</b> </p> </div> <div class="form-group
+  mb-3 "> <label class="col-form-label">Searchable</label> <div class="form-switch form-switch-md">
+  <input type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Choose if you want to perform a text search on this field. Please
+  note that when you turn it on, MySQL fulltext index is added for this field, and too many indexes
+  may slow down MySQL. Don't make all fields searchable without the real need.</p> </div> <!--<div
+  class="form-group mb-3 row">--> <!--<label class="form-label">Auto Line breaks</label>-->
+  <!--<input type="checkbox" class="mapsvg-onoff" name="autobr"
+  {{#if autobr}}checked{{/if}}
+  />--> <!--<p class="form-text">--> <!--Automatically convert line breaks to &lt;br /&gt; HTML
+  tag--> <!--</p>--> <!--</div>--> <div class="form-group mb-3 "> <button class="btn
+  btn-outline-secondary mapsvg-remove"><i class="bi bi-trash"></i> Remove</button> </div>
+</script>

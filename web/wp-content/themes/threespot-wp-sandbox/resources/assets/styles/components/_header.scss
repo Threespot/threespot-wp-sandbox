@@ -1,6 +1,23 @@
 //------------------------------------------------------------------------
 // Header
 //------------------------------------------------------------------------
+
+header {
+  background: #ddd;
+  margin-bottom: 40px;
+  padding: 20px;
+}
+
+.nav {
+  display: flex;
+  flex-flow: row wrap;
+
+  li {
+    margin-bottom: 10px;
+    margin-right: 10px;
+  }
+}
+
 .Header {
   $selector: &;
   position: relative;

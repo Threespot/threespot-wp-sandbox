@@ -1,0 +1,36 @@
+{
+  "name": "schema",
+  "objectNameSingular": "schema",
+  "objectNamePlural": "schemas",
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "name",
+      "label": "Name",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "fields",
+      "label": "Fields",
+      "type": "text",
+      "db_type": "longtext",
+      "visible": true
+    }
+  ]
+}

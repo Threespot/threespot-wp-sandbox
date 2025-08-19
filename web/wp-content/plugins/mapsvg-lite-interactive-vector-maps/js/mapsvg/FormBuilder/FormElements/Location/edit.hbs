@@ -1,0 +1,54 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-location-control">
+
+
+  <div class="form-group mb-3 ">
+      <label class="form-label">Label</label>
+      <input type="text" class="form-control" name="label" value="{{label}}" autocomplete="off" />
+  </div>
+  <div class="form-group mb-3 ">
+      <label class="form-label">Name</label>
+      <input type="text"  disabled="disabled" class="form-control" name="name" value="location" autocomplete="off" />
+  </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">Markers</label>
+
+      <div class="mapsvg-marker-image-selector">
+          <div class="mapsvg-marker-images"></div>
+          {{premiumFeatureAlert "Upload a custom marker image"}}
+      </div>
+      <p class="form-text">Click on an image to set it as a default marker</p>
+
+      <!--<div class="mapsvg-marker-files">-->
+          <!---->
+              <!--<div class="mapsvg-marker-file">-->
+                  <!---->
+              <!--</div>-->
+      <!--</div>-->
+
+  </div>
+
+
+  <div class="form-group mb-3">
+      <label class="form-label">Markers by field value</label>
+      {{premiumFeatureAlert "Set marker image by field value"}}
+
+
+      <table class="" id="markers-by-field" style="margin-top: 20px;">
+      </table>
+  </div>
+
+  <div class="form-group mb-3 ">
+      <label class="col-form-label">Searchable</label>
+      <div class="form-switch form-switch-md">
+          <input type="checkbox" class="form-check-input" name="searchable"  {{#if searchable}}checked{{/if}} />
+      </div>
+      <p class="form-text">Choose if you want to perform a text search on this field. Please note that
+          when you turn it on, MySQL fulltext index is added for this field, and too many indexes may slow down MySQL.
+          Don't make all fields searchable without the real need.</p>
+
+  </div>
+  <div class="form-group mb-3 ">
+      <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+  </div>
+</script>

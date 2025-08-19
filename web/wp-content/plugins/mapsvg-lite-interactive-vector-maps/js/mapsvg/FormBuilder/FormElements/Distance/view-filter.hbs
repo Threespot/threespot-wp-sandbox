@@ -1,0 +1,63 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-distance-view">
+  <div class="form-group">
+
+      {{#if label}}
+          <label class="col-form-label mapsvg-filter-label">{{label}}</label>
+      {{/if}}
+
+      <div class="mapsvg-distance-fields">
+
+
+          <div class="mapsvg-distance-field-1">
+              <input type="hidden" data-parameter-name="distanceLatLng" name="distanceGeoPoint" value="{{value.geoPoint}}"/>
+              <input type="hidden" name="distanceUnits" value="{{units}}"/>
+              <div class="distance-search-wrap {{#if userLocationButton}}with-user-location-button{{/if}}">
+                  <input type="text" class="form-control mapsvg-address-search typeahead" value="{{value.address}}" name="distance" placeholder="{{addressFieldPlaceholder}}" autocomplete="off" {{#if searchByZip}}maxlength="{{zipLength}}"{{/if}}/>
+                  {{#if userLocationButton}}
+                      <svg class="user-location-button" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 447.342 447.342" style="enable-background:new 0 0 447.342 447.342;" xml:space="preserve"><path d="M443.537,3.805c-3.84-3.84-9.686-4.893-14.625-2.613L7.553,195.239c-4.827,2.215-7.807,7.153-7.535,12.459 c0.254,5.305,3.727,9.908,8.762,11.63l129.476,44.289c21.349,7.314,38.125,24.089,45.438,45.438l44.321,129.509 c1.72,5.018,6.325,8.491,11.63,8.762c5.306,0.271,10.244-2.725,12.458-7.535L446.15,18.429 C448.428,13.491,447.377,7.644,443.537,3.805z"/></svg>
+                  {{/if}}
+              </div>
+          </div>
+
+
+          <div class="mapsvg-distance-field-2">
+              {{#switch distanceControl}}
+                  {{#case "none"}}{{distanceDefault}}{{/case}}
+                  {{#case "select" break=true}}
+                      <select style="width: 100%;" class="select2" name="distanceLength" data-parameter-name="distanceLength">
+                          <!--<option value="" {{#ifeq value ../value}}selected{{/ifeq}}>{{placeholder}}</option>-->
+                          {{#each options}}
+                              <option value="{{value}}" {{#if default}}selected{{/if}}>+{{value}}{{../distanceUnitsLabel}}</option>
+                          {{/each}}
+                      </select>
+                  {{/case}}
+                  {{#case "text" break=true}}
+                      <input type="text" name="distanceLength" class="form-control" placeholder="{{placeholder}}" style="width: 100px;" />
+                  {{/case}}
+                  {{#default}}{{/default}}
+              {{/switch}}
+          </div>
+
+
+
+          <!--<div class="input-group">-->
+          <!--<span class="input-group-btn">-->
+          <!--<button class="btn btn-outline-secondary " type="button">Go!</button>-->
+          <!--</span>-->
+          <!--<input type="text" class="form-control" placeholder="Search for...">-->
+          <!--</div>&lt;!&ndash; /input-group &ndash;&gt;-->
+          <!--<div style="width: 200px; display: inline-block; vertical-align: middle;">-->
+          <!--<div class="input-group">-->
+          <!--<div class="" style="position: relative;">-->
+          <!--<span style="">From</span>-->
+          <!--</div>-->
+          <!--<span class="input-group-btn">-->
+          <!--<button class="btn btn-outline-secondary "><svg style="vertical-align: middle;" width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1593 349l-640 1280q-17 35-57 35-5 0-15-2-22-5-35.5-22.5t-13.5-39.5v-576h-576q-22 0-39.5-13.5t-22.5-35.5 4-42 29-30l1280-640q13-7 29-7 27 0 45 19 15 14 18.5 34.5t-6.5 39.5z"/></svg></button>-->
+          <!--</span>-->
+          <!--</div>-->
+          <!--</div>-->
+
+          <p class="form-text">{{help}}</p>
+      </div>
+  </div>
+</script>

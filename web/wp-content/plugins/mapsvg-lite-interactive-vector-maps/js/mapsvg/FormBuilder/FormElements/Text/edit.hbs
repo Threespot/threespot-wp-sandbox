@@ -1,0 +1,29 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-text-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  class="form-control" name="name" value="{{name}}" autocomplete="off"
+  {{#unless renamable}}disabled{{/unless}}
+  /> </div> <div class="form-group mb-3 "> <label class="form-label">Help</label> <textarea
+  class="form-control" name="help">{{help}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="col-form-label">Searchable</label> <div class="form-switch form-switch-md"> <input
+  type="checkbox" class="form-check-input" name="searchable"
+  {{#if searchable}}checked{{/if}}
+  /> </div> <p class="form-text">Enable this option if you want to include this field in the text
+  search.</p> </div> <div class="form-group mb-3 "> <label class="col-form-label">Search
+  type</label> <div> <div class="btn-group" data-toggle="buttons" id="mapsvg-map-mode-2"> <input
+  id="mapsvg-map-mode-2-fulltext" type="radio" class="btn-check" name="searchType" value="fulltext"
+  autocomplete="off"
+  {{#ifeq searchType "fulltext"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-fulltext"
+  class="btn btn-outline-secondary" data-mode="preview"> Fulltext </label> <input
+  id="mapsvg-map-mode-2-exactMatch" type="radio" class="btn-check" name="searchType" value="exact"
+  autocomplete="off"
+  {{#ifeq searchType "exact"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-exactMatch" class="btn
+  btn-outline-secondary" data-mode="draw"> Exact match = </label> <input id="mapsvg-map-mode-2-like"
+  type="radio" class="btn-check" name="searchType" value="like" autocomplete="off"
+  {{#ifeq searchType "like"}}checked{{/ifeq}}> <label for="mapsvg-map-mode-2-like" class="btn
+  btn-outline-secondary" data-mode="draw"> LIKE '...%' </label> </div> </div> </div> <div
+  class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i class="bi
+  bi-trash"></i> Remove</button> </div>
+
+</script>

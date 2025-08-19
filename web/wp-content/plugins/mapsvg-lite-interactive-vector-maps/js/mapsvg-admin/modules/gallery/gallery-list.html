@@ -1,0 +1,40 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="mapsvg-view-padding">{{{premiumFeatureAlert}}}</div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-gallery-row-{{params.id}}" data-id="{{params.id}}" class="mapsvg-data-row">
+    <td>
+      <span>
+        {{#ifeq params.type "slider"}}Slider{{/ifeq}}
+        {{#ifeq params.type "original"}}Original thumbs{{/ifeq}}
+        {{#ifeq params.type "justified"}}Justified thumbs{{/ifeq}}
+        {{#ifeq params.type "multi"}}Square thumbs{{/ifeq}}
+        {{#ifeq params.type "combo"}}Large + thumbs{{/ifeq}}
+        {{#ifeq params.type "single"}}Single image{{/ifeq}}
+      </span>
+    </td>
+    <td>
+      <span style="color: #777;padding-right: 4px;">\{{mapsvg_gallery
+        {{map_id}}.{{params.id}}
+        <em style="color: #cc5555;">image_field_name</em>}}
+      </span>
+      <button
+        data-shortcode="\{{mapsvg_gallery {{map_id}}.{{params.id}} image_field_name}}"
+        class="mapsvg-copy-shortcode btn btn-xs btn-link toggle-tooltip"
+        data-placement="top"
+        title="Copy&nbsp;to&nbsp;clipboard"
+        style="transform: translate(-3px,-1px);"
+      ><i class="bi bi-copy"></i></button>
+
+    </td>
+    <td>
+      <a
+        class="btn btn-sm btn-outline-secondary mapsvg-gallery-delete toggle-tooltip"
+        title="Delete"
+      >
+        <i class="bi bi-trash"></i>
+      </a>
+    </td>
+  </tr>
+</script>

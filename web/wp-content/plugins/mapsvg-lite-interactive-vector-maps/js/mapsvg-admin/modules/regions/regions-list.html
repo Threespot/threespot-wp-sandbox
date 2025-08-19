@@ -1,0 +1,62 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <!--<div class="table-responsive">-->
+  <table class="table mapsvg-data-list-table table-borderless"   id="mapsvg-regions-list-table">
+      <thead>
+      <tr>{{#each fields}}
+          <th>{{name}}</th>{{/each}}
+          <th style="width: 40px;"></th>
+      </tr>
+      </thead>
+      <tbody>{{#each data}} {{>regionsListItemPartial fields=../fields region=this}}
+      {{/each}}</tbody>
+  </table>
+  <!--</div>-->
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-region-{{spacesToUnderscores id}}" data-region-id="{{id}}"
+      class="mapsvg-data-row">{{#each fields}}
+      {{#switch type}}
+      {{#case "id" break=true}}
+        <td>{{lookup ../region "id"}}</td>
+      {{/case}}
+      {{#case "image" break=true}}
+        <td>{{getThumbs ../region name}}</td>
+      {{/case}}
+      {{#case "location" break=true}}
+        <td style="max-width: 170px;">{{getMarkerImage ../region name}}</td>{{/case}}
+        {{#case "text" break=true}}
+      <td>{{lookup ../region name}}</td>{{/case}} {{#case "textarea" break=true}}
+      <td>{{lookup ../region name}}</td>{{/case}} {{#case "status" break=true}}
+      <td
+              class="mapsvg-status">
+          <div class="dropdown">
+              <button type="button" id="m-drop-rstat-{{lookup ../region id}}"
+                      class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="mapsvg-status-text">{{getStatusText options ../region name}}</span>
+                  <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="m-drop-rstat-{{lookup ../region id}}">{{#each options}}
+                  <li class="dropdown-item"><a href="#" data-set-status="{{value}}">{{label}}</a>
+                  </li>{{/each}}</ul>
+          </div>
+      </td>{{/case}}
+      {{#case "checkbox" break=true}}
+      <td>{{lookup ../region name}}</td>{{/case}}
+      {{#case "post" break=true}}
+          <td>{{getPostTitle ../region name}}</td>{{/case}}
+      {{#case "select" break=true}}
+      <td>{{#ifjson ../region name}} {{getSelectedOptions ../region name}} {{/ifjson}}
+          {{#ifnotjson ../region name}} {{getLabel options ../region name}} {{/ifnotjson}}</td>{{/case}}
+      {{#case "radio" break=true}}
+          <td>{{#ifjson ../region name}} {{getSelectedOptions ../region name}} {{/ifjson}}
+              {{#ifnotjson ../region name}} {{getLabel options ../region name}} {{/ifnotjson}}</td>{{/case}}
+      {{#default break=true}}
+          <td>{{lookup ../region name}}</td>{{/default}} {{/switch}} {{/each}}
+      <td>
+          <div class="btn btn-outline-secondary btn-sm region-cpicker toggle-tooltip"
+                  title="Color" style="background: {{fill}}"><i class="bi bi-palette"></i>
+          </div>
+      </td>
+  </tr>
+</script>

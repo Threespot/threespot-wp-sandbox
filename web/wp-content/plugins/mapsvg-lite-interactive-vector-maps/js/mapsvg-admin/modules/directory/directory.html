@@ -1,0 +1,349 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div>
+    <div class="col-xs-4">
+    </div>
+    <div class="mapsvg-toolbar-title col-xs-4">
+      Directory
+    </div>
+    <div class="col-xs-4">
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+
+  <form class=" mapsvg-view-padding">
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Directory</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" class="form-check-input" disabled="disabled">
+              </div>
+              {{{premiumFeatureAlert}}}
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Templates</label>
+          <div class="col-md-9"><a href="#" class="mapsvg-template-link" data-template="directoryItem">Directory item
+              template</a>
+              <br>CSS class: <a href="#tab_css" class="mapsvg-tab-link">.mapsvg-directory-item</a>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Data source</label>
+          <div class="col-md-9">
+              <div class="btn-group btn-group-toggle" data-toggle="buttons" id="mapsvg-directory-data-source">
+
+                  <input id="regionOption" class="btn-check" type="radio" name="menu[source]" value="regions"
+                         {{#ifeq  menu.source 'regions'}}checked{{/ifeq}}
+                         data-live="change">
+                  <label for="regionOption" class="btn btn-outline-secondary ">
+
+                      Regions</label>
+                  <input id="dbOption" class="btn-check" type="radio" name="menu[source]" value="database"
+                         {{#ifeq  menu.source
+                                  'database'}}checked{{/ifeq}}
+                         data-live="change">
+                  <label for="dbOption" class="btn btn-outline-secondary">
+                      Database</label>
+              </div>
+              <p class="form-text"><em><span id="mapsvg-dir-object-2">Database Object</span></em> is passed
+                  to the template.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Location</label>
+          <div class="col-md-9">
+              <!--<div class="form-check">-->
+              <!--<label>-->
+              <!--<input type="radio" name="menu[location]" value="mapContainer" {{#ifeq
+                      menu.location 'map'}}checked{{/ifeq}} data-live="change"/>-->
+              <!--Map container-->
+              <!--</label>-->
+              <!--</div>-->
+              <div class="form-check">
+
+                  <input id="opt1" class="form-check-input" type="radio" name="menu[location]" value="leftSidebar"
+                         {{#ifeq
+                                 menu.location  'leftSidebar'}}checked{{/ifeq}}  data-live="change">
+                  <label for="opt1" class="form-check-label">
+                      Left sidebar</label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="menu[location]" value="rightSidebar" {{#ifeq
+                          menu.location  'rightSidebar'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Right
+                      sidebar</label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="menu[location]" value="header"
+                         {{#ifeq  menu.location
+                                  'header'}}checked{{/ifeq}}
+                         data-live="change">
+                  <label class="form-check-label">
+                      Header</label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="menu[location]" value="footer"
+                         {{#ifeq  menu.location
+                                  'footer'}}checked{{/ifeq}}
+                         data-live="change">
+                  <label class="form-check-label">
+                      Footer</label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="menu[location]" value="custom"
+                         {{#ifeq  menu.location
+                                  'custom'}}checked{{/ifeq}}
+                         data-live="change">
+                  <label class="form-check-label">
+                      Custom container</label>
+              </div>
+              <p class="form-text">Manage containers in the <a href="#tab_settings"
+                                                               class="mapsvg-tab-link">Settings</a> tab.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3" id="mapsvg-directory-container-id">
+          <label class="col-md-3 col-form-label">Custom container ID</label>
+          <div class="col-md-9">
+              <div class="input-group">
+                  <div class="input-group-prepend"><span class="input-group-text">#</span></div>
+                  <input class="form-control" name="menu[containerId]" value="{{menu.containerId}}"
+                         data-live="keyup">
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Sort by</label>
+          <div class="col-md-9">
+              <select id="mapsvg-directory-sort-control" class="form-control" name="menu[sortBy]"
+                      data-live="change"></select>
+          </div>
+      </div>
+      <!--<div class="form-group row mb-3">-->
+      <!--<label class="col-md-3 col-form-label">Sort method</label>-->
+      <!--<div class="col-md-9">-->
+      <!--<div class="btn-group" data-toggle="buttons" id="mapsvg-directory-data-source">-->
+      <!--<label class="btn btn-outline-secondary {{#ifeq menu.sortMethod 'alphabetical'}}active{{/ifeq}}">-->
+      <!--<input type="radio" name="menu[sortMethod]" value="alphabetical" {{#ifeq
+              menu.sortMethod 'alphabetical'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Alphabetical-->
+      <!--</label>-->
+      <!--<label class="btn btn-outline-secondary {{#ifeq menu.sortMethod 'numeric'}}active{{/ifeq}}">-->
+      <!--<input type="radio" name="menu[sortMethod]" value="numeric" {{#ifeq
+              menu.sortMethod 'numeric'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Numeric-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--</div>-->
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Sort direction</label>
+          <div class="col-md-9">
+              <div class="btn-group btn-group-toggle" data-toggle="buttons" id="mapsvg-directory-data-source">
+                  <input id="ascOption" class="btn-check" type="radio" name="menu[sortDirection]" value="asc"
+                         {{#ifeq menu.sortDirection  'asc'}}checked{{/ifeq}}  data-live="change">
+                  <label for="ascOption" class="btn btn-outline-secondary ">
+                      A ... Z</label>
+
+                  <input id="descOption" class="btn-check" type="radio" name="menu[sortDirection]" value="desc"
+                         {{#ifeq menu.sortDirection  'desc'}}checked{{/ifeq}}  data-live="change">
+                  <label for="descOption" class="btn btn-outline-secondary ">
+                      Z ... A</label>
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3" id="mapsvg-directory-filterout">
+          <label class="col-md-3 col-form-label">Filter out</label>
+          <div class="col-md-9">
+              <div class="row">
+                  <div class="col-6">
+                      <select id="mapsvg-directory-filter-control" class="form-control" name="menu[filterout][field]"
+                              data-live="change"></select>
+                  </div>
+                  <div id="mapsvg-filterout-extra" style="display: none">
+                      <div class="col-1" style="text-align: center;line-height: 34px;">=</div>
+                      <div class="col-5">
+                          <input id="mapsvg-directory-filter-value-control" type="text" class="form-control"
+                                 value="{{menu.filterout.val}}" name="menu[filterout][val]" data-live="keyup">
+                      </div>
+                  </div>
+              </div>
+              <p class="form-text">Objects matching the criteria will be excluded from the directory.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">"No results found" text</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control" autocomplete="off" name="menu[noResultsText]"
+                     value="{{menu.noResultsText}}" data-live="keyup">
+          </div>
+      </div>
+      <legend>Categories</legend>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Categories</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" name="menu[categories][on]" class="form-check-input"
+                         {{#if  menu.categories.on}}checked{{/if}}  data-live="change">
+              </div>
+                  <p class="form-text">Recommended to use only with disabled pagination</p>
+
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Group by</label>
+          <div class="col-md-9">
+              <select id="mapsvg-directory-group-control" class="form-control" name="menu[categories][groupBy]"
+                      data-live="change">
+                  <option>id</option>
+              </select>
+              <p class="form-text">Only the following field types are available: select / radio / status
+                  / regions</p>
+          </div>
+      </div>
+      <!-- <div class="form-group row mb-3">-->
+      <!-- <label class="col-md-3 col-form-label">Category counters</label>-->
+      <!-- <div class="col-md-9">-->
+      <!-- <input type="checkbox" name="menu[categories][counters]" class="form-check-input"
+  {{#if menu.categories.counters}}checked{{/if}} data-live="change"/>-->
+      <!-- </div>-->
+      <!-- </div>-->
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Collapse categories on start</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" name="menu[categories][collapse]" class="form-check-input"
+                         {{#if  menu.categories.collapse}}checked{{/if}}  data-live="change">
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Expand active category, collapse showactive</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" name="menu[categories][collapseOther]" class="form-check-input"
+                         {{#if  menu.categories.collapseOther}}checked{{/if}}  data-live="change">
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Hide empty categories</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" name="menu[categories][hideEmpty]" class="form-check-input"
+                         {{#if  menu.categories.hideEmpty}}checked{{/if}}  data-live="change">
+              </div>
+          </div>
+      </div>
+      <legend>Mobile devices</legend>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Hide on mobile devices</label>
+          <div class="col-md-9">
+              <div class=" form-switch form-switch-md">
+                  <input type="checkbox" name="menu[hideOnMobile]" class="form-check-input"
+                         {{#if  menu.hideOnMobile}}checked{{/if}}  data-live="change">
+              </div>
+                  <p class="form-text">When enabled, "map"/"list" buttons are added below
+                      the map to switch the view between the map and directory.</p>
+
+          </div>
+      </div>
+      <!--<div class="form-group row mb-3">-->
+      <!--<label class="col-md-3 col-form-label">Location on mobile devices</label>-->
+      <!--<div class="col-md-9">-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="menu[locationMobile]" value="leftSidebar"
+  {{#ifeq menu.location 'leftSidebar'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Left sidebar-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="menu[locationMobile]" value="rightSidebar"
+  {{#ifeq menu.location 'rightSidebar'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Right sidebar-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="menu[locationMobile]" value="header" {{#ifeq
+              menu.location 'header'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Header-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="menu[locationMobile]" value="footer" {{#ifeq
+              menu.location 'footer'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Footer-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="menu[locationMobile]" value="custom" {{#ifeq
+              menu.location 'custom'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Custom container-->
+      <!--</label>-->
+      <!--</div>-->
+      <!--<p class="form-text">-->
+      <!--If you choose to not hide the directory on mobile devices then you
+      may want to change the Directory location from a sidebar to header of footer.-->
+      <!--</p>-->
+      <!--<p class="form-text">-->
+      <!--Manage containers in the <a href="#tab_settings" class="mapsvg-tab-link">Settings</a> tab.-->
+      <!--</p>-->
+      <!--</div>-->
+      <!--</div>-->
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Mobile: show first</label>
+          <div class="col-md-9">
+              <div class="btn-group">
+
+                  <input id="mapsvg-directory-radio-map" class="btn-check" type="radio" name="menu[showFirst]"
+                         value="map"
+                         data-live="change"  {{#ifeq menu.showFirst "map"}}checked{{/ifeq}}>
+                  <label for="mapsvg-directory-radio-map" class="btn btn-outline-secondary ">Map</label>
+
+                  <input id="dirOption" class="btn-check" type="radio" name="menu[showFirst]" value="directory"
+                         data-live="change"  {{#ifeq menu.showFirst "directory"}}checked{{/ifeq}}>
+                  <label for="dirOption" class="btn btn-outline-secondary">Directory</label>
+
+              </div>
+              <p class="form-text">If you choose to hide the directory on mobile devices - "map"/"list"
+                  buttons are added below the map that swtich the view between the map and
+                  directory. Choose what should be shown first.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Mobile: directory min-height</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control" value="{{menu.minHeight}}" name="menu[minHeight]"
+                     data-live="keyup">
+              <p class="form-text">Works only when directory is hidden on mobile devices. Enter value in
+                  pixels (example: 400)</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3  ">
+          <label class="col-md-3 col-form-label">Mobile: switch to map view on click on a directory item</label>
+          <div class="col-md-9">
+              <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <input id="onOption" class="btn-check" type="radio" name="menu[showMapOnClick]" value="1" {{#if
+                          menu.showMapOnClick}}checked {{/if}}  data-live="change">
+                  <label for="onOption" class="btn btn-outline-secondary ">
+                      On</label>
+                  <input id="offOption" class="btn-check" type="radio" name="menu[showMapOnClick]" value="0" {{#unless
+                          menu.showMapOnClick}}checked{{/unless}}  data-live="change">
+                  <label for="offOption" class="btn btn-outline-secondary ">
+                      Off</label>
+              </div>
+          </div>
+      </div>
+
+
+      </div>
+
+  </form>
+</script>

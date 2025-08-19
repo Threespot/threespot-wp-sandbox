@@ -1,0 +1,123 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="mapsvg-view-padding">{{{premiumFeatureAlert}}}</div>
+  <form class="mapsvg-view-padding">
+    <div class="form-group row mb-3">
+      <label class="col-md-3 col-form-label">File</label>
+      <div class="col-md-9">
+        <input id="mapsvg-r-csv-file" class="form-control" type="file" />
+      </div>
+    </div>
+    <div class="form-group row mb-3">
+      <label class="col-md-3 col-form-label"></label>
+      <div class="col-md-9">
+        <button 
+                data-loading-text="Uploading..." 
+                class="btn btn-outline-secondary" 
+                id="mapsvg-btn-r-csv-upload"                
+                disabled="disabled"
+                >Upload
+                </button>
+      </div>
+    </div>
+  </form>
+  <div class="mapsvg-view-padding">
+    <h3>Instructions</h3>
+    Before importing the CSV file create all fields in
+    <code>MapSVG > Database > Edit fields</code>
+    editor. First line of the CSV file must contain field names.
+    <h3>CSV formatting</h3>
+    <table style="width: 100%;" class="table">
+      <thead>
+        <tr>
+          <th>MapSVG field type</th>
+          <th>How to import from CSV</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- SELECT / RADIO -->
+        <tr>
+          <td style="width: 150px;"><code>Select, Radio</code>
+          </td>
+          <td>Import as "value" numbers or text "labels". Whatever works for you. Example: if you
+            have an "area" select field with the following options in MapSVG:
+            <pre><code>North:1 South:2 East:3 West:4</code></pre>
+            These would be correct CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>area</th>
+              </tr>
+              <tr>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>East</td>
+              </tr>
+              <tr>
+                <td>West</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>area</th>
+              </tr>
+              <tr>
+                <td>South-West</td>
+              </tr>
+              <tr>
+                <td>64</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+        <!-- CHECKBOX -->
+        <tr>
+          <td style="width: 150px;"><code>Checkbox</code>
+          </td>
+          <td>Import as 1/0 or true/false.
+            <br />
+            <br />Correct CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>my_checkbox_field</th>
+              </tr>
+              <tr>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>true</td>
+              </tr>
+              <tr>
+                <td>false</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>my_checkbox_field</th>
+              </tr>
+              <tr>
+                <td>yes</td>
+              </tr>
+              <tr>
+                <td>no</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</script>

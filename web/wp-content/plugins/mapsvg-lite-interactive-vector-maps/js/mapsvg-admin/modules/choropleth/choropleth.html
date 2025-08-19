@@ -1,0 +1,478 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+    <div class="row">
+        <div class="col-4"></div>
+        <div class="mapsvg-toolbar-title col-4">Choropleth map</div>
+        <div class="col-4"></div>
+    </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+    <div class="form-horizontal mapsvg-view-padding">
+        <legend>Settings</legend>
+
+        <div class="form-group row mb-3">
+            <label class="col-sm-3 col-form-label">Choropleth</label>
+            <div class="col-sm-9">
+                <div class=" form-switch form-switch-md">
+                <input type="checkbox"  name="choropleth[on]" class="form-check-input mapsvg-toggle-visibility"
+                       data-toggle-visibility="#mapsvg-choropleth-options"
+                       {{#if choropleth.on}}checked{{/if}} data-live="change"/>
+            </div>
+            </div>
+        </div>
+
+        <div id="mapsvg-choropleth-options" {{#unless choropleth.on}}style="display:none"{{/unless}}>
+
+            <legend>Data</legend>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">Choropleth data source</label>
+                <div class="col-sm-9">
+                    <div class="btn-group" data-toggle="buttons" id="mapsvg-choropleth-source">
+                        <input id="regionOpt" class="btn-check" type="radio" name="choropleth[source]" value="regions"
+                               {{#ifeq choropleth.source 'regions'}}checked{{/ifeq}} data-live="change"/>
+                        <label for="regionOpt" class="btn btn-outline-secondary ">
+
+                            Regions
+                        </label>
+                        <input id="dbOpt" class="btn-check" type="radio" name="choropleth[source]" value="database"
+                               {{#ifeq choropleth.source 'database'}}checked{{/ifeq}} data-live="change"/>
+                        <label for="dbOpt" class="btn btn-outline-secondary" >
+
+                            Database
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">Source field</label>
+                <div class="col-sm-9">
+                    <select class="mapsvg-select2" style="width: 100%;" id="mapsvg-choropleth-source-fields"
+                            name="choropleth[sourceField]" data-live="change">
+                    </select>
+                    <p class="help-block">Choose a field containing number values that should be represented as color
+                        shades on choropleth map.</p>
+                </div>
+            </div>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">Source field select</label>
+                <div class="col-sm-9">
+                    <div class=" form-switch form-switch-md">
+                    <input type="checkbox" name="choropleth[sourceFieldSelect][on]"
+                           class="form-check-input mapsvg-toggle-visibility"
+                           data-toggle-visibility="#mapsvg-choropleth-source-fields-select-options"
+                           {{#if choropleth.sourceFieldSelect.on}}checked{{/if}} data-live="change"/>
+                </div>
+                </div>
+            </div>
+
+            <div id="mapsvg-choropleth-source-fields-select-options"
+                 {{#unless choropleth.sourceFieldSelect.on}}style="display:none"{{/unless}}>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Source field variants</label>
+                    <div class="col-sm-9">
+                        <select class="mapsvg-select2" multiple="multiple" style="width: 100%;"
+                                id="mapsvg-choropleth-source-field-variants"
+                                name="choropleth[sourceFieldSelect][variants]" data-live="change">
+                        </select>
+                        <p class="help-block">Choose options for source field variants select.</p>
+                    </div>
+                </div>
+            </div>
+
+            <legend>Bubble mode</legend>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">Bubble mode</label>
+                <div class="col-sm-9">
+                    <div class=" form-switch form-switch-md">
+                    <input type="checkbox" name="choropleth[bubbleMode]" class="form-check-input mapsvg-toggle-visibility"
+                           data-last-regions-state="{{#if choropleth.bubbleMode}}on{{else}}off{{/if}}"
+                           data-toggle-visibility="#mapsvg-choropleth-bubbleMode-options"
+                           {{#if choropleth.bubbleMode}}checked{{/if}} data-live="change"/>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mapsvg-choropleth-bubbleMode-options"
+                 {{#unless choropleth.bubbleMode}}style="display:none"{{/unless}}>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Bubbles size</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text ">Min diameter (px)</span>
+                                    <input data-key="low" name="choropleth[bubbleSize][min]" type="text"
+                                           autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.bubbleSize.min}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text" id="basic-addon4">Max diameter (px)</span>
+                                    <input data-key="high" name="choropleth[bubbleSize][max]" type="text"
+                                           autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.bubbleSize.max}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <legend>coloring</legend>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">coloring mode</label>
+                <div class="col-sm-9">
+                    <div class="btn-group" data-toggle="buttons" id="mapsvg-choropleth-color-mode">
+
+                        <input id="gradientOpt" class="btn-check" type="radio" name="choropleth[coloring][mode]" value="gradient"
+                               {{#ifeq choropleth.coloring.mode 'gradient'}}checked{{/ifeq}} data-live="change"/>
+                        <label for="gradientOpt" class="btn btn-outline-secondary ">
+
+                            Gradient
+                        </label>
+
+                        <input id="paletteOpt" class="btn-check" type="radio" name="choropleth[coloring][mode]" value="palette"
+                               {{#ifeq choropleth.coloring.mode 'palette'}}checked{{/ifeq}} data-live="change"/>
+                        <label for="paletteOpt" class="btn btn-outline-secondary">
+
+                            Palette
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mapsvg-coloring-no-data">
+                <div class="row">
+                    <div class="col-sm-3 mapsvg-coloring-subitem-label">Objects with no data</div>
+                    <div class="col-sm-9 mapsvg-coloring-subitem-content">
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-3 col-form-label">Color</label>
+                            <div class="col-sm-9">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="input-group cpicker"
+                                             data-color-name="choroplethColoringNoDataColor">
+                                            <span class="input-group-prepend input-group-text"><i></i></span>
+                                            <input class=" form-control" type="text" autocomplete="off"
+                                                   name="choropleth[coloring][noData][color]"
+                                                   value="{{choropleth.coloring.noData.color}}" data-live="keyup"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-3 col-form-label">Description</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" type="text" autocomplete="off"
+                                       name="choropleth[coloring][noData][description]"
+                                       value="{{choropleth.coloring.noData.description}}" data-live="keyup"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mapsvg-choropleth-gradient-options"
+                 {{#ifnoteq choropleth.coloring.mode 'gradient'}}style="display:none"{{/ifnoteq}}>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Gradient labels</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text">Low</span>
+                                    <input data-key="low" name="choropleth[coloring][gradient][labels][low]" type="text"
+                                           autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.coloring.gradient.labels.low}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text">High</span>
+                                    <input data-key="high" name="choropleth[coloring][gradient][labels][high]"
+                                           type="text" autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.coloring.gradient.labels.high}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Gradient colors</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group cpicker" data-color-name="choroplethColorLow">
+                                    <span class="input-group-prepend input-group-text">Low</span>
+                                    <span class="input-group-prepend input-group-text"><i></i></span>
+                                    <input class=" form-control" type="text" autocomplete="off"
+                                           name="choropleth[coloring][gradient][colors][low]"
+                                           value="{{choropleth.coloring.gradient.colors.low}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group cpicker" data-color-name="choroplethColorHigh">
+                                    <span class="input-group-prepend input-group-text">High</span>
+                                    <span class="input-group-prepend input-group-text"><i></i></span>
+                                    <input class=" form-control" type="text" autocomplete="off"
+                                           name="choropleth[coloring][gradient][colors][high]"
+                                           value="{{choropleth.coloring.gradient.colors.high}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mapsvg-choropleth-palette-options"
+                 {{#ifnoteq choropleth.coloring.mode 'palette'}}style="display:none"{{/ifnoteq}}>
+
+                <div class="mapsvg-coloring-palette-out-of-range">
+                    <div class="row">
+                        <div class="col-sm-3 mapsvg-coloring-subitem-label">Objects with data out of range</div>
+                        <div class="col-sm-9 mapsvg-coloring-subitem-content">
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">Color</label>
+                                <div class="col-sm-9">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="input-group cpicker"
+                                                 data-color-name="choroplethColoringPaletteOutOfRangeColor">
+                                                <span class="input-group-prepend input-group-text"><i></i></span>
+                                                <input class=" form-control" type="text" autocomplete="off"
+                                                       name="choropleth[coloring][palette][outOfRange][color]"
+                                                       value="{{choropleth.coloring.palette.outOfRange.color}}"
+                                                       data-live="keyup"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">Description</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" type="text" autocomplete="off"
+                                           name="choropleth[coloring][palette][outOfRange][description]"
+                                           value="{{choropleth.coloring.palette.outOfRange.description}}"
+                                           data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <legend>Palette colors</legend>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary" id="mapsvg-add-palette-color-btn">Add color</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="mapsvg-choropleth-palette-colors-list">
+                </div>
+            </div>
+
+            <legend>Legend</legend>
+
+            <div class="form-group row mb-3">
+                <label class="col-sm-3 col-form-label">Legend</label>
+                <div class="col-sm-9">
+                    <div class=" form-switch form-switch-md">
+                    <input type="checkbox" name="choropleth[coloring][legend][on]"
+                           class="form-check-input mapsvg-toggle-visibility"
+                           data-toggle-visibility="#mapsvg-choropleth-legend-options"
+                           {{#if choropleth.coloring.legend.on}}checked{{/if}} data-live="change"/>
+                </div>
+                </div>
+            </div>
+
+            <div id="mapsvg-choropleth-legend-options"
+                 {{#unless choropleth.coloring.legend.on}}style="display:none"{{/unless}}>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Layout</label>
+                    <div class="col-sm-9">
+                        <select class="mapsvg-select2" id="mapsvg-choropleth-coloring-legend-layout"
+                                name="choropleth[coloring][legend][layout]" data-live="change">
+                            <option value="vertical"
+                                    {{#ifeq choropleth.coloring.legend.layout 'vertical'}}selected{{/ifeq}} >Vertical
+                            </option>
+                            <option value="horizontal"
+                                    {{#ifeq choropleth.coloring.legend.layout 'horizontal'}}selected{{/ifeq}}>Horizontal
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Container</label>
+                    <div class="col-sm-9">
+                        <select class="mapsvg-select2" id="mapsvg-choropleth-coloring-legend-container"
+                                name="choropleth[coloring][legend][container]" data-live="change">
+                            <option value="leftSidebar"
+                                    {{#ifeq choropleth.coloring.legend.container 'leftSidebar'}}selected{{/ifeq}} >Left
+                                sidebar
+                            </option>
+                            <option value="rightSidebar"
+                                    {{#ifeq choropleth.coloring.legend.container 'rightSidebar'}}selected{{/ifeq}}>Right
+                                sidebar
+                            </option>
+                            <option value="header"
+                                    {{#ifeq choropleth.coloring.legend.container 'header'}}selected{{/ifeq}}>Header
+                            </option>
+                            <option value="footer"
+                                    {{#ifeq choropleth.coloring.legend.container 'footer'}}selected{{/ifeq}}>Footer
+                            </option>
+                            <option value="top-left"
+                                    {{#ifeq choropleth.coloring.legend.container 'top-left'}}selected{{/ifeq}}>Top-left
+                            </option>
+                            <option value="top-right"
+                                    {{#ifeq choropleth.coloring.legend.container 'top-right'}}selected{{/ifeq}}>
+                                Top-right
+                            </option>
+                            <option value="bottom-left"
+                                    {{#ifeq choropleth.coloring.legend.container 'bottom-left'}}selected{{/ifeq}}>
+                                Bottom-left
+                            </option>
+                            <option value="bottom-right"
+                                    {{#ifeq choropleth.coloring.legend.container 'bottom-right'}}selected{{/ifeq}}>
+                                Bottom-right
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Title</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="text" autocomplete="off"
+                               name="choropleth[coloring][legend][title]" value="{{choropleth.coloring.legend.title}}"
+                               data-live="keyup"/>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Text</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="text" autocomplete="off"
+                               name="choropleth[coloring][legend][text]" value="{{choropleth.coloring.legend.text}}"
+                               data-live="keyup"/>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Description</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="text" autocomplete="off"
+                               name="choropleth[coloring][legend][description]"
+                               value="{{choropleth.coloring.legend.description}}" data-live="keyup"/>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Size</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text">Width</span>
+                                    <input data-key="low" name="choropleth[coloring][legend][width]" type="text"
+                                           autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.coloring.legend.width}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-prepend input-group-text">High</span>
+                                    <input data-key="high" name="choropleth[coloring][legend][height]" type="text"
+                                           autocomplete="off" class="form-control" autocomplete="off"
+                                           value="{{choropleth.coloring.legend.height}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!--SPACER FOR COLOR PICKER-->
+        <div style="height: 100px;"></div>
+
+        </form>
+
+</script>
+
+<script type="text/x-handlebars-template" data-name="paletteColor" data-partial="true">
+    <div class="mapsvg-coloring-palette-color" data-idx="{{idx}}">
+        <div class="row">
+            <div class="col-sm-3 mapsvg-coloring-subitem-label">Color {{idx}}</div>
+            <div class="col-sm-9 mapsvg-coloring-subitem-content">
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Color</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="input-group cpicker" data-color-name="choroplethColoringPaletteColor">
+                                    <span class="input-group-prepend input-group-text"><i></i></span>
+                                    <input class=" form-control" type="text" autocomplete="off"
+                                           name="choropleth[coloring][palette][colors][{{idx}}][color]"
+                                           value="{{color.color}}" data-live="keyup"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Value from</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="number" autocomplete="off"
+                               name="choropleth[coloring][palette][colors][{{idx}}][valueFrom]"
+                               value="{{color.valueFrom}}" data-live="change"/>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Value to</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="number" autocomplete="off"
+                               name="choropleth[coloring][palette][colors][{{idx}}][valueTo]" value="{{color.valueTo}}"
+                               data-live="change"/>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-3 col-form-label">Description</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="text" autocomplete="off"
+                               name="choropleth[coloring][palette][colors][{{idx}}][description]"
+                               value="{{color.description}}" data-live="keyup"/>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <div class="col-sm-3">
+                        <div class="input-group">
+                            <button class="btn btn-outline-secondary mapsvg-delete-palette-color-btn" data-idx="{{idx}}">Delete
+                                color
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

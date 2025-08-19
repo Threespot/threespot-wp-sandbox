@@ -1,0 +1,29 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-status-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Name</label> <input type="text"
+  disabled="disabled" class="form-control" value="status" autocomplete="off" /> </div> <div
+  class="form-group mb-3 "> <label class="form-label">Status list</label> <table class="table
+  table-condensed"> <thead> <tr> <th style="width: 25%;">Label</th> <th style="width:
+  25%;">Value</th> <th style="width: 25%;">Region color</th> <th>Disable region</th> </tr> </thead>
+  <tbody>
+  {{#each options}}
+    <tr class="mapsvg-edit-status-row"> <td> <input type="text" autocomplete="off"
+    data-param="label" data-array="true" name="options" class="form-control
+    mapsvg-edit-status-label" value="{{label}}" /> </td> <td> <input type="text" autocomplete="off"
+    data-param="value" data-array="true" name="options[{{@index}}][value]" class="form-control"
+    value="{{value}}" /> </td> <td> <div class="input-group cpicker"> <span
+    class="input-group-text"><i></i></span> <input type="text" autocomplete="off" data-param="color"
+    data-array="true" class=" form-control" name="options[{{@index}}][color]" value="{{color}}"
+    data-live="change"/> </div> </td> <td> <div class="btn-group" data-toggle="buttons"> <input
+    type="checkbox" data-param="disabled" data-array="true" class=" btn-check region_disable
+    mapsvg-region-disabled" name="options[{{@index}}][disabled]"
+    {{#if disabled}}checked{{/if}}
+    /> <label class="btn btn-outline-secondary form-check-label toggle-tooltip" title="Disable" > <i
+    class="bi bi-ban"></i> </label> </div> </td> </tr>
+  {{/each}}
+  </tbody> </table> </div> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea class="form-control" name="help">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>

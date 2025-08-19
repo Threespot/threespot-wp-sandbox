@@ -1,0 +1,14 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkboxes-control">
+  <div class="form-group mb-3 "> <label class="form-label">Label</label> <input type="text"
+  class="form-control" name="label" value="{{label}}" autocomplete="off"/> <p class="form-text">
+  Label can be empty </p> </div> <!--<div class="form-group mb-3 row">--> <!--<label
+  class="form-label">Default option text</label>--> <!--<input type="text" name="placeholder"
+  class="form-control" value="{{placeholder}}"/>--> <!--<p class="form-text">--> <!--Shows all
+  objects if selected--> <!--</p>--> <!--</div>--> <div class="form-group mb-3 "> <label
+  class="form-label">Options</label> <textarea name="options" class="form-control" rows="5">{{#each
+    options
+  }}{{label}}:{{value}}&#13;&#10;{{/each}}</textarea> </div> <div class="form-group mb-3 "> <label
+  class="form-label">Help</label> <textarea name="help" class="form-control">{{help}}</textarea>
+  </div> <div class="form-group mb-3 "> <button class="btn btn-outline-secondary mapsvg-remove"><i
+  class="bi bi-trash"></i> Remove</button> </div>
+</script>

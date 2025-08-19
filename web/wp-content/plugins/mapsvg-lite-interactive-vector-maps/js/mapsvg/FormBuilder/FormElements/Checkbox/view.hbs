@@ -1,0 +1,15 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-checkbox-view">
+    <div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+
+        <div class="col-sm-9">
+            <div name="checkboxToSwitch" class=" checkbox {{#if showAsSwitch}} form-switch form-switch-md{{/if}}">
+                <input class="form-check-input" type="checkbox" name="{{name}}" {{#if value}}checked{{/if}}>
+                <label class="form-check-label">
+                    {{checkboxLabel}}
+                </label>
+            </div>
+            <p class="form-text">{{help}}</p>
+        </div>
+    </div>
+</script>

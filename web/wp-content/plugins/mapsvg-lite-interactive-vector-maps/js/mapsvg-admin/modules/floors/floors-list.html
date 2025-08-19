@@ -1,0 +1,40 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <table class="table mapsvg-data-list-table" id="mapsvg-floors-list-table">
+      <thead>
+      <tr>
+          {{#each fields}}
+              <th>{{name}}</th>
+          {{/each}}
+          <th style="width: 10px;"></th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each data}}
+          {{>floorsListItemPartial fields=../fields params=this}}
+      {{/each}}
+      </tbody>
+  </table>
+
+  <div class="mapsvg-pagination-container">
+  </div>
+
+  <div class="mapsvg-view-padding" id="mapsvg-setup-floors-msg" style="display: none;">
+      <div class="well">
+          <p class="help-block">Create floors with objects or POIs (Points Of Interest) and let a user show/hide
+              them.</p>
+      </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-floor-row-{{params.id}}" data-id="{{params.id}}" class="mapsvg-data-row">
+      {{#each fields}}
+          <td>{{lookup ../params name}}</td>
+      {{/each}}
+      <td>
+          <button class="btn btn-sm btn-default mapsvg-floor-delete">
+              <i class="bi bi-trash"></i>
+          </button>
+      </td>
+  </tr>
+</script>

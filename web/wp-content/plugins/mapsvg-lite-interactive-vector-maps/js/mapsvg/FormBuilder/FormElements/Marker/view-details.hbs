@@ -1,0 +1,57 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker">
+      <div class="mapsvg-marker-names">
+        <div>{{address.formatted}}</div>
+
+        {{#if geoPoint.lat}}
+            <div class="mapsvg-marker-geocoords">{{#if geoPoint.lat}}{{geoPoint.lat}}, {{geoPoint.lng}}{{/if}}</div>
+        {{else}}
+            <div class="mapsvg-marker-coords">x: {{round svgPoint.x}}, y: {{round svgPoint.y}}</div>
+        {{/if}}
+        {{#if address.formatted}}
+            <a href="#" onclick="jQuery('#mapsvg-location-fields-toggle').toggle();jQuery(this).html(jQuery('#mapsvg-location-fields-toggle').is(':visible')?'Hide location fields':'Show location fields');return false;">Show location fields</a>
+        {{/if}}
+        <div id="mapsvg-location-fields-toggle" style="display: none; font-size: 13px; margin-top: 5px;">
+            {{#each address}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.{{@key}}</span><br />
+                    {{.}}
+                </div>
+            {{/each}}
+            {{#if address.county}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.county</span><br />
+                    {{address.county}}
+                </div>
+            {{/if}}
+            {{#if address.state}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.state</span><br />
+                    {{address.state}}
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.state_short</span><br />
+                    {{address.state_short}}
+                </div>
+            {{/if}}
+            {{#if address.zip}}
+                <div style="margin-bottom: 5px;">
+                    <span class="text-muted">location.address.zip</span><br />
+                    {{address.zip}}
+                </div>
+            {{/if}}
+            <div style="margin-bottom: 5px;">
+            <span class="text-muted">location.geoPoint.lat</span><br />
+                {{geoPoint.lat}}
+            </div>
+            <div style="margin-bottom: 5px;">
+            <span class="text-muted">location.geoPoint.lng</span><br />
+                {{geoPoint.lng}}
+            </div>
+        </div>
+    </div>
+
+    <div class="mapsvg-region-controls mapsvg-marker-controls">
+        <button class="btn btn-outline-secondary  btn mapsvg-marker-delete toggle-tooltip" title="Delete"><i class="bi bi-trash"></i> </button>
+        <button class="btn btn-outline-secondary  btn mapsvg-marker-image-btn-trigger mapsvg-marker-image-btn toggle-tooltip" data-marker-id="{{marker.id}}" title="Image"><img src="{{imagePath}}" /> </button>
+    </div>
+</script>

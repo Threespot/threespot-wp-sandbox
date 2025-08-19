@@ -1,0 +1,52 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-post-control">
+ <!--<div class="form-group mb-3 row">-->
+        <!--<label class="form-label">Label</label>-->
+        <!--<input type="text" class="form-control" name="label" value="{{label}}"/>-->
+    <!--</div>-->
+    <!--<div class="form-group mb-3 row">-->
+        <!--<label class="form-label">Name</label>-->
+        <!--<input type="text" class="form-control" name="name" value="{{name}}"/>-->
+    <!--</div>-->
+    <div class="form-group mb-3 ">
+        <label class="form-label">Post type</label>
+        <select class="mapsvg-select2 form-control" name="post_type">
+            {{#each post_types}}<option {{#ifeq this ../post_type}}selected{{/ifeq}}>{{.}}</option>{{/each}}
+        </select>
+        <p class="form-text">
+            Use \{{post}} tag in a template to show full rendered post content.<br /><br />
+
+            Also you can output individual fields:<br />
+            <em>\{{post.id}}</em><br />
+            <em>\{{post.post_title}}</em><br />
+            <em>\{{post.post_content}}</em><br />
+            <em>\{{post.url}}</em><br /><br />
+
+            ACF (Advanced Custom Fields) plugin is supported:<br />
+            <em>\{{post.acf.my_field_name}}</em><br />
+            <em>\{{post.acf.my_another_field}}</em>
+        </p>
+    </div>
+    <!--<div class="form-group mb-3 row">-->
+        <!--<div class="checkbox">-->
+            <!--<label class="form-label">-->
+                <!--<input type="checkbox" name="add_fields" value="1" {{#if add_fields}}checked{{/if}} /> Add MapSVG fields into WordPress Post Edit Screen-->
+            <!--</label>-->
+        <!--</div>-->
+        <!--<p class="form-text">-->
+            <!--You can add MapSVG fields into WordPress Post Edit Screen of chosen <em>post_type</em>.<br><br>-->
+
+            <!--If more than one MapSVG map is connected with a <em>post_type</em>-->
+            <!--then you would be able to choose a MapSVG map on WordPress Post Edit Screen before editing MapSVG fields.-->
+            <!--Use case example - list of dealers in different countries.-->
+            <!--You can show separate maps of countries each on its-->
+            <!--own page - and posts would be attached to each map automatically.-->
+        <!--</p>-->
+    <!--</div>-->
+    <div class="form-group mb-3 ">
+        <label class="form-label">Help</label>
+        <textarea class="form-control" name="help">{{help}}</textarea>
+    </div>
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>

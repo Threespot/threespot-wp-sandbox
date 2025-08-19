@@ -1,0 +1,9 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-post-view">
+  <div class="form-group mb-3 row"> <label class="col-sm-3 col-form-label with-name">WP Post <div
+  class="field-name">post</div></label> <div class="col-sm-9"> <select name="post_title"
+  class="mapsvg-find-post select2 form-control" data-skip="1">
+  {{#if post}}<option>{{post.post_title}}</option>{{/if}}
+  </select> <p class="form-text"> <i>post.id:</i> <span class="mapsvg-post-id">{{post.id}}</span><br
+  /> <i>post.url:</i> <a class="mapsvg-post-url" href="{{post.url}}" target="_blank">{{post.url}}</a>
+  </p> </div> </div>
+</script>

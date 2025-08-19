@@ -1,0 +1,44 @@
+{
+  "name": "schema",
+  "objectNameSingular": "schema",
+  "objectNamePlural": "schemas",
+  "apiEndpoints": [
+    { "url": "schemas", "method": "GET", "name": "index" },
+    { "url": "schemas/[:id]", "method": "GET", "name": "show" },
+    { "url": "schemas", "method": "POST", "name": "create" },
+    { "url": "schemas/[:id]", "method": "PUT", "name": "update" },
+    { "url": "schemas/[:id]", "method": "DELETE", "name": "delete" },
+    { "url": "schemas", "method": "DELETE", "name": "clear" }
+  ],
+  "fields": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "id",
+      "db_type": "int(11)",
+      "visible": true,
+      "protected": true
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "name",
+      "label": "Name",
+      "type": "text",
+      "db_type": "varchar(255)",
+      "visible": true
+    },
+    {
+      "name": "fields",
+      "label": "Fields",
+      "type": "text",
+      "db_type": "longtext",
+      "visible": true
+    }
+  ]
+}

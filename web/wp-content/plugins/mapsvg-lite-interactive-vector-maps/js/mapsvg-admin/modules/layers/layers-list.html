@@ -1,0 +1,72 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <table class="table mapsvg-data-list-table table-borderless "   id="mapsvg-layers-list-table">
+      <thead>
+      <tr>{{#each fields}}
+          <th>{{name}}</th>{{/each}}
+          <th style="width: 10px;color:grey"></th>
+      </tr>
+      </thead>
+      <tbody>{{#each data}} {{>layersListItemPartial fields=../fields params=this}}
+      {{/each}}</tbody>
+  </table>
+  <div class="mapsvg-pagination-container"></div>
+  <div class="mapsvg-view-padding" id="mapsvg-setup-layers-msg" style="display: none;">
+      <div class="card bg-light card-body mb-3">
+          <p class="form-text">Create layers with objects or POIs (Points Of Interest) and let a user
+              show/hide them.</p>
+      </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="item" data-partial="true">
+  <tr id="mapsvg-layer-row-{{params.id}}" data-id="{{params.id}}" class="mapsvg-data-row">
+      {{#each fields}}
+          {{#ifeq type 'image'}}
+              <td>{{getThumbs ../params name}}</td>
+          {{/ifeq}}
+          {{#ifeq type 'marker'}}
+              <td>{{getMarkerImage ../params name}}</td>
+          {{/ifeq}}
+          {{#ifnoteq type 'image'}}
+              {{#ifnoteq type 'marker'}}
+                  {{#if options}}
+                      {{#ifeq name 'id'}}
+                          <td>{{lookup ../params name}}</td>
+                      {{/ifeq}}
+                      {{#ifnoteq name 'id'}}
+                          {{#ifeq type 'region'}}
+                              <td>{{getRegions ../params name}}</td>
+                          {{/ifeq}}
+                          {{#ifnoteq type 'region'}}
+                              {{#ifjson ../params name}}
+                                  <td>{{getSelectedOptions ../params name}}</td>
+                              {{/ifjson}}
+                              {{#ifnotjson ../params name}}
+                                  <td>{{getLabel options ../params name}}</td>
+                              {{/ifnotjson}}
+                          {{/ifnoteq}}
+                      {{/ifnoteq}}
+                  {{/if}}
+                  {{#unless options}}
+                      <td>{{lookup ../params name}}</td>
+                  {{/unless}}
+              {{/ifnoteq}}
+          {{/ifnoteq}}
+      {{/each}}
+      <td>
+          {{#with params}}
+              <button class="btn btn-sm btn-default mapsvg-layer-view-toggle {{#unless visible}}active{{/unless}}">
+                  {{#if visible}}
+                      <i class="bi bi-eye"></i>
+                  {{/if}}
+                  {{#unless visible}}
+                      <i class="bi bi-eye-slash"></i>
+                  {{/unless}}
+              </button>
+          {{/with}}
+          <button class="btn btn-sm btn-default mapsvg-layer-delete">
+              <i class="bi bi-trash"></i>
+          </button>
+      </td>
+  </tr>
+</script>

@@ -1,0 +1,26 @@
+<script type="text/x-handlebars-template" id="mapsvg-filters-tmpl-radio-view">
+ <div class="form-group mb-3 ">
+        <label class="col-sm-3 col-form-label mapsvg-filter-label">{{label}}</label>
+
+        <div class="col-sm-9">
+            {{#if placeholder}}
+                <div class="radio">
+                    <input class="form-check-input" type="radio" name="{{parameterNameShort}}" value="" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{parameterNameShort}}">
+                    <label class="form-check-label">
+
+                        {{placeholder}}
+                    </label>
+                </div>
+            {{/if}}
+    {{#each options}}
+                <div class="radio">
+                    <input class="form-check-input" type="radio" name="{{../parameterNameShort}}" value="{{value}}" {{#ifeq value ../value}}checked{{/ifeq}} data-parameter-name="{{../parameterNameShort}}">
+
+                    <label class="form-check-label">
+                         {{label}}
+                    </label>
+                </div>
+            {{/each}}
+            <p class="form-text">{{help}}</p>
+    </div>
+</script>

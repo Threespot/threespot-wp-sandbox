@@ -1,0 +1,285 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <form class=" mapsvg-view-padding">
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Filters</label>
+          <div class="col-md-9 ">
+              <div style="margin-bottom: 10px;" class="form-switch form-switch form-switch-md">
+                  <input type="checkbox" class="form-check-input" name="filters[on]" {{#if
+      filters.on}}checked{{/if}}  data-live="change">
+              </div>
+              <p class="form-text">Edit filters by clicking on <i class="bi bi-pencil"></i> button
+                  in the toolbar.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Data source</label>
+          <div class="col-md-9">
+              <div class="btn-group btn-group-toggle" data-toggle="buttons" id="mapsvg-directory-data-source">
+
+                  <input id="mapsvg-filters-regionOption" class="btn-check" type="radio" name="filters[source]" value="regions"
+                         {{#ifeq
+                                 filters.source  'regions'}}checked{{/ifeq}}  data-live="change">
+                  <label for="mapsvg-filters-regionOption"
+                         class="btn btn-outline-secondary ">
+                      Regions</label>
+
+                  <input id="mapsvg-filters-dbOption" class="btn-check" type="radio" name="filters[source]" value="database" {{#ifeq
+                          filters.source  'database'}}checked{{/ifeq}}  data-live="change">
+                  <label for="mapsvg-filters-dbOption" class="btn btn-outline-secondary ">
+                      Database</label>
+              </div>
+          </div>
+      </div>
+      <div id="mapsvg-control-frs" class="form-group row mb-3" {{#ifnoteq  filters.source
+                                                                      'regions'}}style="display: none;" {{/ifnoteq}} >
+          <label class="col-md-3 col-form-label">Change status of filtered out Regions to</label>
+          <div class="col-md-9">{{#if statuses}}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[filteredRegionsStatus]" value  {{#ifeq
+                            filters.filteredRegionsStatus  ''}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Don't
+                      change</label>
+              </div>{{#each statuses}}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[filteredRegionsStatus]" value="{{value}}"
+                            {{#ifeq  ../filters.filteredRegionsStatus  value}}checked{{/ifeq}}
+                            data-live="change">
+                  <label class="form-check-label">
+                      {{label}}</label>
+              </div>{{/each}} {{else}} <em>"Status" field is missing in Regions.</em>
+          {{/if}}</div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Location</label>
+          <div class="col-md-9">
+              <!--<div class="form-check">-->
+              <!--<label>-->
+              <!--<input type="radio" name="filters[location]" value="mapContainer"
+          {{#ifeq filters.location 'map'}}checked{{/ifeq}} data-live="change"/>-->
+              <!--Map container-->
+              <!--</label>-->
+              <!--</div>-->
+                <div class="form-check">
+
+                    <input class="form-check-input" type="radio" name="filters[location]" value="leftSidebar" {{#ifeq
+                            filters.location  'leftSidebar'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Left
+                      sidebar</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[location]" value="rightSidebar" {{#ifeq
+                            filters.location  'rightSidebar'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Right
+                      sidebar</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[location]" value="header" {{#ifeq
+                            filters.location  'header'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Header</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[location]" value="footer" {{#ifeq
+      filters.location  'footer'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Footer</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[location]" value="custom" {{#ifeq
+      filters.location  'custom'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Custom
+                      container</label>
+              </div>
+              <p class="form-text">Manage containers in the <a href="#tab_settings"
+                                                               class="mapsvg-tab-link">Settings</a> tab.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3" id="mapsvg-directory-container-id">
+          <label class="col-md-3 col-form-label">Custom container ID</label>
+          <div class="col-md-9">
+              <div class="input-group">
+                  <div class="input-group-prepend ">
+                      <span class="input-group-text">#</span>
+                  </div>
+                  <input class="form-control" name="filters[containerId]" value="{{filters.containerId}}"
+                         data-live="keyup">
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3" id="mapsvg-directory-container-id">
+          <label class="col-md-3 col-form-label">Padding</label>
+          <div class="col-md-9">
+              <input class="form-control" name="filters[padding]" value="{{filters.padding}}"
+                     data-live="keyup">
+              <p class="form-text">CSS format. Examples:
+                  <br>"10px" (top/left/right/bottom = 10px)
+                  <br>"5%" (top/left/right/bottom 5%)
+                  <br>"10px 20px" (top/bottom: 10px, left/right: 20px)
+                  <br>"10px 20px 10px 20px" (left 10px, top 20px, right 10px, bottom
+                  20px)</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Compact mode on desktop</label>
+          <div class="col-md-9 ">
+              <div style="margin-bottom: 10px;" class="form-switch form-switch form-switch-md">
+                  <input type="checkbox" class="form-check-input" name="filters[hide]" {{#if
+      filters.hide}}checked{{/if}}  data-live="change">
+              </div>
+              <p class="form-text">When compact mode is enabled - only "Search" field is showing
+                  all filters are replaced with a "Filters" button that opens up
+                  a modal window.</p>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Compact mode on mobiles</label>
+          <div class="col-md-9 ">
+              <div style="margin-bottom: 10px;" class="form-switch form-switch form-switch-md"">
+                  <input type="checkbox" class="form-check-input" name="filters[hideOnMobile]"
+                         {{#if  filters.hideOnMobile}}checked{{/if}}  data-live="change">
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Modal location</label>
+          <div class="col-md-9">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[modalLocation]" value="mapContainer"
+                            {{#ifeq  filters.modalLocation  'map'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                      Map container</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[modalLocation]" value="leftSidebar"
+                            {{#ifeq  filters.modalLocation  'leftSidebar'}}checked{{/ifeq}}
+                            data-live="change">
+                  <label class="form-check-label">
+                      Left sidebar</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[modalLocation]" value="rightSidebar"
+                            {{#ifeq  filters.modalLocation  'rightSidebar'}}checked{{/ifeq}}
+                            data-live="change">
+                  <label class="form-check-label">
+                      Right sidebar</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[modalLocation]" value="header" {{#ifeq
+      filters.modalLocation  'header'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                     Header</label>
+              </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="filters[modalLocation]" value="footer" {{#ifeq
+      filters.modalLocation  'footer'}}checked{{/ifeq}}  data-live="change">
+                  <label class="form-check-label">
+                     Footer</label>
+              </div>
+              <!--<div class="form-check">-->
+              <!--<label>-->
+              <!--<input type="radio" name="filters[modalLocation]" value="custom" {{#ifeq
+      filters.modalLocation 'custom'}}checked{{/ifeq}} data-live="change"/>-->
+              <!--Custom container-->
+              <!--</label>-->
+              <!--</div>-->
+              <p class="form-text">Manage containers in the <a href="#tab_settings"
+                                                               class="mapsvg-tab-link">Settings</a> tab.</p>
+          </div>
+          <div class="form-group row mb-3">
+              <label class="col-md-3 col-form-label">Modal width</label>
+              <div class="col-md-9">
+                  <input type="text" class="form-control" value="{{filters.width}}" name="filters[width]"
+                         data-live="keyup">
+                  <p class="form-text">Enter value in pixels (example: <i>200px</i>) or in percents (example:
+                      <i>100%</i>).</p>
+              </div>
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">"Filters" button text</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control" data-live="keyup" name="filters[showButtonText]"
+                     value="{{filters.showButtonText}}">
+          </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Add "Clear" button</label>
+          <div class="col-md-9 ">
+              <div style="margin-bottom: 10px;" class=" form-switch form-switch-md"">
+              <input type="checkbox" class="form-check-input" name="filters[clearButton]"
+                     {{#if filters.clearButton}}checked{{/if}}  data-live="change">
+          </div>
+          <p class="form-text">This button resets all filters</p>
+
+      </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">"Clear" button text</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control" data-live="keyup" name="filters[clearButtonText]"
+                     value="{{filters.clearButtonText}}">
+          </div>
+      </div>
+
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">Add "Search" button</label>
+          <div class="col-md-9 ">
+              <div style="margin-bottom: 10px;" class=" form-switch form-switch-md"">
+              <input type="checkbox" class="form-check-input" name="filters[searchButton]"
+                     {{#if filters.searchButton}}checked{{/if}}  data-live="change">
+          </div>
+          <p class="form-text">When "Search" button as not added, filtering starts automatically when any filter or search input is changed.</p>
+
+      </div>
+      </div>
+      <div class="form-group row mb-3">
+          <label class="col-md-3 col-form-label">"Search" button text</label>
+          <div class="col-md-9">
+              <input type="text" class="form-control" data-live="keyup" name="filters[searchButtonText]"
+                     value="{{filters.searchButtonText}}">
+          </div>
+      </div>
+
+      <!--<div class="form-group row mb-3">-->
+      <!--<label class="col-md-3 col-form-label">Filters in a </label>-->
+      <!--<div class="col-md-9">-->
+      <!--<div style="margin-bottom: 10px;">-->
+      <!--<input type="checkbox" class="form-check-input" name="filters[collapsable]"
+  {{#if filters.collapsable}}checked{{/if}} data-live="change" />-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--<div class="form-group row mb-3">-->
+      <!--<label class="col-md-3 col-form-label">Filters window location</label>-->
+      <!--<div class="col-md-9">-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="detailsView[location]" value="top" {{#ifeq
+      filters.location 'top'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Above directory and map-->
+      <!--</label>-->
+      <!--<p class="form-text">-->
+      <!--If you set <em>filters</em> width the same as <em>directory</em> then-->
+      <!--<em>filters</em> will cover only <em>directory</em>.-->
+      <!--If you set <em>filters</em> width = 100%, it will cover both <em>directory</em> and <em>map</em>.-->
+      <!--</p>-->
+      <!--</div>-->
+      <!--<div class="form-check">-->
+      <!--<label>-->
+      <!--<input type="radio" name="filters[location]" value="near" {{#ifeq
+      filters.location 'near'}}checked{{/ifeq}} data-live="change"/>-->
+      <!--Above map-->
+      <!--</label>-->
+      <!--<p class="form-text">-->
+      <!--If you set <em>filters</em> width = 100% then-->
+      <!--it would fully cover the map - but directory would stay visible.-->
+      <!--</p>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--</div>-->
+  </form>
+</script>

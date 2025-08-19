@@ -1,0 +1,34 @@
+<script type="text/x-handlebars-template" data-name="toolbar">
+  <div id="mapsvg-filters-toolbar">
+    <div class="row">
+      <div class="col-4">
+        <ul class="nav nav-pills" id="mapsvg-filters-menu">
+          <li class="nav-item toggle-tooltip" role="presentation" title="Settings"><a
+              href="#mapsvg-filters-settings"
+              class="active nav-link"
+            ><i class="bi bi-wrench"></i></a>
+          </li>
+          <li role="presentation" class="nav-item toggle-tooltip" title="Edit&#xA0;fields"><a
+              id="mapsvg-btn-filters-structure"
+              href="#mapsvg-filters-structure"
+              class="nav-link"
+            ><i class="bi bi-pencil"></i></a>
+          </li>
+        </ul>
+      </div>
+      <div class="mapsvg-toolbar-title col-4">Filters</div>
+      <div class="col-4"></div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars-template" data-name="main">
+  <div id="mapsvg-filters-tabs" class="tab-content full-flex">
+    <div
+      class="tab-pane full-flex active"
+      id="mapsvg-filters-settings"
+      data-controller="settings"
+    ></div>
+    <div class="tab-pane full-flex" id="mapsvg-filters-structure" data-controller="structure"></div>
+  </div>
+</script>

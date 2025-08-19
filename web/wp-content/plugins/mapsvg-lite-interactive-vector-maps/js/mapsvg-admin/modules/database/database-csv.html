@@ -1,0 +1,245 @@
+<script type="text/x-handlebars-template" data-name="main">
+  <div class="mapsvg-view-padding">{{{premiumFeatureAlert}}}</div>
+  <form class="mapsvg-view-padding">
+    <div class="form-group row mb-3">
+      <label class="col-md-3 col-form-label">File</label>
+      <div class="col-md-9">
+
+        <input id="mapsvg-csv-file" class="form-control" type="file" />
+      </div>
+    </div>
+    <div class="form-group row mb-3">
+      <label class="col-md-3 col-form-label"></label>
+      <div class="col-md-9">
+        <div class="form-check">
+          <input
+            id="opt1"
+            type="checkbox"
+            class="form-check-input"
+            name="convert_latlng_to_address"
+          />
+          <label for="opt1" class="form-check-label">
+            Convert
+            <em>lat,lng</em>
+            coordinates in the
+            <em>"location"</em>
+            column to addresses.</label>
+        </div>
+        <p class="form-text" style="margin-top">The option above uses Google Geocoding API.
+          <br />
+          <br />If you leave it disabled, Geocoding API wouldn't be used and Markers would be added
+          to the map by provided coordinates.
+          <br />
+          <br />If you enable the option, import may take a long time (more than a minute) due to
+          Google Geocodind API limit - 50 requests per second.
+          <br />
+          <br />If you have addresses in the
+          <em>"location"</em>
+          field, Geocoding API is always used to get lat/lng coordinates even if the option above is
+          disabled.
+          <br />
+          <br />
+        </p>
+        <button
+          disabled="disabled"
+          data-loading-text="Uploading..."
+          class="btn btn-outline-secondary"
+          id="mapsvg-btn-csv-upload"
+        >Upload
+        </button>
+      </div>
+    </div>
+
+  </form>
+  <div class="mapsvg-view-padding">
+    <h3>Instructions</h3>
+    First line of the CSV file must contain field names. Fields must be comma-separated, text fields
+    that contain comma must be surrounded with double quotes "...".
+    <br />
+    <br />Before importing the CSV file create all fields in
+    <code><i class="bi bi-database"></i> Database > Edit fields</code>
+    section.
+    <br />
+    <br />Also, if you import the
+    <code>Location</code>
+    field, first choose the language of addresses in
+    <code><i class="bi bi-database"></i> Database > Edit fields > Location > Language</code>
+    <h3>CSV formatting</h3>
+    <table style="width: 100%;" class="table">
+      <thead>
+        <tr>
+          <th>MapSVG field type</th>
+          <th>How to import from CSV</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- SELECT / RADIO -->
+        <tr>
+          <td style="width: 150px;"><code>Select, Radio</code>
+          </td>
+          <td>Import as "value" numbers or text "labels". Whatever works for you. Example: if you
+            have an "area" select field with the following options in MapSVG:
+            <pre><code>North:1 South:2 East:3 West:4</code></pre>
+            These would be correct CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>area</th>
+              </tr>
+              <tr>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>East</td>
+              </tr>
+              <tr>
+                <td>West</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>area</th>
+              </tr>
+              <tr>
+                <td>South-West</td>
+              </tr>
+              <tr>
+                <td>64</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+        <!-- CHECKBOX -->
+        <tr>
+          <td style="width: 150px;"><code>Checkbox</code>
+          </td>
+          <td>Import as 1/0 or true/false.
+            <br />
+            <br />Correct CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>my_checkbox_field</th>
+              </tr>
+              <tr>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>true</td>
+              </tr>
+              <tr>
+                <td>false</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>my_checkbox_field</th>
+              </tr>
+              <tr>
+                <td>yes</td>
+              </tr>
+              <tr>
+                <td>no</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+        <!-- LOCATION -->
+        <tr>
+          <td><code>Location</code>
+          </td>
+          <td>Import as "lat,lng" coordinates or as an "address" string. If you import an address -
+            it gets converted to coordinates. If you import coordinates - they get converted to an
+            address. And then both values (address & coordinates) are stored in the
+            <code>Location</code>
+            field.
+            <br />
+            <br />Please note that Google allows only 50 requests per second to the Geocoding API
+            (which converts address to coordinates or the other way around) so if you're importing
+            many locations - it can take quite a long time, so be patient and don't reload the page.
+            Also, Geocoding API has a limit of 2500 requests per day.
+            <br />
+            <br />Correct CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>location</th>
+              </tr>
+              <tr>
+                <td>45.1233, 56.9812</td>
+              </tr>
+              <tr>
+                <td>Main st. 1, New York, USA</td>
+              </tr>
+              <tr>
+                <td>London</td>
+              </tr>
+              <tr>
+                <td>Paris</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values (coordinates are outside of the correct range -90,-180 ..
+            90,180)
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>location</th>
+              </tr>
+              <tr>
+                <td>99.1211,199.2323</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+        <!-- REGIONS -->
+        <tr>
+          <td><code>Regions</code>
+          </td>
+          <td>Import as comma-separated list of region IDs or Titles.
+            <br />
+            <br />Correct CSV values (on example of /geo-calibrated/usa.svg file)
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>regions</th>
+              </tr>
+              <tr>
+                <td>US-TX,US-AL,US-NY</td>
+              </tr>
+              <tr>
+                <td>US-OR</td>
+              </tr>
+              <tr>
+                <td>Texas,Oregon</td>
+              </tr>
+            </table>
+            <br />Incorrect CSV values
+            <br />
+            <table class="table-bordered table-sm" style="width: 200px;">
+              <tr>
+                <th>regions</th>
+              </tr>
+              <tr>
+                <td>US-TX US-AL US-NY</td>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</script>

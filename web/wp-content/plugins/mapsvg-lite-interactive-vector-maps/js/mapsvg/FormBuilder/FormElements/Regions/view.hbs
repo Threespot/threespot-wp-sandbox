@@ -1,0 +1,13 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-region-view">
+<div class="form-group mb-3 row">
+        <label class="col-sm-3 col-form-label with-name">{{label}} <div class="field-name">{{_name}}</div></label>
+        <div class="col-sm-9">
+            <select name="{{name}}" class="form-control" multiple="multiple">
+                {{#each options}}
+                    <option value="{{id}}" {{#ifinr id ../value}}selected{{/ifinr}}>{{#if title}}{{title}}{{/if}}{{#unless title}}{{id}}{{/unless}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+</script>

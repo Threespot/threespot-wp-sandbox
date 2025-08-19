@@ -1,0 +1,41 @@
+<script type="text/x-handlebars-template" id="mapsvg-form-editor-tmpl-ui">
+  <div class="mapsvg-data-wrap mapsvg-data-limited-scrollable mapsvg-data-flex-row">
+    <div class="mapsvg-data-preview mapsvg-data-flex-column">
+      <div id="mapsvg-data-edit-controls">
+        <div class="mapsvg-data-form-buttons mapsvg-data-container" id="mapsvg-data-buttons-add">
+          {{#each types}}
+            {{#if premium}}
+              <button
+                class="btn btn-outline-secondary btn-xs mapsvg-premium-feature-alert"
+                data-bs-toggle="popover"
+                data-premium="true"
+              >
+                {{label}}
+              </button>
+            {{else}}
+              <button
+                class="btn btn-outline-secondary btn-xs mapsvg-form-type-btn"
+                id="mapsvg-data-btn-{{name}}"
+                data-create="{{name}}"
+              >
+                {{label}}
+              </button>
+            {{/if}}
+          {{/each}}
+        </div>
+
+        <div id="mapsvg-data-save-container">
+          <button class="btn btn-primary btn-sm" id="mapsvg-data-btn-save-schema">
+            Save fields
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mapsvg-data-edit mapsvg-data-scrollable mapsvg-data-form-controller">
+      <!--text field-->
+      <form class="mapsvg-data-container" id="mapsvg-data-form-edit">
+      </form>
+    </div>
+  </div>
+</script>

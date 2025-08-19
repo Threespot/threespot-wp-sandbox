@@ -1,0 +1,35 @@
+.mapsvg-object-clusterized {
+    display: none;
+}
+.mapsvg-marker-cluster {
+    -webkit-transition: transform .40s;
+    -moz-transition: transform .40s;
+    -ms-transition: transform .40s;
+    -o-transition: transform .40s;
+    transition: transform .40s;
+}
+.mapsvg-marker-cluster {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    line-height: 20px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0,	143, 247, 1);
+    border: 5px solid rgba(0, 143, 247, 0.55);
+    text-align: center;
+    font-size: 12px;
+    font-weight: normal;
+    color: #333;
+    font-family: Helvetica, Arial;
+    -webkit-background-clip: padding-box; /* for Safari */
+    background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+    box-sizing: border-box;
+}
+.mapsvg-marker-cluster:hover {
+    background: rgb(128, 180, 255);
+    cursor: pointer;
+    -webkit-background-clip: padding-box; /* for Safari */
+    background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}

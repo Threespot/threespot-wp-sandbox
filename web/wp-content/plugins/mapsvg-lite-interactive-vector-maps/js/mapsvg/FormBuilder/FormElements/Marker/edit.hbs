@@ -1,0 +1,32 @@
+<script type="text/x-handlebars-template" id="mapsvg-data-tmpl-marker-control">
+  <!--<div class="form-group mb-3 row">-->
+        <!--<label class="col-form-label">Marker is link</label>-->
+        <!--<div>-->
+            <!--<div class="btn-group" data-object="options" data-toggle="buttons">-->
+                <!--<label class="btn btn-outline-secondary  {{#if isLink}}active{{/if}}">-->
+                    <!--<input type="radio" name="isLink" value="1"  {{#if isLink}}checked{{/if}} />-->
+                    <!--On-->
+                <!--</label>-->
+                <!--<label class="btn btn-outline-secondary  {{#unless isLink}}active{{/unless}}">-->
+                    <!--<input type="radio" name="isLink" value="0"  {{#unless isLink}}checked{{/unless}} />-->
+                    <!--Off-->
+                <!--</label>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<p class="form-text">Choose if click on a Marker should work as click on a link. You would need to create another custom "Text" field to store URLs and choose that field in the drop-down list below. Or, if your dataset has "WP Post" field, you may want to choose "post.url" field to be used for redirects on click on Markers.</p>-->
+    <!--</div>-->
+    <!--<div class=form-group mb-3 row">-->
+        <!--<label class="col-form-label">URL field</label>-->
+        <!--<select class="form-control mapsvg-select2" name="urlField">-->
+            <!--<option></option>-->
+            <!--{{#fields}}-->
+                <!--<option {{#ifeq name ../urlField}}selected{{/ifeq}}>{{name}}</option>-->
+            <!--{{/fields}}-->
+        <!--</select>-->
+        <!--<p class="form-text">Choose a field with URL to be used for redirect on click on a Marker.</p>-->
+    <!--</div>-->
+
+    <div class="form-group mb-3 ">
+        <button class="btn btn-outline-secondary  mapsvg-remove"><i class="bi bi-trash"></i> Remove</button>
+    </div>
+</script>
