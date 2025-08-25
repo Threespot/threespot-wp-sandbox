@@ -40,6 +40,7 @@ web/private/scripts/quicksilver
 .env
 *.env
 .env.*
+*.pem
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
