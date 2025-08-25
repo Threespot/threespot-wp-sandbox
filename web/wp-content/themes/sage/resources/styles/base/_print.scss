@@ -1,0 +1,54 @@
+// -------------------------------------------------------------------------
+// Print Styles (based on HTML5 Boilerplate)
+//
+// Note: Use @extend %hide-print to hide individual modules
+// stylelint-disable:disable no-important, no-color-literals
+// -------------------------------------------------------------------------
+@media print {
+  *,
+  *:before,
+  *:after {
+    background: #fff !important;
+    color: #000 !important;// Black prints faster
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .u-richtext {
+    a,
+    a:visited {
+      text-decoration: underline !important;
+    }
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 2;
+    widows: 2;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+  // Page margins
+  @page { margin: 0.75in 0.75in 1in; }
+}
+
+// Optional: High-resolution device print styles
+// @media print,
+//   (-webkit-min-device-pixel-ratio: 1.25),
+//   (min-resolution: 1.25dppx),
+//   (min-resolution: 120dpi) {
+// }

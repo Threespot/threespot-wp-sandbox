@@ -1,0 +1,71 @@
+//------------------------------------------------------------------------
+// Block color palette classes (see theme.json)
+//------------------------------------------------------------------------
+@use "sass:list";
+@use "@styles/globals" as *;
+
+// Text colors
+// Note: $block-text-colors is defined in _color-vars.scss
+@each $name in $block-text-colors {
+  .has-#{$name}-color {
+    color: var(--text-#{$name}) !important;
+  }
+}
+
+// Background colors
+// Note: $block-background-colors is defined in _color-vars.scss
+@each $name in $block-background-colors {
+  .bg-#{$name},
+  .has-#{$name}-background-color {
+    --theme-bg-color: var(--#{$name});
+    background-color: var(--theme-bg-color);
+    color: var(--theme-text-color);
+
+    // Update colors for DARK backgrounds
+    // NOTE: We must also update _wp-block-cover.scss (see “.is-light” class)
+    @if list.index(('navy', 'fixme'), $name) {
+      @include font-smoothing;
+      // FIXME: Update button and link colors for dark background
+      // --button-bg-color: var(--fixme);
+      // --button-bg-color-hover: var(--fixme);
+      // --button-color: var(--fixme);
+      // --button-color-hover: var(--fixme);
+      // --link-color: var(--fixme);
+      --theme-text-color: #fff;
+
+      // Override any custom text colors inside dark backgrounds
+      // (e.g. if authors changed the color in the editor)
+      .has-text-color {
+        color: var(--theme-text-color) !important;
+      }
+    }
+    // Optional: Update colors for specific backgrounds
+    //           (e.g. if background color matches some buttons)
+    // @else if index(('teal-dark'), $name) {
+    //   &,
+    //   [class*="bg-"] {
+    //     --button-bg-color: var(--fixme);
+    //     --button-bg-color-hover: var(--fixme);
+    //     --button-color: var(--fixme);
+    //     --button-color-hover: var(--fixme);
+    //   }
+    // }
+    // Update colors for LIGHT backgrounds
+    @else {
+      --theme-text-color: var(--default-text-color);
+
+      // Reset colors when a parent wrapper has a background color class
+      // (i.e. a white group block inside of a dark-background block)
+      .has-background & {
+        // FIXME: Reset button and link colors to defaults
+        // --button-bg-color: var(--fixme);
+        // --button-bg-color-hover: var(--fixme);
+        // --button-color: var(--fixme);
+        // --button-color-hover: var(--fixme);
+        // --input-border-color: var(--fixme);
+        // --link-color: var(--fixme);
+        --theme-text-color: var(--default-text-color);
+      }
+    }
+  }
+}

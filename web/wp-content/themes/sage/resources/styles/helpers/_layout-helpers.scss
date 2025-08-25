@@ -1,0 +1,121 @@
+//------------------------------------------------------------------------
+// Layout helper classes
+//------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars" as *;
+@use "@mixins" as *;
+
+// Note: Just checking for [class*="l-wrap"] can result in false positives
+//       e.g. “Modal-wrap” would match
+[class^="l-wrap"],
+[class*=" l-wrap"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.l {
+  // Default site padding
+  &-padding {
+    @include default-padding;
+
+    @media print {
+      padding-inline: 0 !important;
+    }
+
+    // Optional class for applying vertical padding
+    // to blocks with solid color backgrounds.
+    &-vert {
+      @include strata-vert-padding;
+
+      // Since padding doesn’t collapse like margin, we need
+      // to manually remove top padding on adjacent blocks.
+      // Note: $block-colors is defined in _color-vars.scss
+      @each $name, $color in $block-background-colors {
+        &.has-#{$name}-background-color {
+          & + & {
+            padding-top: 0 !important;
+          }
+        }
+      }
+    }// end vert
+  }
+
+  &-wrap {
+    max-width: var(--layout-max-width);
+
+    &--narrow {
+      max-width: var(--layout-max-width-narrow);
+    }
+  }// end wrap
+
+  // Allow element to span viewport width regardless of parent width
+  // NOTE: These styles only work when the parent wrapper is centered.
+  &-fullwidth {
+    @include layout-fullwidth;
+
+    // Disable “max-width: 100%;” on media elements (from CSS reset)
+    &:is(canvas, img, picture, video) {
+      max-width: none;
+    }
+
+    .l-block-wrap & {
+      clear: both;
+    }
+  }
+
+  // Default margin between blocks
+  &-block {
+    clear: both;
+
+    &:where(:not(.l-fullwidth, :first-child)) {
+      @include default-block-margin(margin-top);
+    }
+
+    &:where(:not(.l-fullwidth, :last-child)) {
+      @include default-block-margin(margin-bottom);
+    }
+
+    // Add padding for Gutenberg blocks with “full” alignment
+    &.alignfull {
+      @include default-padding;
+    }
+
+    // Use this class to wrap content containing Gutenberg blocks
+    // Note: This could also be move to “_richtext-mixin.scss” if desired.
+    &-wrap {
+      // Account for empty script tag Gravity Forms adds before the form
+      & > :is(script:empty:first-child) {
+        display: block;
+      }
+
+      // Add margin ABOVE body copy
+      // Apply margin to first non-fullwidth child that’s not a floated image block
+      & > :is(:first-child:not(.l-fullwidth, .alignfull, .wp-block-image.alignleft, .wp-block-image.alignright)) {
+        // FIXME: Add additional templates below, adjust margins
+        .page &,
+        .single & {
+          margin-top: scale-clamp((375px: 80px, $layout-max-width-bp: 120px));
+        }
+
+        .search &,
+        .archive & {
+          margin-top: scale-clamp((375px: 30px, $layout-max-width-bp: 90px));
+        }
+      }
+
+      // Apply margin to next non-fullwidth element after a floated image block
+      & > :is(.wp-block-image:first-child):where(.alignleft, .alignright) {
+        & + :not(.l-fullwidth, .alignfull) {
+          margin-top: scale-clamp((375px: 40px, $layout-max-width-bp: 60px));
+        }
+      }
+
+      // Add margin BELOW body copy
+      // Apply bottom margin to last non-fullwidth child
+      & > :is(:last-child:not(.l-fullwidth, .alignfull)) {
+        margin-bottom: scale-clamp((375px: 60px, $layout-max-width-bp: 130px));
+      }
+    } // end wrap
+  } // end block
+
+} // end l

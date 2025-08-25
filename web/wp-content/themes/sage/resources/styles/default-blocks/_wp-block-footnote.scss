@@ -1,0 +1,37 @@
+//------------------------------------------------------------------------
+// Footnote
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/footnotes/style.scss
+//
+// Footnote link:
+//
+// <sup data-fn="12345" class="fn">
+//   <a href="#12345" id="12345-link">1</a>
+// </sup>
+//
+// Footnote list:
+//
+// <ol class="wp-block-footnotes">
+//   <li id="12345">
+//     Example footnote, supports text formatting and <a href="/">links</a>
+//     <a href="#12345-link" aria-label="Jump to footnote reference 1">↩︎</a>
+//   </li>
+// </ol>
+//------------------------------------------------------------------------
+
+// Link
+.fn {
+  a {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+}
+
+// List
+.wp-block-footnotes {
+  // We don’t want “↩︎” converted to an emoji so we’re applying the
+  // sans-serif font stack without our custom “color-emoji” font
+  // at the end (see _fonts.scss).
+  :where(a:last-child) {
+    font-family: system-ui, Segoe UI, sans-serif;
+  }
+}

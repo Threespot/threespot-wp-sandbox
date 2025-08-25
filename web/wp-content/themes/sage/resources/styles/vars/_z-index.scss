@@ -1,0 +1,12 @@
+//------------------------------------------------------------------------
+// z-index vars
+//
+// Use these when values must be kept in sync across components
+//------------------------------------------------------------------------
+:root {
+  --z-index-skip-links: 999;
+  --z-index-modal: 900;
+  --z-index-nav: 800;
+  --z-index-header: 700;
+  --z-index-main: 100;
+}

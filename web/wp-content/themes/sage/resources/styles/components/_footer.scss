@@ -1,0 +1,36 @@
+//------------------------------------------------------------------------
+// Footer
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.Footer {
+  background-color: var(--offwhite);
+  @include scale(padding-top padding-bottom, (375px: 50px, 900px: 100px));
+
+  &-social {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    &-link {
+      color: currentColor;
+      display: block;
+      padding: 8px;
+
+      @include attention {
+        color: var(--text-red);
+
+        svg {
+          transform: scale(1.1);
+        }
+      }
+
+      svg {
+        display: block;
+        fill: currentColor;
+        transition: transform 150ms ease-in-out;
+      }
+    }// end link
+  }// end social
+
+}// end Footer

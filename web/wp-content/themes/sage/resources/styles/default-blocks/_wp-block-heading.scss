@@ -1,0 +1,17 @@
+//------------------------------------------------------------------------
+// Default heading block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/heading/style.scss
+//------------------------------------------------------------------------
+.wp-block-heading {
+  // Override custom colors in dark mode
+  &.has-text-color {
+    @media (prefers-color-scheme: dark) {
+      color: inherit !important;
+    }
+  }
+
+  // Optional: Override default margin when heading precedes certain blocks
+  // &:has(+ .ExampleBlock) {
+  //   margin-top: 60px !important;
+  // }
+}

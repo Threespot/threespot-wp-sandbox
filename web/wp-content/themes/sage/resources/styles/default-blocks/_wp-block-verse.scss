@@ -1,0 +1,24 @@
+//------------------------------------------------------------------------
+// Verse block
+//
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+// Note: We’re duplicating the selector to override WP’s default styles
+//       without having to use !important.
+.wp-block-verse.wp-block-verse {
+  $vert-margin: 2em;
+  font-family: var(--default-font);
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+}

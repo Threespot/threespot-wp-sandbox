@@ -1,0 +1,34 @@
+// -------------------------------------------------------------------------
+// Skip Links
+//
+// Links should be visible on focus when tabbing
+// https://webaim.org/techniques/skipnav/
+// https://www.a11yproject.com/posts/skip-nav-links/
+// http://www.456bereastreet.com/archive/200909/skip_links_need_to_be_at_least_temporarily_visible/
+// -------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.SkipLink {
+  background-color: var(--default-bg-color);
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  color: var(--default-text-color);
+  font-size: 1rem;
+  font-weight: bold;
+  left: 50%;
+  padding: 13px 20px 15px;
+  position: absolute;
+  text-decoration: underline !important;
+  top: 0;
+  transform: translateX(-50%);
+  z-index: var(--z-index-skip-links);
+
+  &:not(:focus) {
+    transform: translate(-50%, -100%);// center horizontally
+    @include visually-hidden;
+  }
+
+  @media print {
+    display: none !important;
+  }
+}

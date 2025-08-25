@@ -1,0 +1,130 @@
+//------------------------------------------------------------------------
+// Default pulquote block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/pullquote/style.scss
+//
+// <figure class="wp-block-pullquote">
+//   <blockquote>
+//     <p>…</p>
+//     <cite>…</cite>
+//   </blockquote>
+// </figure>
+//
+// NOTE: Pullquotes don’t support inner blocks (just a <p> tag with line breaks)
+//       but they support layouts and custom border styles (disabled in theme.json)
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-pullquote {
+  $bp-align: 600px;
+  $bp-end-scale: 850px;
+  // Uncomment vars below to allow quote to shift outside of content well
+  // $bp-outset-start: $layout-max-width-narrow-bp;// or $bp-align, whichever is larger
+  // $bp-outset-end: $layout-max-width-bp + ($layout-padding-max * 2);
+  // $outset: ($layout-max-width-bp - $layout-max-width-narrow) * 0.5;
+  $float-horz-margin: 50px;
+  $vert-margin: 2em;
+  text-align: center;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  &:not(.alignleft, .alignright) {
+    clear: both;
+  }
+
+  &.alignleft,
+  &.alignright {
+    @include max-width($bp-align - 1px) {
+      float: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @include min-width($bp-align) {
+      margin-top: em(7px, $body-text-max-size);// align with text
+    }
+  }
+
+  &.alignleft {
+    // Uncomment to allow quotes to shift outside of content well
+    // @include scale(margin-left, ($bp-outset-start: 0px, $bp-outset-end: -$outset), $initial: false);
+
+    @include min-width($bp-align) {
+      clear: left;
+      float: left;
+      margin-right: em($float-horz-margin, $body-text-max-size);
+    }
+  }
+
+  &.alignright {
+    // Uncomment to allow quotes to shift outside of content well
+    // @include scale(margin-right, ($bp-outset-start: 0px, $bp-outset-end: -$outset), $initial: false);
+
+    @include min-width($bp-align) {
+      clear: right;
+      float: right;
+      margin-left: em($float-horz-margin, $body-text-max-size);
+    }
+  }
+
+  p {
+    font-size: scale-clamp((375px: 20px, $bp-end-scale: 31px));
+    text-wrap: balance;
+
+    &:not(:first-child) {
+      margin-top: 0.5em;
+    }
+
+    // NOTE: WP automatically converts "…" to “…” so we don’t need to add
+    //       quoation marks with CSS unless the requirements call for them
+    //       to be added regardless of whether authors typed them.
+    //
+    // Notes on “quote” property
+    // https://css-tricks.com/almanac/properties/q/quotes/
+    //
+    // Add opening and closing quotes
+    // NOTE: Don’t define the “quote” property, use browser default
+    // https://css-tricks.com/almanac/properties/q/quotes/
+    // https://w3c.github.io/i18n-discuss/default-quote-styling
+    // https://www.stefanjudis.com/today-i-learned/how-to-use-language-dependent-quotes-in-css/
+    // &:first-child {
+    //   &:before {
+    //     content: open-quote;
+    //   }
+    // }
+    //
+    // &:last-of-type {
+    //   &:after {
+    //     content: close-quote;
+    //   }
+    // }
+  }// end p
+
+  // Optional: Custom block style to remove quotes (see gutenberg.js)
+  // &.is-style-no-quotes {
+  //   p {
+  //     quotes: none;
+  //
+  //     &:before,
+  //     &:after {
+  //       display: none;
+  //     }
+  //   }
+  // }
+
+  cite,
+  &__citation {
+    display: block;
+    font-size: 16px;
+    margin-top: 1em;
+  }
+}// end wp-block-pullquote

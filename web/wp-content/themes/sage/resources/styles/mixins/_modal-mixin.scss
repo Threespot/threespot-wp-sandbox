@@ -1,0 +1,68 @@
+//------------------------------------------------------------------------
+// Modal windows (required by modals.js)
+//
+// Content is shown by default and hidden once JS runs
+// https://github.com/Threespot/modal
+//------------------------------------------------------------------------
+@mixin modal-mixin($max-width: none) {
+  $selector: &;
+  $z-index: 900;
+  --modal-easing: ease;
+  --modal-close-speed: 350ms;
+  --modal-open-delay: 0ms;
+  --modal-open-speed: 350ms;
+  background-color: transparent;// overlay color
+  bottom: 0;
+  left: 0;
+  margin: 0 !important; // reset u-richtext div styles
+  max-height: 0; // iOS fix
+  opacity: 0;
+  overflow: auto; // allows scrollig when content exceeds viewport height
+  -webkit-overflow-scrolling: touch; // iOS “momentum” scrolling
+  position: fixed;
+  right: 0;
+  top: 0;
+  transition: max-height 0s linear var(--modal-close-speed),
+              visibility 0s linear var(--modal-close-speed),
+              opacity var(--modal-close-speed) var(--modal-easing);
+  visibility: hidden; // hide from screen readers and keyboards until active
+  z-index: $z-index; // must be greater than overlay
+
+  @media (prefers-reduced-motion: reduce) {
+    --modal-close-speed: 0s;
+    --modal-open-delay: 0s;
+    --modal-open-speed: 0s;
+  }
+
+  // Styles will be applied when URL hash matches modal ID attribute
+  &:not([aria-hidden]):target,
+  &:not([aria-hidden]):has(:target),
+  &[aria-hidden="false"] {
+    background-color: var(--modal-bg-color, rgba(#000, 0.5));// overlay color
+    max-height: 100vh; // can’t set to “none” because that can't be transitioned
+    opacity: 1;
+    transition: max-height 0s linear 0s,
+                visibility 0s linear 0s,
+                background-color var(--modal-open-speed) var(--modal-easing) var(--modal-open-delay),
+                opacity var(--modal-open-speed) var(--modal-easing) var(--modal-open-delay);
+    visibility: visible;
+  }
+
+  // Modal content wrapper
+  &-content {
+    opacity: 0;
+    transition: visibility 0s linear var(--modal-close-speed),
+                opacity var(--modal-close-speed) var(--modal-easing);
+    visibility: hidden;
+    width: 100%;
+    z-index: $z-index + 1;
+
+    #{$selector}:not([aria-hidden]):target &,
+    #{$selector}[aria-hidden="false"] & {
+      opacity: 1;
+      transition: visibility 0s linear 0s,
+                  opacity var(--modal-open-speed) var(--modal-easing) var(--modal-open-delay);
+      visibility: visible;
+    }
+  }// end content
+}// end Modal

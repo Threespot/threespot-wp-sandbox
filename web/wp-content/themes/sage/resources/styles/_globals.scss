@@ -1,0 +1,16 @@
+//------------------------------------------------------------------------
+// This file includes 3rd-party libs plus project vars/functions/mixins
+// Note: These were moved to a separate file so we can easily reference
+//       them in every component with a single line of code:
+//       @use "@styles/globals" as *;
+//------------------------------------------------------------------------
+$is-admin--globals: false !default;
+
+// Threespot’s Frontline Sass library
+// http://threespot.github.io/frontline-sass/documentation/
+@forward "frontline-sass";
+
+// Project styles
+@forward "vars/index";
+@forward "functions/index";
+@forward "mixins/index" with ($is-admin--mixins: $is-admin--globals);

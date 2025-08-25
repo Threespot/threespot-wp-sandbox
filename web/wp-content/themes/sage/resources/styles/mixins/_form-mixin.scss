@@ -1,0 +1,61 @@
+@use "frontline-sass" as *;
+@use "@vars" as *;
+@use "@mixins/input-mixins" as *;
+
+@mixin form-mixin() {
+  label {
+    display: inline-block;
+
+    .required {
+      color: var(--input-error-color);
+      font-weight: normal;
+    }
+
+    // Error message
+    // 1. Undo label styles
+    [data-validate="error"] {
+      display: block;
+      font-size: 15px;
+      font-weight: normal;// [1]
+      letter-spacing: normal;// [1]
+      text-transform: none;// [1]
+
+      &[data-validate="error"] {
+        color: var(--input-error-color);
+
+        &.is-hidden {
+          display: none;
+        }
+      }
+    }
+  }// end label
+
+  @include text-inputs {
+    @include input-default;
+  }
+
+  textarea {
+    @include input-default;
+  }
+
+  // Apply error styles to all form elements
+  :where(datalist, input, select, textarea) {
+    &:focus {
+      --input-border-color: var(--input-border-color-focus);
+    }
+
+    &:invalid,
+    &.is-invalid {
+      --input-border-color: var(--input-error-color);
+    }
+  }
+
+  // Error messages
+  [data-validate='error'] {
+    color: var(--input-error-color);
+
+    &.is-hidden {
+      display: none !important;
+    }
+  } // end error
+}

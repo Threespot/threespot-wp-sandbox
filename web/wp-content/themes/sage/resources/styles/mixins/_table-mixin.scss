@@ -1,0 +1,61 @@
+// -------------------------------------------------------------------------
+// Tables
+// -------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars" as *;
+@use "admin-media-query" as *;
+@use "richtext-headings" as *;
+
+// Default table styles (do not apply globally, they should be opt-in)
+// 1. Collapsing the borders causes extra 1px width, triggering horz scroll bar (browser bug)
+// 2. Makes numbers all the same height (requires OpenType support)
+@mixin table-styles {
+  --cell-horz-padding: 10px;
+  --cell-vert-padding: 10px;
+  border-collapse: separate; // [1]
+  font-size: scale-clamp((375px: 15px, $layout-text-scale-end-bp: 18px));
+  font-feature-settings: "lnum" on;// [2]
+  min-width: 100%;
+
+  // Add padding for wider viewports
+  @include min-width(500px) {
+    --cell-horz-padding: 16px;
+  }
+
+  caption {
+    @include h4;
+    margin-bottom: 1em;
+  }
+
+  thead,
+  tfoot {
+    font-weight: bold;
+  }
+
+  thead {
+    :where(td, th) {
+      border-bottom: 1px solid currentColor;
+      padding: 0 var(--cell-horz-padding) var(--cell-vert-padding);
+      vertical-align: bottom;
+    }
+  }// end thead
+
+  tbody {
+    border-bottom: 2px solid currentColor;
+
+    td {
+      border-top: 1px solid currentColor;
+      padding: var(--cell-vert-padding) var(#{--cell-horz-padding});
+      vertical-align: middle;
+    }
+  }// end tbody
+
+  tfoot {
+    td {
+      background-color: var(--table-highlight-color, var(--offwhite));
+      border-top: 2px solid currentColor;
+      padding: var(--cell-vert-padding) var(--cell-horz-padding);
+      vertical-align: middle;
+    }
+  }// end tfoot
+}

@@ -1,0 +1,194 @@
+// -------------------------------------------------------------------------
+// Base Styles
+//
+// stylelint-disable no-important media-feature-name-no-unknown
+// -------------------------------------------------------------------------
+$enable-dark-mode: false !default;
+$is-admin: false !default;
+
+@use "@styles/globals" as *;
+
+:root {
+  // NOTE: Critical CSS vars (i.e. used by JS) must also be added to critical.scss
+  //       just in case JS executes before the CSS Object Model (CSSOM) is ready.
+  --layout-nav-bp: #{$layout-nav-bp};
+
+  // NOTE: Additional CSS vars found in /styles/vars (e.g. _color-vars.scss)
+
+  // Default color vars
+  --default-bg-color: #fff;
+  --default-text-color: #000;
+
+  // Default font vars
+  --default-font: var(--fixme-font);
+  --default-font-weight: var(--fixme-semibold);
+  --default-line-height: 1.44;
+
+  @include min-width($layout-text-scale-end-bp) {
+    --default-line-height: 1.55;
+  }
+
+  // Dark mode colors
+  // Note: Update $enable-dark-mode--globals in main.scss to enable/disable
+  @if $enable-dark-mode {
+    @media (prefers-color-scheme: dark) {
+      --default-bg-color: #000;
+      --default-text-color: #fff;
+      --caption-text-color: currentColor;
+      --highlight-bg-color: #fff;
+      --highlight-text-color: #000;
+      --pre-bg-color: #2e2e2e;
+      --table-highlight-color: #2e2e2e;
+    }
+  }
+}
+
+// 1. Set bg color on html instead of body to ensure it always fills the page
+//    http://css-tricks.com/just-one-of-those-weird-things-about-css-background-on-body/
+html {
+  background-color: var(--default-bg-color);// [1]
+  color: var(--default-text-color);
+
+  // Use native smooth scrolling
+  // &.smooth-scroll {
+  //   scroll-behavior: smooth;
+  //
+  //   // Diable smooth scrolling if user has enabled “reduce motion” in their browser/OS
+  //   // https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion#user_preferences
+  //   @media screen and (prefers-reduced-motion: reduce) {
+  //     scroll-behavior: auto !important;
+  //   }
+  // }
+
+  // Support iOS accessibility text sizes
+  // Note: Only apply on iOS since desktop Safari will look zoomed out
+  // https://webkit.org/blog/3709/using-the-system-font-in-web-content/
+  // https://web.archive.org/web/20220930195151/https://www.interactiveaccessibility.com/blog/text-resizing-web-pages-ios-using-dynamic-type
+  // https://dev.to/colingourlay/how-to-support-apple-s-dynamic-text-in-your-web-content-with-css-40c0
+  // https://gist.github.com/colingourlay/d95908ec5cd4854c7a5afa06f3989479
+  // stylelint-disable font-family-no-missing-generic-family-keyword
+  &.ua-ios {
+    @supports (font: -apple-system-body) {
+      font: -apple-system-body;
+    }
+  }
+
+  // Optional: Add extra margin above jump link targets to offset the fixed header
+  // https://css-tricks.com/fixed-headers-on-page-links-and-overlapping-content-oh-my/
+  // https://caniuse.com/mdn-css_properties_scroll-padding
+  // @if not $is-admin {
+  //   @supports (scroll-padding-top: 0) {
+  //     $vert-offset: 20px;
+  //     scroll-padding-top: calc(var(--layout-header-height) + $vert-offset);
+  //   }
+  // }
+
+  // Allow long words to wrap
+  @include max-width(319px) {
+    hyphens: auto;// requires lang attribute be set on target element or ancestor
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  // Prevent page from scrolling (required by freeze-scroll.js)
+  &.js-no-scroll {
+    height: 100% !important;
+
+    body {
+      height: 100%; // don’t add !important, will be overridden by inline styles
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+    }
+  }
+}
+
+// 2. Set “font-family” on body since we’re applying “-apple-system-body” on html element
+// 3. Prevent browsers from automatically adding hyphens by default
+body {
+  &:not(.wp-admin) {
+    font-family: var(--default-font);// [2]
+    font-weight: var(--default-font-weight);
+    hyphens: manual;// [3]
+    overflow-x: hidden;// this breaks “position: sticky”
+  }
+} // end body
+
+//------------------------------------------------------------------------
+// Opinionated global default styles not included in CSS reset
+// Note: Use :where() since its specificity is 0, avoiding conflicts
+//------------------------------------------------------------------------
+:where(a) {
+  @include link-base;
+}
+
+:where(svg:not([fill])) {
+  fill: currentColor;
+}
+
+// Prevent zoom on iOS (requires adding "ios" class to <html>)
+// http://www.456bereastreet.com/archive/201212/ios_webkit_browsers_and_auto-zooming_form_controls/
+@if $body-text-min-size < 16px {
+  :where(.ua-ios) {
+    input,
+    textarea,
+    select {
+      // Use max() to make it easier to override in component styles
+      font-size: max(1em, 16px);
+    }
+  }
+}
+
+// Disable animations accessibly for users requesting reduced motion,
+// as well as devices with a slow refresh rate.
+// NOTE: Not all animations are bad, some may need to override this.
+// https://web.dev/prefers-reduced-motion/
+// https://piccalil.li/blog/a-modern-css-reset
+// https://css-tricks.com/revisiting-prefers-reduced-motion-the-reduced-motion-media-query/
+// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/update-frequency
+// @media screen and (prefers-reduced-motion: reduce), (update: slow) {
+//   *,
+//   ::before,
+//   ::after {
+//     animation-delay: -1ms !important;
+//     animation-duration: 1ms !important;
+//     animation-iteration-count: 1 !important;
+//     background-attachment: initial !important;
+//     scroll-behavior: auto !important;
+//     // transition-duration: 0s !important;// this breaks SVGs from sprites in Edge
+//     transition-delay: 0s !important;
+//   }
+// }
+
+// -------------------------------------------------------------------------
+// Remove text-shadow in selection highlight : http://h5bp.com/i
+// -------------------------------------------------------------------------
+// ::selection {
+//   background-color: $some-custom-color;
+//   text-shadow: none;
+// }
+
+//------------------------------------------------------------------------
+// Hide outlines on focused elements using “what-input” JS plugin
+//------------------------------------------------------------------------
+[data-whatintent="mouse"],
+[data-whatintent="touch"] {
+  *:focus {
+    outline: none;
+  }
+}
+
+//------------------------------------------------------------------------
+// Pantheon HUD plugin admin bar fixes
+//------------------------------------------------------------------------
+#wp-admin-bar-pantheon-hud > .ab-item {
+  align-items: center !important;
+  display: flex !important;
+
+  img {
+    height: auto !important;
+    margin-top: 0 !important;
+    width: 26px !important;
+  }
+}

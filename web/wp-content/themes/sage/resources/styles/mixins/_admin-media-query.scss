@@ -1,0 +1,459 @@
+//------------------------------------------------------------------------
+// Override min-width() and max-width() mixins in the admin styles
+// to account for the WordPress menu and Gutenberg sidebar.
+//
+// Note: Admin breakpoint and width vars are defined in gutenberg.scss:
+//
+//   $admin-menu-bp: 783px;
+//   $admin-menu-wide-bp: 961px;
+//   $admin-menu-width: 36px;
+//   $admin-menu-width-wide: 160px;
+//   $admin-sidebar-width: 281px;
+//
+// There are 6 possible view modes we need to account for:
+//
+// 1. Fullscreen mode (same as live site, no action needed)
+// 2. Fullscreen mode at >= $admin-menu-bp with sidebar
+// 3. Narrow WP menu at >= $admin-menu-bp
+// 4. Narrow WP menu at >= $admin-menu-bp with sidebar
+// 5. Wide WP menu at >= $admin-menu-wide-bp
+// 6. Wide WP menu at >= $admin-menu-wide-bp with sidebar
+//
+// We can target each of these viewing modes using the “is-fullscreen-mode”
+// and “is-sidebar-opened” classes. Our custom mixin will increase the
+// breakpoint width of the original media query by the appropriate
+// amount for conditions 2–6 so content appears correctly in the editor.
+//------------------------------------------------------------------------
+$is-admin--media-query: false !default;
+@use "sass:string";
+@use "@vars" as *;
+
+// This is our custom function that will override Frontline’s
+// min-width/max-width mixins (but only in the admin style sheet).
+@mixin admin-media-query($type, $breakpoint) {
+  // In order to prepend our fullscreen/sidebar classes, we need to know if
+  // the mixin was used inside of another selector, and therefore needs to
+  // prepend the parent “&” seelctor. We can find out by checking the length
+  // of the parent “&” selector.
+  $has-parent: string.length(#{&}) > 0;
+
+  //------------------------------------------------------------------------
+  // Fullscreen mode
+  //------------------------------------------------------------------------
+
+  // No sidebar (uses $admin-selector-fullscreen)
+  //---------------------------------
+  // We don’t need to change the breakpoint if the sidebar is closed
+  @media (#{$type}: #{$breakpoint}) {
+    @if $has-parent {
+      #{$admin-selector-fullscreen} & {
+        @content;
+      }
+    }
+    @else {
+      #{$admin-selector-fullscreen} {
+        @content;
+      }
+    }
+  }
+
+  // Sidebar open (uses $admin-selector-fullscreen-sidebar)
+  //---------------------------------
+  // Do nothing if breakpoint <= narrow menu content well width (<=502px)
+  @if $breakpoint <= ($admin-menu-bp - $admin-sidebar-width) {
+    @media (#{$type}: #{$breakpoint}) {
+      @if $has-parent {
+        #{$admin-selector-fullscreen-sidebar} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-fullscreen-sidebar} {
+          @content;
+        }
+      }
+    }
+  }
+  // We need to create separate breakpoints for below/above $admin-menu-bp (>502px)
+  // using max-width to prevent both media queries from applying at the same time.
+  @else {
+    @if $type == 'min-width' {
+      // Below $admin-menu-bp
+      @media (min-width: #{$breakpoint}) and (max-width: #{$admin-menu-bp - 1px}) {
+        @if $has-parent {
+          #{$admin-selector-fullscreen-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-fullscreen-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$breakpoint + $admin-sidebar-width}) {
+        @if $has-parent {
+          #{$admin-selector-fullscreen-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-fullscreen-sidebar} {
+            @content;
+          }
+        }
+      }
+    }
+    @else if $type == 'max-width' {
+      // Below $admin-menu-bp
+      @media (#{$type}: #{$breakpoint}) {
+        @if $has-parent {
+          #{$admin-selector-fullscreen-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-fullscreen-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$admin-menu-bp}) and (max-width: #{$breakpoint + $admin-sidebar-width}) {
+        @if $has-parent {
+          #{$admin-selector-fullscreen-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-fullscreen-sidebar} {
+            @content;
+          }
+        }
+      }
+    }
+  }
+
+  //------------------------------------------------------------------------
+  // Non-fullscreen mode
+  //------------------------------------------------------------------------
+
+  // No sidebar (uses $selector)
+  //---------------------------------
+  // Do nothing if breakpoint <= narrow menu content well width (747px)
+  @if $breakpoint <= ($admin-menu-bp - $admin-menu-width) {
+    @media (#{$type}: #{$breakpoint}) {
+      @if $has-parent {
+        #{$admin-selector-default} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-default} {
+          @content;
+        }
+      }
+    }
+  }
+  // Breakpoints between min narrow menu content well width and admin breakpoint (748–782px)
+  @else if $breakpoint < $admin-menu-bp {
+    @if $type == 'min-width' {
+      // Below $admin-menu-bp
+      @media (min-width: #{$breakpoint}) and (max-width: #{$admin-menu-bp - 1px}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$breakpoint + $admin-menu-width}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+    }
+    @else if $type == 'max-width' {
+      // Below $admin-menu-bp
+      @media (#{$type}: #{$breakpoint}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$admin-menu-bp}) and (max-width: #{$breakpoint + $admin-menu-width}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+    }
+  }
+  // Breakpoints between admin breakpoint and min wide menu content well (783–801px)
+  @else if $breakpoint <= ($admin-menu-wide-bp - $admin-menu-width-wide) {
+    @media (#{$type}: #{$breakpoint + $admin-menu-width}) {
+      @if $has-parent {
+        #{$admin-selector-default} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-default} {
+          @content;
+        }
+      }
+    }
+  }
+  // Breakpoints between (802–924px)
+  @else if $breakpoint <= ($admin-menu-wide-bp - 1px - $admin-menu-width) {
+    @if $type == 'min-width' {
+      // Below $admin-menu-wide-bp
+      @media (min-width: #{$breakpoint + $admin-menu-width}) and (max-width: #{$admin-menu-wide-bp - 1px}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-wide-bp
+      @media (min-width: #{$breakpoint + $admin-menu-width-wide}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+    }
+    @else if $type == 'max-width' {
+      // Below $admin-menu-wide-bp
+      @media (#{$type}: #{$breakpoint + $admin-menu-width}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-wide-bp
+      @media (min-width: #{$admin-menu-wide-bp}) and (max-width: #{$breakpoint + $admin-menu-width-wide}) {
+        @if $has-parent {
+          #{$admin-selector-default} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default} {
+            @content;
+          }
+        }
+      }
+    }
+  }
+  // Breakpoints above max narrow menu content well (>924px)
+  @else {
+    @media (#{$type}: #{$breakpoint + $admin-menu-width-wide}) {
+      @if $has-parent {
+        #{$admin-selector-default} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-default} {
+          @content;
+        }
+      }
+    }
+  }
+
+  // Sidebar (uses $admin-selector-default-sidebar)
+  //---------------------------------
+  // Do nothing if breakpoint <= content well width (466px)
+  @if $breakpoint <= ($admin-menu-bp - $admin-menu-width - $admin-sidebar-width) {
+    @media (#{$type}: #{$breakpoint}) {
+      @if $has-parent {
+        #{$admin-selector-default-sidebar} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-default-sidebar} {
+          @content;
+        }
+      }
+    }
+  }
+  // Breakpoints between min narrow menu content well width and admin breakpoint (467–643px)
+  @else if $breakpoint <= ($admin-menu-wide-bp - 1px - $admin-menu-width - $admin-sidebar-width) {
+    @if $type == 'min-width' {
+      // Below $admin-menu-bp
+      @media (min-width: #{$breakpoint}) and (max-width: #{$admin-menu-bp - 1px}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$breakpoint + $admin-menu-width + $admin-sidebar-width}) and (max-width: #{$admin-menu-wide-bp - 1px}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-wide-bp
+      @media (min-width: #{$breakpoint + $admin-menu-width-wide + $admin-sidebar-width}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+    }
+    @else if $type == 'max-width' {
+      // Below $admin-menu-bp
+      @media (#{$type}: #{$breakpoint}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-bp
+      @media (min-width: #{$admin-menu-bp}) and (max-width: #{$breakpoint + $admin-menu-width + $admin-sidebar-width}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+      // Above $admin-menu-wide-bp
+      @media (min-width: #{$admin-menu-wide-bp}) and (max-width: #{$breakpoint + $admin-menu-width-wide + $admin-sidebar-width}) {
+        @if $has-parent {
+          #{$admin-selector-default-sidebar} & {
+            @content;
+          }
+        }
+        @else {
+          #{$admin-selector-default-sidebar} {
+            @content;
+          }
+        }
+      }
+    }
+  }
+  // Breakpoints above wide admin breakpoint (>=643px)
+  @else {
+    @media (#{$type}: #{$breakpoint + $admin-menu-width-wide + $admin-sidebar-width}) {
+      @if $has-parent {
+        #{$admin-selector-default-sidebar} & {
+          @content;
+        }
+      }
+      @else {
+        #{$admin-selector-default-sidebar} {
+          @content;
+        }
+      }
+    }
+  }
+}
+
+// Override min-width() to use admin-media-query() in the admin styles
+//------------------------------------------------------------------------
+@mixin min-width($breakpoint) {
+  $is-admin: $is-admin--media-query;
+
+  @if $is-admin {
+    @include admin-media-query(min-width, $breakpoint) {
+      @content;
+    }
+  }
+  @else {
+    @media (min-width: $breakpoint) {
+      @content;
+    }
+  }
+}
+
+// Override max-width() to use admin-media-query() in the admin styles
+//------------------------------------------------------------------------
+@mixin max-width($breakpoint) {
+  $is-admin: $is-admin--media-query;
+
+  @if $is-admin {
+    @include admin-media-query(max-width, $breakpoint) {
+      @content;
+    }
+  }
+  @else {
+    @media (max-width: $breakpoint) {
+      @content;
+    }
+  }
+}

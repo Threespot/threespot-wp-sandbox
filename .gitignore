@@ -14,6 +14,7 @@ web/*
 !web/wp-config.php
 !web/wp-content/
 web/wp-content/*
+!web/wp-content/cache
 !web/wp-content/mu-plugins/
 web/wp-content/mu-plugins/*
 !web/wp-content/mu-plugins/custom
@@ -24,7 +25,6 @@ web/wp-content/plugins/*
 !web/wp-content/plugins/.gitkeep
 !web/wp-content/themes
 web/wp-content/themes/*
-!web/wp-content/themes/custom/
 !web/wp-content/themes/.gitkeep
 !web/wp-content/config/
 web/wp
@@ -36,40 +36,41 @@ web/private/scripts/quicksilver
 !.circleci
 .bashrc
 
-# Threespot custom whitelist
+# Threespot custom rules
 .env
 *.env
 .env.*
-frm.min.js
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/php.ini
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+auth.json
+.stylelintcache
+# Overrides to keep files
+!web/cache
 !web/wp-content/mu-plugins/bedrock-autoloader.php
 !web/wp-content/mu-plugins/custom-post-types
 !web/wp-content/mu-plugins/custom-taxonomies
-!web/wp-content/mu-plugins/pantheon
-!web/wp-content/mu-plugins/pantheon.php
-!web/wp-content/mu-plugins/threespot-custom-wp-functions
-!web/wp-content/plugins/fly-dynamic-image-resizer
-!web/wp-content/plugins/gravityforms
-!web/wp-content/plugins/learndash-propanel
-!web/wp-content/plugins/mapsvg-lite-interactive-vector-maps
-!web/wp-content/plugins/searchwp
-!web/wp-content/plugins/searchwp-boolean
-!web/wp-content/plugins/searchwp-exclude-ui
-!web/wp-content/plugins/sfwd-lms
-!web/wp-content/plugins/ws-form-pro
+!web/wp-content/object-cache.php
 # Include any plugins not loaded via composer
-# !web/wp-content/object-cache.php
-# !web/wp-content/plugins/searchwp-enable-media-replace
-# !web/wp-content/plugins/searchwp-metrics
-# !web/wp-content/plugins/wp-all-import-pro
-# !web/wp-content/plugins/wpai-acf-add-on
-# !web/wp-content/plugins/wpai-linkcloak-add-on
-# !web/wp-content/plugins/wpai-user-add-on
-
-!web/wp-content/themes/threespot-wp-sandbox
-!web/wp-content/themes/twentytwenty-child
+!web/wp-content/plugins/acf-extended-pro
+!web/wp-content/plugins/facetwp*
+!web/wp-content/plugins/fly-dynamic-image-resizer
+!web/wp-content/plugins/gravityforms*
+!web/wp-content/plugins/searchwp*
+!web/wp-content/plugins/wp-all-*
+!web/wp-content/plugins/wpae*
+!web/wp-content/plugins/wpai*
+!web/wp-content/themes/sage
+!web/wp-content/uploads/cache/acorn/framework/cache/.gitkeep
 
 # Add directories containing build assets below.
 # Keep all additions above the "cut" line.
+
+
 
 # :::::::::::::::::::::: cut ::::::::::::::::::::::
 
@@ -106,10 +107,6 @@ web/wp-content/backups/
 # Avoid accidental modification of pantheon.upstream.yml in sites
 # created from this upstream
 pantheon.upstream.yml
-
-# Terminus #
-############
-installer.phar
 
 # Packages #
 ############

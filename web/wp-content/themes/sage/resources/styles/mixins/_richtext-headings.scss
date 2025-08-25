@@ -1,0 +1,73 @@
+//------------------------------------------------------------------------
+// Rich text heading styles
+//
+// Note: Be aware that “text-rendering: optimizeLegibility” can sometimes
+//       result in edge-case issues. Make sure to test if using it.
+//------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars" as *;
+
+@mixin h2($include-margin: false) {
+  color: var(--theme-text-color, var(--default-text-color));
+  font-family: var(--serif);
+  font-size: var(--heading-size, #{scale-clamp((375px: 34px, $layout-text-scale-end-bp: 48px))});
+  font-weight: bold;
+  line-height: 1.25;
+
+  @if $include-margin {
+    margin-bottom: 20px;
+    margin-top: 50px;
+  }
+}
+
+@mixin h3($include-margin: false) {
+  color: var(--theme-text-color, var(--default-text-color));
+  font-family: var(--serif);
+  font-size: var(--heading-size, #{scale-clamp((375px: 28px, $layout-text-scale-end-bp: 43px))});
+  font-weight: normal;
+  line-height: 1.3;
+
+  @if $include-margin {
+    margin-bottom: 20px;
+    margin-top: 50px;
+  }
+}
+
+@mixin h4($include-margin: false) {
+  color: var(--theme-text-color, var(--default-text-color));
+  font-family: var(--serif);
+  font-size: var(--heading-size, #{scale-clamp((375px: 26px, $layout-text-scale-end-bp: 32px))});
+  font-weight: normal;
+  line-height: 1.4;
+
+  @if $include-margin {
+    margin-bottom: 16px;
+    margin-top: 50px;
+  }
+}
+
+@mixin h5($include-margin: false) {
+  color: var(--theme-text-color, var(--default-text-color));
+  font-family: var(--sans-serif);
+  font-size: var(--heading-size, #{scale-clamp((375px: 20px, $layout-text-scale-end-bp: 26px))});
+  font-weight: bold;
+  line-height: 1.4;
+
+  @if $include-margin {
+    margin-bottom: 16px;
+    margin-top: 50px;
+  }
+}
+
+@mixin h6($include-margin: false) {
+  color: var(--theme-text-color, var(--default-text-color));
+  font-family: var(--sans-serif);
+  font-size: var(--heading-size, #{scale-clamp((375px: 16px, $layout-text-scale-end-bp: 22px))});
+  font-weight: bold;
+  line-height: 1.4;
+
+  @if $include-margin {
+    margin-bottom: 14px;
+    margin-top: 50px;
+  }
+}

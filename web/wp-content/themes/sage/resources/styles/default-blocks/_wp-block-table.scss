@@ -1,0 +1,80 @@
+//------------------------------------------------------------------------
+// Default table block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/table/style.scss
+//
+// <figure class="wp-block-table [alignwide|alignfull]">
+//   <table class="[has-fixed-layout]">
+//     <thead>
+//       <tr>
+//         <th class="has-text-align-[left|right|center]" data-align="[left|right|center]">Column 1</th>
+//       </tr>
+//     </thead>
+//     <tbody>
+//       <tr>
+//         <td class="has-text-align-[left|right|center]" data-align="[left|right|center]">Example…</td>
+//       </tr>
+//     </tbody>
+//     <tfoot>
+//       <tr>
+//         <td class="has-text-align-[left|right|center]" data-align="[left|right|center]">Footer</td>
+//       </tr>
+//     </tfoot>
+//   </table>
+//   <figcaption>Table caption…</figcaption>
+// </figure>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-table {
+  $vert-margin: 2em;
+  display: block !important;// override WP admin styles
+  overflow-x: scroll;// allow horz scroll when needed
+  -webkit-overflow-scrolling: touch;// iOS “momentum” scrolling
+
+  table {
+   @include table-styles;
+  }
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  // Zebra stripe styles
+  &.is-style-stripes {
+    border-bottom: 0;// override default WP styles
+
+    tbody {
+      tr:nth-child(odd) {
+        background-color: var(--table-highlight-color, var(--offwhite));
+      }
+    }
+  }
+
+  // Custom admin styles
+  :where(body.wp-admin) & {
+    th,
+    td {
+      border: 0;
+    }
+  }
+
+  // 1. We’re allowing tables to scroll horizontally so pverride default WP style
+  th,
+  td {
+    border: 0 solid currentColor;
+    word-break: normal !important;// [1]
+  }
+
+  .wp-element-caption {
+    margin-top: 25px;
+    @include caption;
+  }
+}// end wp-block-table

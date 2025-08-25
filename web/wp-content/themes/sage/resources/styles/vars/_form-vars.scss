@@ -1,0 +1,27 @@
+//------------------------------------------------------------------------
+// Form vars
+//
+// Used by _input-mixins.scss
+//------------------------------------------------------------------------
+@use "color-vars" as *;
+:root {
+  --button-border-radius: 5px;
+  --button-padding-horz: 20px;
+  --button-padding-vert: 12px;
+  --checkbox-border-width: 2px;
+  --checkbox-width: 20px;
+  --input-border-color: #ccc;
+  --input-border-color-focus: mediumvioletred;
+  --input-border: 1px solid var(--input-border-color);
+  --input-border-radius: 4px;
+  --input-disabled-background: var(--offwhite);
+  --input-disabled-border: #ccc;
+  --input-disabled-color: var(--default-text-color);
+  --input-error-color: var(--text-red);
+  --input-padding-horz: 14px;
+  --input-padding: 12px var(--input-padding-horz) 13px;
+
+  // Accent color (used by checkboxes, radios, sliders, etc.)
+  // https://web.dev/articles/accent-color
+  accent-color: mediumvioletred;
+}

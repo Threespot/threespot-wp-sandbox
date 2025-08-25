@@ -1,0 +1,18 @@
+//------------------------------------------------------------------------
+// Default separator block (i.e. horizontal rule) styles
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/separator/style.scss
+//
+// <hr class="wp-block-separator">
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+// 1. Use border instead of background-color since it will print by default
+.wp-block-separator,
+.u-richtext hr {
+  border: 0;// override default WP styles
+  border-top: 1px solid var(--theme-text-color, currentColor);// [1]
+  clear: both;
+  margin: 2em auto;
+  max-width: var(--layout-max-width-narrow) !important;// override default WP styles
+  opacity: 0.5;
+}

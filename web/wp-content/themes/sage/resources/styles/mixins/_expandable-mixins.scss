@@ -1,0 +1,32 @@
+//------------------------------------------------------------------------
+// Expand/collapse styles
+// For use with https://github.com/Threespot/expand-toggle
+//------------------------------------------------------------------------
+@use "frontline-sass" as *;
+
+// Default mixin, slides content down using “translateY” but won’t change the height
+@mixin expandable() {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: grid-template-rows var(--expand-speed, 500ms) var(--expand-easing, easing("easeOutCubic")),
+                visibility 0s linear var(--expand-speed, 500ms);
+  }
+
+  &[aria-hidden="false"],
+  .no-js & {
+    grid-template-rows: 1fr;
+    visibility: visible;
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: grid-template-rows var(--expand-speed, 500ms) var(--expand-easing, easing("easeOutCubic")),
+                  visibility 0s linear 0s;
+    }
+  }
+
+  &-wrap {
+    overflow: hidden;
+  }
+}

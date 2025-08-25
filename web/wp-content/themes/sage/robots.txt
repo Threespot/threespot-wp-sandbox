@@ -1,0 +1,112 @@
+User-agent: *
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/themes/
+Disallow: /*?*
+Allow: /wp-admin/admin-ajax.php
+
+# Bot blocklist
+User-agent: 008
+User-agent: AhrefsBot
+User-agent: AwarioRssBot
+User-agent: AwarioSmartBot
+User-agent: Bytespider
+User-agent: DataForSeoBot
+User-agent: DotBot
+User-agent: Download Ninja
+User-agent: Dubbotbot
+User-agent: Fetch
+User-agent: HTTrack
+User-agent: k2spider
+User-agent: larbin
+User-agent: libwww
+User-agent: linko
+User-agent: lyticsbot
+User-agent: magpie-crawler
+User-agent: Mediapartners-Google*
+User-agent: Microsoft.URL.Control
+User-agent: MJ12Bot
+User-agent: MSIECrawler
+User-agent: news-please
+User-agent: NewsNow
+User-agent: NPBot
+User-agent: Offline Explorer
+User-agent: PiplBot
+User-agent: PopeTech-CrawlBot
+User-agent: PopeTech-ScanBot
+User-agent: PowerMapper
+User-agent: RavenCrawler
+User-agent: rogerbot
+User-agent: Scrapy
+User-agent: SEMrushBot
+User-agent: SiteAuditBot
+User-agent: sitecheck.internetseer.com
+User-agent: SiteSnagger
+User-agent: SplitSignalBot
+User-agent: Swiftbot
+User-agent: Teleport
+User-agent: TeleportPro
+User-agent: TurnitinBot
+User-agent: voltron
+User-agent: WebCopier
+User-agent: WebReaper
+User-agent: WebStripper
+User-agent: WebZIP
+User-agent: Zealbot
+User-agent: ZyBORG
+Disallow: /
+
+# AI bot blocklist
+User-agent: AI2Bot
+User-agent: Ai2Bot-Dolma
+User-agent: Amazonbot
+User-agent: anthropic-ai
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Brightbot 1.0
+User-agent: CCBot
+User-agent: ChatGPT-User
+User-agent: Claude-Web
+User-agent: ClaudeBot
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: Crawlspace
+User-agent: Diffbot
+User-agent: DuckAssistBot
+User-agent: FacebookBot
+User-agent: FriendlyCrawler
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: GoogleOther-Image
+User-agent: GoogleOther-Video
+User-agent: GPTBot
+User-agent: iaskspider/2.0
+User-agent: ICC-Crawler
+User-agent: ImagesiftBot
+User-agent: img2dataset
+User-agent: ISSCyberRiskCrawler
+User-agent: Kangaroo Bot
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
+User-agent: OAI-SearchBot
+User-agent: omgili
+User-agent: omgilibot
+User-agent: PanguBot
+User-agent: PerplexityBot
+User-agent: PetalBot
+User-agent: SemrushBot-OCOB
+User-agent: SemrushBot-SWA
+User-agent: Sidetrade indexer bot
+User-agent: Timpibot
+User-agent: VelenPublicWebCrawler
+User-agent: Webzio-Extended
+User-agent: YouBot
+Disallow: /
+
+# Allow Google Search Console for sitemap crawling
+User-agent: Google-Image
+User-agent: Google-InspectionTool
+User-agent: Google-Video
+User-agent: Googlebot
+Allow: /

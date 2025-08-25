@@ -4,7 +4,7 @@
 set -ex
 
 if [ -d "web/wp/wp-content/mu-plugins/" ]; then
-  rsync -a web/wp/wp-content/mu-plugins/* web/wp-content/mu-plugins/
+  rsync -r web/wp/wp-content/mu-plugins/* web/wp-content/mu-plugins/
 fi
 
 if [ -f "web/wp/wp-config.php" ]; then
@@ -15,12 +15,10 @@ if [ -d "web/wp/wp-content" ]; then
   rm -rf web/wp/wp-content
 fi
 
-# Remove old Pantheon mu-plugin if it exists
-# https://github.com/pantheon-systems/wordpress-composer/issues/29
-if [ -d "web/wp-content/mu-plugins/pantheon/" ]; then
-  rm -rf web/wp-content/mu-plugins/pantheon
-fi
-
-if [ -f "web/wp-content/mu-plugins/pantheon.php" ]; then
-  rm web/wp-content/mu-plugins/pantheon.php
+# Create empty .env in theme folder to prevent the phpdotenv error:
+# “Failed to open stream: No such file or directory”
+if [ -d web/wp-content/themes/sage/ ]; then
+    if [ ! -f web/wp-content/themes/sage/.env ]; then
+        echo "# Intentionally blank, DO NOT add env vars!" > web/wp-content/themes/sage/.env
+    fi
 fi

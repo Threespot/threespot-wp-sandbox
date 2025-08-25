@@ -1,0 +1,50 @@
+//------------------------------------------------------------------------
+// Default file block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/file/style.scss
+//
+// <div class="wp-block-file">
+//   <a id="wp-block-file--media-123456" href="/wp-content/uploads/2023/11/example.pdf">
+//     File Download
+//   </a>
+//   <a class="wp-block-file__button wp-element-button" href="/wp-content/uploads/2023/11/example.pdf" download aria-describedby="wp-block-file--media-123456">
+//     Download
+//   </a>
+// </div>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-file {
+  $vert-margin: 2em;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  // Text link
+  a:not(.wp-block-file__button) {
+    // Hide download icon (added by richtext link styles)
+    &:after {
+      display: none;
+    }
+  }
+
+  // Download button
+  .wp-block-file__button {
+    @include button-base;
+    border-radius: 0;// override WP default syles
+    margin-left: 0;// override WP default syles
+    @include button-solid;
+  }
+}// end wp-block-file

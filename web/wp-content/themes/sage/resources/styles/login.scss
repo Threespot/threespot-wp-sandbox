@@ -1,0 +1,56 @@
+//------------------------------------------------------------------------
+// Custom WP login page styles
+//------------------------------------------------------------------------
+// Includes Frontline plus project vars, functions, and mixins
+@use "@styles/globals" as * with ($is-admin--globals: false);
+
+body {
+  background-color: #f0f0f1;
+
+  // For login modal window that appears in the admin
+  &.interim-login {
+    padding-top: 10px;
+  }
+}
+
+#login h1 a {
+  background-image: svg-url($svg-logo, (fill: #fff));
+  // background-image: url('~@images/example-logo.png');
+  opacity: 0.75;
+  transition: opacity 150ms ease-in-out;
+
+  @include attention {
+    opacity: 1;
+  }
+}
+
+#loginform {
+  background-color: rgba(#fff, 0.65);
+  border: 0;
+  border-radius: 7px;
+  box-shadow: 0 0 20px 0 rgba(#000, 0.1);
+  padding-bottom: 26px;
+
+  label {
+    font-size: 16px !important;
+  }
+}
+
+#backtoblog,
+#nav {
+  a {
+    font-size: 16px !important;
+
+    @include attention {
+      text-decoration: underline !important;
+    }
+  }
+}
+
+#wp-submit {
+  font-size: 14px;
+
+  @include button-attention {
+    text-decoration: underline;
+  }
+}

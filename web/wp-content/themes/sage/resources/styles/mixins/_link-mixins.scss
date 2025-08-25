@@ -1,0 +1,129 @@
+// -------------------------------------------------------------------------
+// Link Styles
+// -------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars/svg-icons" as *;
+
+// Base link styles, excluding color
+@mixin link-base {
+  transition: color 150ms ease-in-out;
+
+  @include all-states {
+    text-decoration: none;
+  }
+
+  // Optional: Only uncomment if adding dark-mode support to entire site
+  // @media (prefers-color-scheme: dark) {
+  //   @include all-states {
+  //     color: currentColor !important;
+  //   }
+  // }
+}
+
+// FIXME: Name mixin based on style
+@mixin link-fixme($color: mediumvioletred) {
+  @include all-states {
+    // Optional: Use CSS var to make it easier to override colors
+    color: var(--link-color, $color);
+    text-decoration: underline;
+
+    // Inherit custom block text color
+    .has-text-color & {
+      color: currentColor;
+    }
+  }
+
+  // Optional: Customize the text-decoration style
+  // @supports (text-decoration-thickness: 1px) {
+  //   text-decoration-color: currentColor;
+  //   text-decoration-line: underline;
+  //   text-decoration-thickness: 2px;
+  //   text-underline-offset: 4px;
+  // }
+
+  @include attention {
+    text-decoration: none;
+  }
+}
+
+@mixin link-add-icon($icon-name, $icon-width, $a11y-text) {
+  // Add visually-hidden text using :before element for screen readers
+  @if $a11y-text {
+    &:before {
+      content: $a11y-text;
+      font-size: 0;// visually hide text
+    }
+  }
+
+  // Use SVG mask to add icon so it can inherit the color
+  // https://jsfiddle.net/34rmz5k7/2/
+  @supports (mask-size: contain) {
+    // 1. Must set “display: inline;” to prevent icon from wrapping by itself
+    // 2. Use padding instead of width to prevent icon from wrapping by itself
+    &:after {
+      background-color: var(--icon-color, currentColor);// this is the icon color
+      content: '';
+      display: inline;// [1]
+      font-size: inherit;
+      margin-left: 0.2em;
+      margin-right: 0.2em;
+      mask-image: svg-url($icon-name), linear-gradient(transparent, transparent);
+      mask-position: left center;
+      mask-repeat: no-repeat;
+      mask-size: $icon-width;
+      padding-left: $icon-width;// [2]
+      transition: background-color 150ms ease-in-out;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Append an icon based on the URL
+@mixin link-icon() {
+  // External links
+  // Use :where() to keep specificity low so we can override when external link is also a download
+  &:where([href^="http"]:not(
+    [href*="lndo.site"],
+    [href*="//localhost"],
+    [href*="pantheonsite.io"],
+    [href*="fixme-domain"])
+  ) {
+    @include link-add-icon(
+      $icon-name: $svg-external,
+      $icon-width: 0.8em,
+      $a11y-text: 'external,'
+    );
+  }
+
+  // Downloads
+  // Note: We’re using `href*=` instead of `href$=` to account for
+  //       external links with query params. Technically, these
+  //       edge cases would incorrectly be styled as downloads
+  //       but they seem highly unlikely:
+  //       - https://example.org/not-a-file?foo=bar.pdf
+  //       - https://www.pdf.example.org/not-a-file
+  // 1. Use download icon for internal links to files in media library
+  &:where(
+    [href^="/"][href*="/wp-content/uploads/"],// [1]
+    [href$=".pdf"],
+    [href$=".doc"],
+    [href$=".docx"],
+    [href$=".xls"],
+    [href$=".xlsx"],
+    [href$=".ppt"],
+    [href$=".pptx"]
+  ) {
+    @include link-add-icon(
+      $icon-name: $svg-download,
+      $icon-width: 0.8em,
+      $a11y-text: 'download'
+    );
+  }
+}
+
+// Custom named link styles
+//---------------------------------
+@mixin link-richtext() {
+  @include link-base;
+  @include link-fixme;
+}

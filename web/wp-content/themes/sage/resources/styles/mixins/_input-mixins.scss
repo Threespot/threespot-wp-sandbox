@@ -1,0 +1,78 @@
+//------------------------------------------------------------------------
+// Input styles (see _form-vars.scss)
+//
+// stylelint-disable:disable no-important
+//------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars" as *;
+
+@mixin input-reset {
+  background-color: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+@mixin input-default {
+  background-color: var(--default-bg-color);
+  border: 1px solid var(--input-border-color);
+  color: var(--default-text-color);
+  padding: var(--input-padding);
+  @include scale(font-size, (375px: 18px, 900px: 21px));
+
+  // 1. iOS Safari fix
+  // https://stackoverflow.com/a/22657686/673457
+  &::placeholder {
+    color: #767676;
+    line-height: normal !important;// [1]
+  }
+
+  &:disabled {
+    background-color: var(--input-disabled-background);
+    border-color: var(--input-disabled-border);
+    color: var(--input-disabled-color);
+    cursor: not-allowed !important;
+  }
+}
+
+// Example search field styles (see search-header.blade.php for markup example)
+// Note: Mixin must be applied to input wrapper
+@mixin search-field($height: 45px) {
+  $border-radius: 500px;// arbitrary large number
+  $submit-width: 58px;
+  display: flex;
+  border: 1px solid var(--input-border-color);
+  border-radius: $border-radius;
+  height: $height;
+
+  &:focus-within {
+    border-color: var(--input-border-color-focus);
+  }
+
+  &-input {
+    background-color: var(--default-bg-color);
+    border-bottom-left-radius: $border-radius;
+    border-top-left-radius: $border-radius;
+    flex-grow: 1;
+    padding-left: 20px;
+    padding-right: 10px;
+  }// end input
+
+  &-submit {
+    --icon-color: mediumvioletred;
+    align-items: center;
+    background-color: var(--default-bg-color);
+    border-bottom-right-radius: $border-radius;
+    border-top-right-radius: $border-radius;
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    transition: background-color 150ms ease;
+    width: $submit-width;
+
+    @include button-attention {
+      --icon-color: #fff;
+      background-color: mediumvioletred;
+    }
+  }// end submit
+}

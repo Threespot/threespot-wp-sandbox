@@ -1,0 +1,21 @@
+//------------------------------------------------------------------------
+// Default preformatted block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/preformatted/style.scss
+//
+// <pre class="wp-block-preformatted">…</pre>
+//------------------------------------------------------------------------
+.wp-block-preformatted {
+  $vert-margin: 2em;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+}

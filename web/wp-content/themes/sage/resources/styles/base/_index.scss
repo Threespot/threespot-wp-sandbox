@@ -1,0 +1,10 @@
+$enable-dark-mode--base: false !default;
+$is-admin--base: false !default;
+
+// Note: Create new “$is-admin-” var names to avoid conflicts
+@forward "base" with (
+  $enable-dark-mode: $enable-dark-mode--base,
+  $is-admin: $is-admin--base,
+);
+@forward "fonts" with ($is-admin--fonts: $is-admin--base);
+@forward "print";

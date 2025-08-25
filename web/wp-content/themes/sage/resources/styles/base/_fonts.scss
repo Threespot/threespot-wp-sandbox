@@ -1,0 +1,52 @@
+//------------------------------------------------------------------------
+// Web fonts
+// Note: Only woff2 is required for modern browsers
+// https://css-tricks.com/snippets/css/using-font-face/
+// https://caniuse.com/woff2
+//
+// In the future, we could consider not loading fonts if “data-saver” mode is enabled
+// https://css-tricks.com/responsible-conditional-loading/
+// https://caniuse.com/mdn-css_at-rules_media_prefers-reduced-data
+//------------------------------------------------------------------------
+$is-admin--fonts: false !default;
+
+// We’re using “font-display: fallback” on the public site as a compromise
+// between performance and minimizing the chances of a FOIT or FOUC.
+//
+//   “The browser will hide the text for about 100ms and, if the font
+//   has not yet been downloaded, will use the fallback text. It will
+//   swap to the new font after it is downloaded, but only during a
+//   short swap period (probably 3 seconds).”
+//   https://css-tricks.com/almanac/properties/f/font-display/
+//
+// In the admin, the web font can take longer than 3 sec to load,
+// so we’re switching to “font-display: swap” to allow an unlimited
+// swap window.
+:root {
+  @if $is-admin--fonts {
+    --font-display: swap;
+  }
+}
+
+// Custom emoji font to standardize appearance across platforms
+// https://www.client9.com/css-color-emoji-stack/
+// https://nolanlawson.com/2022/04/08/the-struggle-of-using-native-emoji-on-the-web/
+@font-face {
+  font-family: "color-emoji";
+  src: local("Apple Color Emoji"),
+       local("Twemoji Mozilla"),
+       local("Segoe UI Emoji"),
+       local("Segoe UI Symbol"),
+       local("Noto Color Emoji"),
+       local("EmojiOne Color"),
+       local("Android Emoji");
+}
+
+// FIXME: Replace with project fonts
+// @font-face {
+//   font-display: var(--font-display, fallback);
+//   font-family: "FIXME";
+//   font-style: normal;
+//   font-weight: 400;
+//   src: url("/~@fonts/example/example.woff2") format("woff2");
+// }

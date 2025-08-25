@@ -1,0 +1,62 @@
+//------------------------------------------------------------------------
+// Default column block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/columns/style.scss
+//
+// NOTE: We’re adding “l-block” class to the columns wrapper,
+//       and “u-richtext” to each column wrapper (see gurenberg.js)
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+// Columns wrapper
+.wp-block-columns {
+  --column-gap: 30px;
+  gap: var(--column-gap);
+
+  // Add outlines in admin to highlight columns
+  :where(body.wp-admin) & {
+    outline: 1px solid #fff;
+    transition: outline 150ms ease-in-out;
+
+    .wp-block-column {
+      outline: 1px dotted #fff;
+      transition: outline 150ms ease-in-out;
+    }
+
+    &:hover,
+    &:focus-within,
+    &.has-child-selected {
+      outline-color: #ccc;
+
+      .wp-block-column {
+        outline-color: #ccc;
+      }
+    }
+  }
+
+  & + & {
+    margin-top: var(--column-gap);
+  }
+
+  &.alignfull,
+  [data-align="full"] & {
+    @include default-padding;
+  }
+
+  // This is a custom block style defined in gutenberg.js
+  &.is-style-no-col-gap {
+    gap: 0;
+  }
+}// end wp-block-columns
+
+// Single column wrapper
+.wp-block-column {
+  .l-block {
+    &:first-child {
+      margin-top: 0 !important;
+    }
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+}// end wp-block-column

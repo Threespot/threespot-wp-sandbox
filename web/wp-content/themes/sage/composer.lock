@@ -1,0 +1,143 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "ae34f90e1800ede146e6d109144b6157",
+    "packages": [
+        {
+            "name": "mwdelaney/sage-acf-gutenberg-blocks",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/MWDelaney/sage-acf-wp-blocks.git",
+                "reference": "072430fd65464901472e86fc568f90678ea0d248"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/MWDelaney/sage-acf-wp-blocks/zipball/072430fd65464901472e86fc568f90678ea0d248",
+                "reference": "072430fd65464901472e86fc568f90678ea0d248",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "sage-acf-gutenberg-blocks.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael W. Delaney",
+                    "email": "michael@michaeldelaney.me"
+                },
+                {
+                    "name": "Nico Prat"
+                }
+            ],
+            "description": "Create Gutenberg blocks from Sage blade templates and ACF fields.",
+            "homepage": "https://github.com/MWDelaney/sage-acf-gutenberg-blocks",
+            "keywords": [
+                "advanced custom fields",
+                "gutenberg",
+                "wordpress"
+            ],
+            "support": {
+                "issues": "https://github.com/MWDelaney/sage-acf-wp-blocks/issues",
+                "source": "https://github.com/MWDelaney/sage-acf-wp-blocks/tree/master"
+            },
+            "time": "2023-08-08T13:47:49+00:00"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "laravel/pint",
+            "version": "v1.24.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/pint.git",
+                "reference": "0345f3b05f136801af8c339f9d16ef29e6b4df8a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/0345f3b05f136801af8c339f9d16ef29e6b4df8a",
+                "reference": "0345f3b05f136801af8c339f9d16ef29e6b4df8a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-tokenizer": "*",
+                "ext-xml": "*",
+                "php": "^8.2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.82.2",
+                "illuminate/view": "^11.45.1",
+                "larastan/larastan": "^3.5.0",
+                "laravel-zero/framework": "^11.45.0",
+                "mockery/mockery": "^1.6.12",
+                "nunomaduro/termwind": "^2.3.1",
+                "pestphp/pest": "^2.36.0"
+            },
+            "bin": [
+                "builds/pint"
+            ],
+            "type": "project",
+            "autoload": {
+                "files": [
+                    "overrides/Runner/Parallel/ProcessFactory.php"
+                ],
+                "psr-4": {
+                    "App\\": "app/",
+                    "Database\\Seeders\\": "database/seeders/",
+                    "Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nuno Maduro",
+                    "email": "enunomaduro@gmail.com"
+                }
+            ],
+            "description": "An opinionated code formatter for PHP.",
+            "homepage": "https://laravel.com",
+            "keywords": [
+                "format",
+                "formatter",
+                "lint",
+                "linter",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/pint/issues",
+                "source": "https://github.com/laravel/pint"
+            },
+            "time": "2025-07-10T18:09:32+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "mwdelaney/sage-acf-gutenberg-blocks": 20
+    },
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.2"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}

@@ -1,0 +1,31 @@
+//------------------------------------------------------------------------
+// Helper classes for no-js
+//
+// stylelint-disable:disable no-important, force-element-nesting
+//------------------------------------------------------------------------
+
+// SHOW when JS is DISABLED
+//---------------------------------
+.no-js-show {
+  display: none !important;
+
+  .no-js & {
+    display: block !important;
+  }
+}
+
+// HIDE when JS is DISABLED
+//---------------------------------
+.no-js .no-js-hide {
+  display: none !important;
+}
+
+// HIDE when JS is ENABLED
+//---------------------------------
+.js-hide {
+  display: none !important;
+
+  .no-js & {
+    display: block !important;
+  }
+}

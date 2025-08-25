@@ -1,0 +1,50 @@
+//------------------------------------------------------------------------
+// Default cover block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/cover/style.scss
+//
+// NOTE: We’re adding “l-block” class to the wrapper (see gutenberg.js)
+//
+// <div class="wp-block-cover l-block">
+//   <span aria-hidden="true" class="wp-block-cover__background has-background-dim"></span>
+//   <img loading="lazy" decoding="async" width="1440" height="762" class="wp-block-cover__image-background wp-image-281" alt="" src="…" data-object-fit="cover" srcset="…" sizes="…">
+//   <div class="wp-block-cover__inner-container u-richtext is-layout-constrained wp-block-cover-is-layout-constrained">
+//     …
+//   </div>
+// </div>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-cover {
+  $bp-align: $layout-max-width-narrow-bp;
+  $vert-margin: 2em;
+  color: var(--theme-text-color);
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  @include max-width($bp-align - 1px) {
+    // Optional: Uncomment to make full width in mobile view
+    // @include layout-fullwidth($important: true);
+    min-height: 0 !important;// disable custom height in narrow viewport
+    max-width: none !important;// override WP style
+  }
+
+  // Dark overlay styles
+  // FIXME: Update colors for dark backgrounds
+  &:not(.is-light) {
+    @include font-smoothing;
+    --button-color: #fff;
+    --input-border-color: #fff;
+    --link-color: currentColor;
+    --theme-text-color: #fff;
+  }
+}

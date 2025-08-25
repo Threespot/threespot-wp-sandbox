@@ -1,0 +1,133 @@
+//------------------------------------------------------------------------
+// Default gallery block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/gallery/style.scss
+//
+// <figure class="wp-block-gallery l-block alignwide has-nested-images columns-default is-cropped wp-block-gallery-1 is-layout-flex wp-block-gallery-is-layout-flex">
+//   <figure class="wp-block-image size-large">
+//     <img class="wp-image-413" loading="lazy" decoding="async" width="640" height="426" data-id="413" src="…" alt="" srcset="…" sizes="…">
+//     <figcaption class="wp-element-caption">Image caption text</figcaption>
+//   </figure>
+//   <figure class="wp-block-image size-large">
+//     <img class="wp-image-413" loading="lazy" decoding="async" width="640" height="426" data-id="413" src="…" alt="" srcset="…" sizes="…">
+//     <figcaption class="wp-element-caption">Image caption text</figcaption>
+//   </figure>
+//   <figure class="wp-block-image size-large">
+//     <img class="wp-image-413" loading="lazy" decoding="async" width="640" height="426" data-id="413" src="…" alt="" srcset="…" sizes="…">
+//     <figcaption class="wp-element-caption">Image caption text</figcaption>
+//   </figure>
+//   <figcaption class="blocks-gallery-caption wp-element-caption">
+//     Gallery caption text
+//   </figcaption>
+// </figure>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+// Note: Duplicate selector to override default WP styles without “!important”
+.wp-block-gallery {
+  $bp-full: $layout-max-width-narrow-bp;
+  $vert-margin: 2em;
+  --wp--style--gallery-gap-default: 30px;// redefine default WP gap
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  // 1. Override default WP styles to fix bug in Firefox
+  &.has-nested-images {
+    .wp-block-image {
+      img {
+        height: auto !important;// [1]
+      }
+
+      // Hide default image blur effect in WP 6.7
+      &:has(figcaption):before {
+        display: none !important;
+      }
+    }
+
+    figcaption {
+      text-shadow: none !important;// override default WP styles
+    }
+  }
+
+  // Custom logo grid style (centered, more margin)
+  // Use grid instead of flexbox to avoid having to remove
+  // top/bottom margins on the first/last row of items.
+  // https://css-tricks.com/snippets/css/complete-guide-grid/#fluid-columns-snippet
+  // https://css-tricks.com/auto-sizing-columns-css-grid-auto-fill-vs-auto-fit/
+  // 1. Use !important to override default WP admin styles
+  // &.is-style-logo-grid {
+  //   $bp-2-col: 320px;
+  //   $bp-3-col: 480px;
+  //   --wp--style--gallery-gap-default: #{scale-clamp((375px: 30px, $bp-full: 56px))};
+  //   display: grid !important;// [1]
+  //   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;// [1]
+  //   justify-content: center;
+  //
+  //   @include min-width(768px) {
+  //     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;// [1]
+  //   }
+  //
+  //   @include min-width($bp-full) {
+  //     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;// [1]
+  //   }
+  //
+  //   // Column number overrides
+  //   // Note: We’re not allowing 1-col layouts
+  //   &.columns {
+  //     @each $i in (2, 3, 4, 5, 6, 7, 8) {
+  //       &-#{$i} {
+  //         grid-template-columns: repeat($i, 1fr) !important;// [1]
+  //       }
+  //     }
+  //   }
+  //
+  //   &.alignfull {
+  //     @include default-padding;
+  //   }
+  //
+  //   figure {
+  //     margin: 0 !important;
+  //     width: 100% !important;
+  //
+  //     img {
+  //       object-fit: contain !important;
+  //     }
+  //   }
+  // }// end logo grid
+
+  // Image caption
+  // Show below images instead of on top on hover
+  // Note: Use !important to override WP inline styles
+  .wp-element-caption {
+    background: none !important;
+    color: currentColor !important;
+    font-size: 16px !important;
+    line-height: 1.4;
+    margin: 1em 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    position: static !important;
+    text-align: left !important;
+  }// end caption
+
+  // Gallery caption
+  .blocks-gallery-caption {
+    margin: 0 auto !important;
+  }// end blocks-gallery-caption
+
+  // Set max-width on full-width gallery caption
+  &.alignfull {
+   .blocks-gallery-caption {
+     max-width: var(--layout-max-width-narrow);
+   }
+  }
+}// end wp-block-gallery

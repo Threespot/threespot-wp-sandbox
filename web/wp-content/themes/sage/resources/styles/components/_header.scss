@@ -1,0 +1,39 @@
+//------------------------------------------------------------------------
+// Header
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.Header {
+  $selector: &;
+  position: relative;
+  z-index: var(--z-index-header);
+
+  &-logo {
+    &-link {
+      color: var(--default-text-color);
+      display: block;
+      max-width: 140px;
+
+      @include attention {
+        color: mediumvioletred;
+      }
+
+      @include min-width($layout-nav-bp) {
+        max-width: 200px;
+      }
+    }
+
+    &-image {
+      display: block;
+      fill: currentColor;
+      width: 100%;
+    }// end image
+
+    svg {
+      display: block;
+      height: auto;
+      width: 100%;
+    }// end img
+  }// end logo
+
+}// end Header

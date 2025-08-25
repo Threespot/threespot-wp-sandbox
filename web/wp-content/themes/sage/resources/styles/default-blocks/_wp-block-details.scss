@@ -1,0 +1,130 @@
+//------------------------------------------------------------------------
+// Details block (i.e. expandable)
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/details/style.scss
+//
+// <details class="wp-block-details is-layout-flow wp-block-details-is-layout-flow">
+//   <summary>Toggle Text</summary>
+//   <p>This content is hidden…</p>
+// </details>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-details {
+  $vert-margin: 2em;
+  --easing: #{easing("easeOutCubic")};
+  --speed: 450ms;
+  --icon-width: 18px;
+  --padding-horz: 20px;// applied to toggle and content
+  border: 2px solid currentColor;// FIXME
+  border-radius: 20px;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  // 1. Transition the height using pure CSS in supported browsers
+  //    https://caniuse.com/mdn-css_types_calc-size
+  //    https://codepen.io/ZoranJambor/pen/jOorzPv?editors=0100
+  &::details-content {
+    // Adding “overflow: hidden” prevents VoiceOver in Safari from accessing the content
+    // https://bugs.webkit.org/show_bug.cgi?id=295713
+    :where(html:not(.ua-safari)) & {
+      @media (prefers-reduced-motion: no-preference) {
+        height: 0;// [1]
+        overflow: hidden;// [1]
+        padding-inline: var(--padding-horz);
+        transition-behavior: allow-discrete;// [1]
+        transition-duration: var(--speed);// [1]
+        transition-property: content-visibility, height;// [1]
+        transition-easing: var(--easing);// [1]
+      }
+    }
+  }
+
+  // Expanded state
+  &[open] {
+    // 2. Fallback for unsupported browsers
+    //    https://caniuse.com/mdn-css_types_calc-size
+    &::details-content {
+      // Disable in Safari to prevent bug in VoiceOver
+      // https://bugs.webkit.org/show_bug.cgi?id=295713
+      :where(html:not(.ua-safari)) & {
+        @media (prefers-reduced-motion: no-preference) {
+          height: auto;// [2]
+          height: calc-size(auto, size);// [1]
+        }
+      }
+    }
+
+    summary {
+      &:after {
+        transform: translateY(-50%) rotateX(180deg);
+      }
+    }
+  }
+
+  // Optional: Set toggle width to “fit-content” when collapsed
+  // &:not([open]) {
+  //   width: fit-content;
+  // }
+
+  // Toggle styles
+  summary {
+    font-size: 18px;// FIXME
+    line-height: 1;
+    // list-style: none;// hide marker in Chrome and Firefox
+    padding-block: 20px;
+    padding-inline-end: calc(var(--padding-horz) + var(--icon-width) + 10px);
+    padding-inline-start: var(--padding-horz);
+    // position: relative;// required for custom marker
+
+    &::marker {
+      color: currentColor;
+    }
+
+    // Optional: Hide the default marker
+    // &::marker,
+    // &::-webkit-details-marker {
+    //   display: none;
+    // }
+
+    // Optional: Custom marker
+    // &:after {
+    //   aspect-ratio: 2/1;
+    //   background-image: svg-url($svg-chev-down, (fill: #000));
+    //   background-repeat: no-repeat;
+    //   background-size: 100%;
+    //   content: '';
+    //   position: absolute;
+    //   right: var(--padding-horz);
+    //   top: 50%;
+    //   transform-position: 50% 50%;
+    //   transform: translateY(-50%);
+    //   transition: transform 250ms ease;
+    //   width: var(--icon-width);
+    // }
+
+    @include button-attention {
+      text-decoration: underline;
+    }
+
+    // Add margin above content when expanded
+    // & + * {
+    //   margin-top: 20px;
+    // }
+  }// end summary
+
+  // Add margin below content
+  & > *:last-child {
+    margin-bottom: 20px;
+  }
+
+}// end wp-block-details

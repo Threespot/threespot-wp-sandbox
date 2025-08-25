@@ -1,0 +1,31 @@
+// -------------------------------------------------------------------------
+// Layout Vars
+//------------------------------------------------------------------------
+$layout-max-width: 1140px;// FIXME
+$layout-max-width-narrow: 840px;// FIXME
+
+// Horizontal padding used by l-padding helper class
+$layout-padding-min: 16px;
+$layout-padding-max: 32px;
+$layout-padding-min-bp: 375px;
+$layout-padding-max-bp: 640px;
+
+// Calculate when wrappers reach their max-width
+$layout-max-width-bp: $layout-max-width + ($layout-padding-max * 2);
+$layout-max-width-narrow-bp: $layout-max-width-narrow + ($layout-padding-max * 2);
+
+// Text scaling breakpoint
+$layout-text-scale-end-bp: $layout-max-width-narrow-bp;
+
+// Navigation
+$layout-nav-bp: 1000px;
+
+// Sidebar layout (used on search and archives)
+// $layout-sidebar-bp: 1024px;
+// $layout-sidebar-gutter: 69px;
+// $layout-sidebar-width: 412px;
+
+:root {
+  --layout-max-width: #{$layout-max-width};
+  --layout-max-width-narrow: #{$layout-max-width-narrow};
+}

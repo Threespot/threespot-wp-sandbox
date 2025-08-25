@@ -1,0 +1,32 @@
+//------------------------------------------------------------------------
+// Wide and full-width layout styles
+//
+// NOTE: These styles only work when the parent wrapper is centered,
+//       not in multi-column layouts.
+//
+// NOTE: In the Gutenberg editor, the block alignment classes are removed
+//       so we need a separate selector for each layout below.
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.alignfull,
+.wp-block[data-align="full"] {
+  @include layout-fullwidth;
+
+  // Custom admin styles
+  :where(body.wp-admin) & {
+    .wp-block[data-align] {
+      margin-left: 0;
+    }
+  }
+}
+
+.alignwide,
+.wp-block[data-align="wide"] {
+  @include layout-wide;
+}
+
+.aligncenter {
+  margin-left: auto;
+  margin-right: auto;
+}

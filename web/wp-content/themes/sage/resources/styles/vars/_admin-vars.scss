@@ -1,0 +1,26 @@
+// Admin sidebar vars
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
+$admin-menu-bp: 783px;
+$admin-menu-wide-bp: 961px;
+$admin-menu-width: 36px;
+$admin-menu-width-wide: 160px;
+$admin-sidebar-width: 281px;
+
+// Gutenberg block breakpoints for default blocks
+// NOTE: Do not alter these values!
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
+$break-huge: 1440px;
+$break-wide: 1280px;
+$break-xlarge: 1080px;
+$break-large: 960px;// admin sidebar auto folds
+$break-medium: 782px;// adminbar goes big
+$break-small: 600px;
+$break-mobile: 480px;
+$break-zoomed-in: 280px;
+
+// Selectors to determine the editor layout
+// (used by _admin-media-query.scss and _layout-mixins.scss)
+$admin-selector-default: ':where(body:not(.is-fullscreen-mode) .edit-post-layout:has(.interface-interface-skeleton__sidebar:empty))';
+$admin-selector-default-sidebar: ':where(body:not(.is-fullscreen-mode) .edit-post-layout:has(.interface-interface-skeleton__sidebar:not(:empty)))';
+$admin-selector-fullscreen: ':where(body.is-fullscreen-mode .edit-post-layout:has(.interface-interface-skeleton__sidebar:empty))';
+$admin-selector-fullscreen-sidebar: ':where(body.is-fullscreen-mode .edit-post-layout:has(.interface-interface-skeleton__sidebar:not(:empty)))';

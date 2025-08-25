@@ -1,0 +1,56 @@
+// -------------------------------------------------------------------------
+// Color variables
+//
+// Variable names in this files should describe the color (e.g. “blue”)
+// instead of how it’s used (e.g. “link-primary”). Those type of variables
+// should be defined elsewhere (e.g. _link-mixins.scss).
+//
+// If you can’t think of another name for a similar color, try this site:
+// http://chir.ag/projects/name-that-color/
+// -------------------------------------------------------------------------
+:root {
+  // Background colors
+  //---------------------------------
+  --gray-light: #efefef;
+  --navy: navy;
+  --offwhite: #fafafa;
+  --red: #ff5a3d;
+  --yellow: yellow;
+
+  // Note: If you need to use a color var with opacity,
+  //       create a separate var using the rgb syntax:
+  //
+  //       --yellow-rgb: 255, 255, 0;
+  //
+  //       Then use that with rgba():
+  //
+  //       rgba(var(--yellow-rgb), 0.2)
+  //
+  // See Slack thread for more details
+  // https://threespot.slack.com/archives/C04S5G4P4FR/p1726061189751779
+
+  // Text colors
+  //---------------------------------
+  --text-gray-light: #767676;
+  --text-red: #eb0c00;
+
+  // Optional: Shadows
+  //----------------------------
+  // --card-shadow: 0 4px 80px 0 rgba(0, 0, 0, 0.1);
+}
+
+// Default block colors
+// Used to generate WP helper classes:
+//   .has-[name]-background-color
+//   .has-[name]-color
+// Used by _block-color-helpers.scss and _layout-helpers.scss
+// TODO: Update theme.json with any client-usable colors
+//---------------------------------
+$block-background-colors: (
+  'navy',
+  'yellow',
+);
+
+$block-text-colors: (
+  'text-red',
+);

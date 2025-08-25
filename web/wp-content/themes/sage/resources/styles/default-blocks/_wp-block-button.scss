@@ -1,0 +1,74 @@
+//------------------------------------------------------------------------
+// Default button block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/buttons/style.scss
+//
+// Example markup:
+// <div class="wp-block-buttons is-content-justification-[left|center|right|space-between]">
+//   <div class="wp-block-button">
+//     <a class="wp-block-button__link" href="/">Button Example</a>
+//   </div>
+// </div>
+//
+// Note: WP 5.7 and before uses different alignment classes:
+// <div class="wp-block-buttons [alignleft|aligncenter|alignright]">
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+// Buttons wrapper
+// 1. Only required for hard-coded button blocks. Button blocks added in Gutenberg
+//    each get an inline <style> tag that target a unique class for the block
+//    (e.g. .wp-container-1) with these styles, and any custom alignment styles.
+.wp-block-buttons {
+  $vert-margin: 2em;
+  display: flex;// [1]
+  flex-wrap: wrap;// [1]
+  gap: 30px;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  // Cancel out this backwards-compatibility rule
+  // stylelint-disable indentation
+	&:not(
+		.is-content-justification-space-between,
+		.is-content-justification-right,
+		.is-content-justification-left,
+		.is-content-justification-center
+	) .wp-block-button.aligncenter {
+	// stylelint-enable indentation
+    width: auto;
+  }
+
+  // Individual button
+  // Note: The button class name differs from the parent wrapper
+  //       so we’re using @t-root in order to keep it nested.
+  @at-root .wp-block-button {
+    $button-selector: &;
+
+    // Only apply default button styles when no “is-style” class is present
+    &:not([class*="is-style-"]) {
+      #{$button-selector}__link {
+        border-radius: var(--button-border-radius);
+        @include button-base;
+        @include button-border;
+        @include button-icon;
+      }
+    }
+
+    // Optional: Custom button style
+    // &.is-style-fixme {
+    //   #{$button-selector}__link {
+    //     @include button-custom-fixme;
+    //   }
+    // }
+  }// end wp-block-button
+}

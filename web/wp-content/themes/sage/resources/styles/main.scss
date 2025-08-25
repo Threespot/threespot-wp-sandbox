@@ -1,0 +1,26 @@
+//------------------------------------------------------------------------
+// Main stylesheet
+//------------------------------------------------------------------------
+// Threespot CSS reset
+// https://github.com/Threespot/frontline-css-reset
+@use "frontline-css-reset" as *;
+
+// Includes 3rd-party libs plus project vars, functions, and mixins
+@use "@styles/globals" as * with (
+  $is-admin--globals: false
+);
+
+// Base styles (e.g. html, body, @font-face, print)
+@use "base/index" as * with (
+  $enable-dark-mode--base: true,
+  $is-admin--base: false,
+);
+
+// Helper classes
+@use "helpers/index" as *;
+
+// Custom components
+@use "components/index" as *;
+
+// Default Gutenberg blocks
+@use "default-blocks/index" as *;

@@ -1,0 +1,111 @@
+//------------------------------------------------------------------------
+// Default media text block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/media-text/style.scss
+//
+// NOTE: We’re adding “l-block” class to the wrapper (see gutenberg.js)
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-media-text {
+  $selector: &;
+  // Note: $break-small is a Gutenberg breakpoint (see _layout-vars.scss)
+  //       It’s used for max-width media queries so we must add 1px.
+  $bp-row: $break-small + 1px;
+  $image-width-percentage: 40%;// excludes full-width blocks
+  $vert-margin: 2em;
+  row-gap: 25px;// used in mobile layout
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+
+  @include min-width($bp-row) {
+    grid-template-columns: $image-width-percentage 1fr;
+
+    // Right-aligned image
+    &.has-media-on-the-right {
+      grid-template-columns: 1fr $image-width-percentage;
+    }
+  }
+
+  // Full-width block should use 50% image width in wide viewports
+  @include min-width(900px) {
+    &.alignfull {
+      grid-template-columns: 50% 1fr;
+
+      &.has-media-on-the-right {
+        grid-template-columns: 1fr 50%;
+      }
+    }
+  }
+
+  // Note: Due to specificity issues with default WP styles,
+  //       we need to apply custom horz padding using :not()
+  &:not(.alignfull) {
+    #{$selector}__content {
+      @include max-width($bp-row - 1px) {
+        padding-left: 0;
+        padding-right: 0;
+      }
+    }
+  }
+
+  &__media {
+    img {
+      max-width: 100%;
+
+      &[src$=".svg"] {
+        width: inherit;
+      }
+    }
+  }
+
+  // Note: We’re adding “u-richtext” class to this wrapper
+  //      (see add_filter('render_block') in setup.php)
+  &__content {
+    @include scale(font-size, (
+      375px: $body-text-min-size,
+      $bp-row: ($body-text-max-size $body-text-min-size),
+      $layout-max-width-narrow-bp: $body-text-max-size
+    ));
+
+    .alignwide &,
+    .alignfull & {
+      @include scale(font-size, (
+        375px: $body-text-min-size,
+        $bp-row: ($body-text-max-size $body-text-min-size),
+        $layout-max-width-bp: $body-text-max-size
+      ));
+    }
+
+    @include max-width($bp-row - 1px) {
+      .alignfull & {
+        @include default-padding;
+      }
+    }
+
+    .has-large-font-size {
+      @include h3;
+      color: inherit;// disable custom colors
+      margin-bottom: 1rem;
+      margin-top: 1rem;
+
+      @include min-width($bp-row) {
+        margin-top: 0 !important;
+      }
+    }
+
+    // Disable custom background color support
+    .has-background {
+      background-color: inherit;
+    }
+  }// end content
+}// end wp-block-media-text

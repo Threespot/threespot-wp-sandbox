@@ -1,0 +1,10 @@
+//------------------------------------------------------------------------
+// Add CSS vars here that are used by JS (i.e. $layout-nav-bp)
+//------------------------------------------------------------------------
+// Includes Frontline plus project vars, functions, and mixins
+@use "@styles/globals" as * with ($is-admin--globals: false);
+
+:root {
+  // NOTE: These must also be added to _base.scss
+  --layout-nav-bp: #{$layout-nav-bp};
+}

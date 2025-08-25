@@ -1,0 +1,24 @@
+//------------------------------------------------------------------------
+// Default code block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/code/style.scss
+//
+// <pre class="wp-block-code">
+//   <code>…</code>
+// </pre>
+//------------------------------------------------------------------------
+// NOTE: See _richtext-mixin.scss for base <pre> and <code> styles
+.wp-block-code {
+  $vert-margin: 2em;
+
+  // Default margins
+  // Note: Use :where() to reduce specificity so other styles can override
+  @at-root {
+    :where(&:not(:first-child)) {
+      margin-top: $vert-margin;
+    }
+
+    :where(&:not(:last-child)) {
+      margin-bottom: $vert-margin;
+    }
+  }
+}

@@ -1,0 +1,37 @@
+//------------------------------------------------------------------------
+// Universal helper classes
+//
+// Add !important to all properties to force immutability
+// http://csswizardry.com/2016/05/the-importance-of-important/
+//
+// stylelint-disable:disable no-important
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.u {
+  &-richtext { @include richtext; }
+
+  &-hide { display: none !important; }
+
+  // Hide text visually but keep it accessible to screen readers
+  &-screenreader { @include visually-hidden; }
+
+  // Prevent text from wrapping
+  &-nowrap {
+    @include min-width(320px) {
+      display: inline-block;// necessary for nested inline elements for some reason
+      text-decoration: inherit;// don’t break link styles
+      white-space: nowrap !important;
+
+      // Note: Safari requires resetting each individual property
+      @supports (text-decoration-color: #000) {
+        text-decoration-color: inherit;
+        text-decoration-line: inherit;
+        text-decoration-style: inherit;
+        text-decoration-thickness: inherit;
+        text-underline-offset: inherit;
+      }
+    }
+  }
+
+}// end u

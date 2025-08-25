@@ -1,0 +1,390 @@
+// -------------------------------------------------------------------------
+// Rich-text styles for post body
+//
+// Uses opt-in typography technique (see http://css-tricks.com/opt-in-typography/)
+//
+// stylelint-disable no-important, force-element-nesting
+// -------------------------------------------------------------------------
+@use "@vars" as *;
+@use "custom-text-styles" as *;
+@use "link-mixins" as *;
+@use "richtext-headings" as *;
+
+// 1. Safari only https://caniuse.com/css-hanging-punctuation
+@mixin richtext() {
+  // Note: Use an extra “& {…}” wrapper to avoid this warning:
+  //
+  // “Deprecation Warning: Sass's behavior for declarations that
+  //  appear after nested rules will be changing to match the
+  //  behavior specified by CSS in an upcoming version.”
+  & {
+    hanging-punctuation: first allow-end last;// [1]
+    line-height: var(--default-line-height);
+  }
+
+  // Since the custom classes we’re adding in setup.php (e.g. “u-richtext”)
+  // aren’t applied in the editor, we need to manually update some styles.
+  :where(body.wp-admin) :where(.wp-block-group, .wp-block-cover__inner-container) {
+    & > {
+      *:first-child {
+        margin-top: 0;
+      }
+
+      *:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // Optional: Apply theme text color in admin
+  // Note: Ignore Gutenberg UI buttons and icons
+  // :where(body.wp-admin) & {
+  //   *:not(.block-editor-inserter__toggle *, .components-button, .wp-element-button, .wp-block-spacer *) {
+  //     color: var(--theme-text-color, var(--default-text-color));
+  //   }
+  // }
+
+  // Only apply rich text styles to direct children to avoid
+  // conflicts with custom components.
+  & > {
+    *:first-child {
+      margin-top: 0;
+    }
+
+    *:last-child {
+      margin-bottom: 0;
+    }
+
+    // Apply “text-wrap: pretty” to prevent orphans
+    // https://developer.chrome.com/blog/css-text-wrap-pretty/
+    p {
+      margin-bottom: 1em;
+      text-wrap: pretty;
+
+      // Custom paragraph block style
+      &.is-style-large {
+        @include large-text;
+      }
+
+      // Hide any empty paragraphs inadvertantly created in the rich text editor
+      &:empty {
+        display: none !important;
+      }
+
+      // Inline images
+      & > img {
+        display: inline-block;
+      }
+    }
+
+    // Note: <h1> tags will be automatically converted to <h2>
+    //       (see “render_block” filter in setup.php)
+    //
+    // Use :where() to reduce specificty so the heading helper classes
+    // (e.g. “f-h2”) will override the default heading styles.
+    :where(h2, .is-style-h2) {
+      @include h2($include-margin: true);
+    }
+
+    :where(h3, .is-style-h3) {
+      @include h3($include-margin: true);
+    }
+
+    :where(h4, .is-style-h4) {
+      @include h4($include-margin: true);
+    }
+
+    :where(h5, .is-style-h5) {
+      @include h5($include-margin: true);
+    }
+
+    :where(h6, .is-style-h6) {
+      @include h6($include-margin: true);
+    }
+
+    :where(h1, h2, h3, h4, h5, h6) {
+      // Balance centered headings
+      // https://ishadeed.com/article/css-text-wrap-balance/
+      // https://caniuse.com/css-text-wrap-balance
+      &.has-text-align-center {
+        text-wrap: balance;
+      }
+
+      // Inherit custom block text color
+      .has-text-color & {
+        color: currentColor !important;
+      }
+
+      // Hide any empty headings inadvertantly created in the rich text editor
+      &:empty {
+        display: none !important;
+      }
+
+      // Disable <strong>/<b> in headings
+      :is(b, strong) {
+        font-weight: inherit;
+      }
+    }
+
+    // Remove top margin on adjacent headings
+    :where(h2, h3, h4, h5, h6) + :where(h2, h3, h4, h5, h6) {
+      margin-top: 0;
+    }
+
+    // Lists
+    //---------------------------------
+    :where(ol, ul) {
+      $list-item-margin: 1em;
+      margin-bottom: 2em;
+      margin-top: 2em;
+      // overflow: hidden; // Prevent custom bullets from overlapping floated elements
+
+      :where(ol, ul) {
+        margin-bottom: $list-item-margin;
+        margin-top: $list-item-margin;
+      }
+
+      li {
+        line-height: 1.25;
+
+        &:not(:first-child) {
+          margin-top: $list-item-margin;
+        }
+
+        p {
+          line-height: var(--default-line-height);
+          margin-top: 1em;
+
+          &:not(:last-child) {
+            margin-bottom: 1em;
+          }
+        }
+      } // end li
+    } // end ol/ul
+
+    // Unordered list styles
+    ul,
+    :where(ol, ul) ul {
+      $list-padding-left: 28px;
+      $list-item-padding-left: 4px;// optional
+      list-style: disc;
+      padding-left: $list-padding-left;
+
+      & > li {
+        padding-left: $list-item-padding-left;
+
+        // Note: Use “::marker” to avoid setting “list-style: none;” which
+        //       causes VO in Safari to drop the list semantics.
+        // https://www.scottohara.me/blog/2019/01/12/lists-and-safari.html
+        // &::marker {
+        //   color: mediumvioletred;
+        // }
+      }
+
+      // 2nd level
+      ul {
+        list-style-type: square;
+
+        // 3rd level
+        ul {
+          list-style-type: circle;
+        }
+      }
+    } // end ul
+
+    // Ordered list styles
+    ol,
+    :where(ol, ul) ol {
+      $list-item-padding-left: 4px;// optional
+      padding-left: 3ch;
+      list-style: decimal;
+
+      & > li {
+        padding-left: $list-item-padding-left;
+
+        // Note: Use “::marker” to avoid setting “list-style: none;” which
+        //       causes VO in Safari to drop the list semantics.
+        // https://www.scottohara.me/blog/2019/01/12/lists-and-safari.html
+        // &::marker {
+        //   color: mediumvioletred;
+        // }
+      }
+
+      // 2nd level
+      ol {
+        list-style: lower-alpha;
+
+        // 3rd level
+        ol {
+          list-style: lower-roman;
+
+          // 4th level and deeper
+          ol {
+            list-style: decimal;
+          }
+        }
+      }
+    }
+
+    picture {
+      @at-root :where(#{&}) {
+        display: block;
+        margin-bottom: 1em;
+      }
+
+      img {
+        @at-root :where(#{&}) {
+          display: block;
+          width: 100%;
+        }
+      }
+    }
+
+    // Facebook and Instagram embeds
+    iframe:where(
+      [src^="https://www.facebook.com"],
+      [src^="https://www.instagram.com"]
+    ) {
+      &:not(:first-child) {
+        margin-top: 2em !important;// override inline styles
+      }
+
+      &:not(:last-child) {
+        margin-bottom: 2em !important;// override inline styles
+      }
+    }
+
+    // Definition list
+    dl {
+      line-height: 1.5;
+      margin-bottom: 0.75em;
+      margin-top: 0.75em;
+
+      dt {
+        font-weight: bold;
+
+        &:not(:first-child) {
+          margin-top: 1em;
+        }
+      }
+
+      dd {
+        margin-left: 1em;
+      }
+    }
+
+    // Note: <hr> styles are in _wp-block-separator.scss
+
+  } // end children
+
+  // Elements below may not be direct children of “u-richtext”
+
+  a {
+    // Ignore links with classes to avoid conflicts
+    &:where(:not([class], [role])) {
+      @include link-richtext;
+      @include link-icon;
+    }
+
+    // Ensure “text-decoration” is applied correctly
+    // if link has inline child elements.
+    :where(b, em, i, span, strong) {
+      text-decoration: inherit;
+    }
+  }// end a
+
+  :where(b, strong) {
+    font-weight: bold;
+  }
+
+  // Undo admin styles from /wp-admin/css/common.css
+  blockquote,
+  q {
+    :where(body.wp-admin) & {
+      quotes: unset;
+    }
+  }
+
+  // WP uses the <mark> tag for the “Highlight” style (in text formatting drop-down menu).
+  // The color options are defined in theme.json (settings.color.palette) and applied inline.
+  //
+  // <mark style="background-color:#ffdc55" class="has-inline-color has-highlight-color">
+  //   highlight
+  // </mark>
+  //
+  // The style below is for any mark tags not from the Gutenberg editor.
+  mark {
+    color: var(--highlight-text-color, var(--default-text-color)) !important;
+
+    &:not(.has-highlight-color) {
+      background-color: var(--highlight-bg-color, var(--yellow));
+    }
+  }
+
+  sup {
+    font-size: 0.8em;
+  }
+
+  // cite {
+  //   font-style: italic;
+  // }
+
+  // small {}
+
+  code,
+  kbd,
+  samp,
+  pre,
+  var {
+    font-family: var(--monospace);
+    font-size: $body-text-min-size - 1px;
+  }
+
+  kbd {
+    background-color: var(--pre-bg-color, var(--offwhite));
+    border: solid 1px rgba(#a9aeb1, 0.2);
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(#000, 0.15), inset 0 1px 0 0 rgba(#fff, 0.7);
+    color: var(--default-text-color);
+    display: inline-block;
+    line-height: 1;
+    padding: 3px 5px;
+  }
+
+  code,
+  var {
+    background-color: var(--pre-bg-color, var(--gray-light));
+    border-radius: 4px;
+    padding: 2px 4px;
+  }
+
+  // Preformatted text
+  pre {
+    background-color: var(--pre-bg-color, var(--offwhite));
+    border: 1px solid rgba(#000, 0.05);
+    border-radius: 3px;
+    line-height: 1.25;
+    line-height: 1;
+    padding: 1.25em;
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    // Custom admin styles
+    // Note: ACF Extended overrides our default <pre> margins
+    :where(body.wp-admin) & {
+      &:not(:first-child) {
+        margin-top: 2em;
+      }
+
+      &:not(:last-child) {
+        margin-bottom: 2em;
+      }
+    }
+
+    code,
+    var {
+      background-color: transparent;
+      padding: 0;
+    }
+  }
+} // end richtext

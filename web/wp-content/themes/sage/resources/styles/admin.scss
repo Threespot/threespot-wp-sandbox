@@ -1,0 +1,258 @@
+//------------------------------------------------------------------------
+// Custom WP admin styles (see gutenberg.scss for Gutenberg editor styles)
+//------------------------------------------------------------------------
+// Threespot CSS reset
+// https://github.com/Threespot/frontline-css-reset
+@use "frontline-css-reset" as *;
+
+// Admin vars
+@use "vars/admin-vars" as *;
+
+// Font vars
+@use "vars/font-vars" as *;
+
+// Web fonts
+@use "base/fonts" as * with ($is-admin--fonts: true);
+
+// Helper classes (required for “u-richtext”)
+@use "helpers/universal-helpers" as *;
+
+// Apply default font-family to wysiwyg fields
+#tinymce {
+  font-family: var(--fixme-font);
+}
+
+// Hide TinyMCE branding
+.mce-branding {
+  display: none !important;
+}
+
+// NOTE: Since we’re overriding the default min-width/max-width mixins in
+//       /mixins/_admin-media-query.scss when $is-admin is true,
+//       we have to use @media to avoid altering the breakpoint.
+@media (min-width: $admin-menu-bp) {
+  // Content listing table styles
+  .wp-list-table {
+    // Adjust column widths
+    #author {
+      width: 190px;// adjust to fit most client emails
+    }
+
+    #date {
+      width: 180px;// adjust to fit longest date
+    }
+
+    // Custom taxonomy column
+    // #taxonomy-topic {
+    //   width: 132px;// adjust to fit longest topic
+    // }
+
+    // Truncate author names instead of wrapping
+    .column-author {
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      a {
+        white-space: nowrap;
+      }
+    }
+
+    // Prevent util links from wrapping (below post titles in list views)
+    &.pages,
+    &.posts {
+      td.title {
+        padding-bottom: 30px;
+        position: relative;
+      }
+
+      .row-actions {
+        bottom: 8px;
+        position: absolute !important;
+        white-space: nowrap;
+      }
+
+      .comment-item:hover .row-actions,
+      .mobile .row-actions,
+      .no-js .row-actions,
+      .row-actions.visible,
+      tr:hover .row-actions {
+        left: 11px;
+      }
+    }
+  }
+
+  // Fix bug with ACF table layout
+  .column-acf-json {
+    position: relative;
+  }
+}
+
+// Login modal window in admin
+#wp-auth-check-wrap {
+  #wp-auth-check {
+    padding-top: 0 !important;
+  }
+
+  #wp-auth-check-form iframe {
+    height: 100% !important;
+  }
+
+  .wp-auth-check-close {
+    z-index: 10;
+  }
+}
+
+// Custom ACF field styles
+.acf-field {
+  // Fix ACFE auto column layout
+  &.acf-field-acfe-column[data-columns="auto"] {
+    width: 100% !important;
+  }
+
+  &[data-columns="auto"] .acf-fields {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  &.acf-field-taxonomy {
+    max-width: 300px;
+  }
+
+  &.auto-width {
+    width: auto !important;
+
+    .select2-selection__rendered {
+      padding-right: 10px !important;
+    }
+  }
+
+  // Fix ACF icon alignment
+  // .acf-taxonomy-field .acf-icon.small
+  .acf-icon {
+    &:before {
+      left: 50%;
+      margin: 0 !important;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  // Hide duplicate descriptions (not sure why this happens)
+  .description ~ .description {
+    display: none;
+  }
+}// end acf-field
+
+// Custom ACF wysiwyg field styles
+.acf-field-wysiwyg {
+  // Requires adding class in ACF config
+  &.hide-tabs {
+    .wp-editor-tools {
+      display: none;
+    }
+  }
+
+  .acf-label {
+    margin-bottom: 0 !important;
+
+    & > label {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  iframe {
+    height: unset;
+  }
+
+  // Requires adding class in ACF config
+  &.is-short {
+    iframe {
+      height: 70px !important;
+    }
+  }
+}// end acf-field-wysiwyg
+
+// Optional: Only show 15 min intervals in time picker fields
+// .ui_tpicker_minute_slider .ui-timepicker-select {
+//   option:not([value="0"], [value="15"], [value="30"], [value="45"]) {
+//     display: none;
+//   }
+// }
+
+// Optional: Hide seconds dropdown and “Now” button in time picker fields
+// .ui_tpicker_second_label,
+// .ui_tpicker_second,
+// .ui-datepicker-current {
+//   display: none !important;
+// }
+
+// Fix bug with collapsing ACF repeater rows when using columns
+#wpwrap .acf-row.-collapsed > .acf-fields > [data-columns]:has(.-collapsed-target) {
+  display: block !important;
+
+  & ~ [data-columns],
+  .acf-field:not(.-collapsed-target) {
+    display: none !important;
+  }
+}
+
+// Custom class to hide ACF tooltip icons (for copying var name)
+// This is helpful for fixing occasionaly layout issues.
+.hide-acf-tooltip .acf-js-tooltip {
+  display: none !important;
+}
+
+// Disable ACFE columns in sidebar
+.editor-sidebar .acfe-column-wrapper {
+  display: block !important;
+}
+
+.editor-sidebar .acf-field-acfe-column {
+  width: 100% !important;
+}
+
+// Reset WP upgrade message on the ACF admin page
+.acf-admin-page.acf-admin-page {
+  .acf-notice.update-nag,
+  .notice.update-nag,
+  #lost-connection-notice.update-nag {
+    margin: 0 0 20px !important;
+    width: 100% !important;
+  }
+}
+
+// Fix to allow ACF tabs bottom border to show
+// Note: Duplicate the selector to override default styles
+.acf-tab-wrap.acf-tab-wrap {
+  overflow: visible;
+}
+
+// Fix zebra stripe styles on ACF Field Group page
+.acf-internal-post-type :where(th, td) {
+  background-color: inherit !important;
+}
+
+// Force all WP menu icons to be grayscale since
+// some plugins use color icons which look bad.
+#adminmenu .wp-menu-image img {
+  display: block;
+  filter: brightness(1) grayscale(1);// adjust brightness as needed
+  height: 100%;// for very tall icons
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+// Hide comments link in the “At a Glance” dashboard widget
+#dashboard_right_now {
+  .comment-count {
+    display: none !important;
+  }
+}
+
+// Hide unused Yoast admin filters
+// (e.g. SEO Score, Readability Score)
+:where(#wpseo-filter, [for="wpseo-filter"]),
+:where(#wpseo-readability-filter, [for="wpseo-readability-filter"]) {
+  display: none !important;
+}

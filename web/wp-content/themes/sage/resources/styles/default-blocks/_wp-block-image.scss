@@ -1,0 +1,120 @@
+//------------------------------------------------------------------------
+// Default image block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/image/style.scss
+//
+// <figure class="wp-block-image [aligncenter|alignleft|alignright] size-[full|large|medium|thumbnail] [is-resized]">
+//   <img class="wp-image-123" src="…" srcset="…">
+//   <figcaption class="wp-element-caption">Cpation</figcaption>
+// </figure>
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+
+.wp-block-image {
+  $bp-align: 600px;
+  $float-horz-margin: 50px;
+  // Uncomment vars below to allow images to shift outside of content well
+  // $bp-outset-start: $layout-max-width-narrow-bp;
+  // $bp-outset-end: $layout-max-width-bp + ($layout-padding-max * 2);
+  // $outset: ($layout-max-width-bp - $layout-max-width-narrow) * 0.5;
+
+  &:not(:first-child) {
+    margin-top: 2em;
+  }
+
+  &:not(:last-child) {
+    margin-bottom: 2em;
+  }
+
+  &:not(.alignleft, .alignright) {
+    clear: both;
+  }
+
+  // Hide download/external icons for linked images
+  & > a {
+    &:after {
+      display: none;
+    }
+  }
+
+  // Hide download/external icons for linked images in the admin
+  :where(body.wp-admin) & {
+    a:has(img) {
+      &:after {
+        display: none !important;
+      }
+    }
+  }
+
+  // Custom image block style to apply max-height (class added via gutenberg.js)
+  &.is-style-max-height {
+    img {
+      max-height: 540px;
+      object-fit: cover;
+    }
+  }
+
+  figcaption {
+    @include caption;
+    margin-bottom: 0;
+    margin-top: em(36px, $body-text-max-size);
+    text-align: center;
+  }
+
+  &.alignwide {
+    figcaption {
+      @include default-padding;
+    }
+  }
+
+  &.alignwide,
+  &.alignfull {
+    figcaption {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: var(--layout-max-width-narrow);
+    }
+  }
+
+  &.alignleft,
+  &.alignright,
+  &.aligncenter {
+    figcaption {
+      text-align: left;
+    }
+  }
+
+  &.alignleft,
+  &.alignright {
+    @include max-width($bp-align - 1px) {
+      float: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @include min-width($bp-align) {
+      margin-top: em(7px, $body-text-max-size);// align with text
+    }
+  }
+
+  &.alignleft {
+    // Uncomment to allow images to shift outside of content well
+    // @include scale(margin-left, ($bp-outset-start: 0px, $bp-outset-end: -$outset), $initial: false);
+
+    @include min-width($bp-align) {
+      clear: left;
+      float: left;
+      margin-right: em($float-horz-margin, $body-text-max-size);
+    }
+  }
+
+  &.alignright {
+    // Uncomment to allow images to shift outside of content well
+    // @include scale(margin-right, ($bp-outset-start: 0px, $bp-outset-end: -$outset), $initial: false);
+
+    @include min-width($bp-align) {
+      clear: right;
+      float: right;
+      margin-left: em($float-horz-margin, $body-text-max-size);
+    }
+  }
+}// end wp-block-image

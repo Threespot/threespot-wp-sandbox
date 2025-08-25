@@ -1,0 +1,46 @@
+//------------------------------------------------------------------------
+// Styles for custom headings and labels used throughout the project.
+//
+// Each of these should also be turned into a helper class in _font-helpers.scss
+//
+// For rich text heading styles (e.g. h2–h6), see _richtext-headings.scss
+//------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars" as *;
+
+@mixin text-size-scale($min: $body-text-min-size, $max: $body-text-max-size) {
+  font-size: scale-clamp((375px: $min, $layout-text-scale-end-bp: $max));
+}
+
+// FIXME: Update with styles from Figma
+@mixin page-title() {
+  font-size: var(--heading-size, #{scale-clamp((375px: 30px, $layout-text-scale-end-bp: 50px))});
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+// FIXME: Update with styles from Figma
+@mixin post-title() {
+  font-size: var(--heading-size, #{scale-clamp((375px: 26px, $layout-text-scale-end-bp: 40px))});
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+// Optional large text style
+// Note: This can be applied as a custom paragraph block style (see gutenberg.js).
+//       If so, search for “@include large-text” and uncomment the styles.
+@mixin large-text() {
+  font-size: scale-clamp((375px: 26px, $layout-text-scale-end-bp: 32px));
+  line-height: 1.3;
+
+  &:not(:last-child) {
+    margin-bottom: 2em;
+  }
+}
+
+// Optional image caption styles
+@mixin caption() {
+  color: currentColor;
+  font-size: 16px;
+  line-height: 1.55;
+}

@@ -1,0 +1,13 @@
+//------------------------------------------------------------------------
+// Default quote block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/quote/style.scss
+//
+// <blockquote class="wp-block-quote">
+//   <p>…</p>
+//   <cite>…</cite>
+// </blockquote>
+//
+// NOTE: Quotes supports inner blocks but not layout (e.g. wide, fullwidth)
+//------------------------------------------------------------------------
+// NOTE: We’re not currently using this block
+// .wp-block-quote {}

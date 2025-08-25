@@ -1,0 +1,25 @@
+// -------------------------------------------------------------------------
+// Buttons
+//
+// stylelint-disable:disable no-important, no-color-literals
+// -------------------------------------------------------------------------
+@use "@mixins/button-mixins" as *;
+
+// Use attribute selector to apply base button styles to all button variations
+// Note: Just checking for [class*="btn"] can result in false positives
+//       e.g. TinyMCE’s “mce-btn” button class would match.
+//       We’re checking for “btn” separated by spaces or “btn-” anywhere.
+[class^="btn-"],
+[class*=" btn-"] {
+  @include button-base;
+}
+
+.btn {
+  &-solid {
+    @include button-solid;
+  }
+
+  &-border {
+    @include button-border;
+  }//end btn-border
+}// end btn

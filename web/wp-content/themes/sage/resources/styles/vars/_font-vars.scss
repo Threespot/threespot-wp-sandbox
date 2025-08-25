@@ -1,0 +1,40 @@
+// -------------------------------------------------------------------------
+// Font variables
+//
+// Note: Fallback to system sans-serif fonts since they support multiple weights.
+// All modern operating systems support the following weights:
+// - 900/800/700 Heavy
+// - 600 Bold
+// - 500/400 Regular
+// - 300/200/100 Light
+// (OS X and iOS support more)
+// Demo http://output.jsbin.com/morukug/quiet
+// Cross-browser results https://workflowy.com/s/font-stacks/MnwkgDkYvHT12nYT
+//
+// stylelint-disable:disable indentation, no-color-keywords
+// -------------------------------------------------------------------------
+:root {
+  // Base font stacks
+  //---------------------------------
+  // Note: Quotes arn’t necessary for most font names
+  //       See https://mothereff.in/font-family
+  // Note: “color-emoji” is a custom font defined in _fonts.scss
+  //       See https://www.client9.com/css-color-emoji-stack/ for details.
+  --sans-serif: system-ui, Segoe UI, sans-serif, color-emoji;
+  --serif: Georgia, serif, color-emoji;
+  --monospace: Consolas, Menlo, Monaco, monospace, color-emoji;
+
+  // Custom web fonts
+  //---------------------------------
+  // Note: If using Helvetica or Helvetica Neue, you can try these font stacks
+  // to try to avoid having to load the web font:
+  // https://gist.github.com/tedw/69576a543fbfe6cedb3d4c3fa0284eab
+  --fixme-font: FIXME, var(--sans-serif);// default font stack
+  --fixme-semibold: 600;
+}
+
+// Body copy Sass vars
+//---------------------------------
+// FIXME: Define default font styles
+$body-text-min-size: 17px;
+$body-text-max-size: 22px;

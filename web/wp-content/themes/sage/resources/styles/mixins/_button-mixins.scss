@@ -1,0 +1,123 @@
+// -------------------------------------------------------------------------
+// Button Styles
+// -------------------------------------------------------------------------
+@use "frontline-sass" as *;
+@use "@vars/form-vars" as *;
+@use "@vars/svg-icons" as *;
+@use "@mixins/selector-mixins" as *;
+
+@mixin button-base {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  padding: var(--button-padding-vert) var(--button-padding-horz);
+  transition: background-color 150ms ease-in-out,
+              background-position 150ms ease,
+              border 150ms ease-in-out,
+              color 150ms ease-in-out;
+}
+
+// FIXME: Update button style to match design
+@mixin button-solid($color: #fff, $bg-color: mediumvioletred) {
+  @include font-smoothing;
+  background-color: var(--button-bg-color, $bg-color);
+  border: 2px solid transparent;
+  color: var(--button-color, $color);
+
+  @include button-attention {
+    background-color: var(--button-color, $color);
+    border-color: currentColor;
+    color: var(--button-bg-color, $bg-color);
+    text-decoration: none;// for link tags
+  }
+}
+
+// FIXME: Update button style to match design
+@mixin button-border($color: mediumvioletred, $hover-color: #fff) {
+  background-color: transparent;
+  border: 2px solid var(--button-color, $color);
+  color: var(--button-color, $color);
+
+  // Example: Switch to white on dark backgrounds (requires setting up custom color palette)
+  // TODO: Automate this by including dark/light info in $block-colors map
+  // .has-navy-background-color & {
+  //   --button-color: #fff;
+  //   --button-hover-color: navy;
+  // }
+
+  @include button-attention {
+    @include font-smoothing;
+    background-color: var(--button-color, $color);
+    color: var(--button-hover-color, $hover-color);
+    text-decoration: none;// for link tags
+  }
+}
+
+@mixin button-add-icon($icon-name, $icon-width, $icon-margin, $a11y-text) {
+  // Add visually-hidden text using :before element for screen readers
+  @if $a11y-text {
+    &:before {
+      content: $a11y-text;
+      font-size: 0;// visually hide text
+    }
+  }
+
+  @supports (mask-size: contain) {
+    align-items: center;
+    display: inline-flex;
+
+    // Use SVG mask to add icon so it can inherit the color
+    // https://jsfiddle.net/34rmz5k7/2/
+    &:after {
+      background: currentColor;// this is the icon color
+      content: '';
+      flex-shrink: 0;
+      font-size: inherit;
+      height: $icon-width;
+      margin-left: $icon-margin;
+      mask-image: svg-url($icon-name, (fill: #000)), linear-gradient(transparent, transparent);
+      mask-position: right center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+      width: $icon-width;
+    }
+  }
+}
+
+// Append an icon based on the URL
+@mixin button-icon() {
+  // External links
+  // Use :where() to keep specificity low so we can override when external link is also a download
+  &:where([href^="http"]:not(
+    [href*="lndo.site"],
+    [href*="//localhost"],
+    [href*="pantheonsite.io"],
+    [href*="fixme-domain"])
+  ) {
+    @include button-add-icon(
+      $icon-name: $svg-external,
+      $icon-width: 23px,
+      $icon-margin: 15px,
+      $a11y-text: 'external,'
+    );
+  }
+
+  // Use download icon for internal links to files in media library
+  &:where(
+    [href^="/"][href*="/wp-content/uploads/"],
+    [href$=".pdf"],
+    [href$=".doc"],
+    [href$=".docx"],
+    [href$=".xls"],
+    [href$=".xlsx"],
+    [href$=".ppt"],
+    [href$=".pptx"]
+  ) {
+    @include button-add-icon(
+      $icon-name: $svg-download,
+      $icon-width: 18px,
+      $icon-margin: 10px,
+      $a11y-text: 'download'
+    );
+  }
+}
