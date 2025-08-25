@@ -21,7 +21,7 @@ $is-admin: false !default;
 
   // Default font vars
   --default-font: var(--fixme-font);
-  --default-font-weight: var(--fixme-semibold);
+  --default-font-weight: 400;
   --default-line-height: 1.44;
 
   @include min-width($layout-text-scale-end-bp) {
