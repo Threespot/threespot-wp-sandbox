@@ -108,7 +108,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     // See readme.md in /certs for how to generate the certificates
-    https: {
+    https: process.env.NODE_ENV == 'production' ? false : {
       key: fs.readFileSync(resolve(__dirname, 'certs/threespot-wp-sandbox.lndo.site-key.pem')),
       cert: fs.readFileSync(resolve(__dirname, 'certs/threespot-wp-sandbox.lndo.site.pem')),
     },
