@@ -9,14 +9,25 @@
 
 namespace SearchWP;
 
-use SearchWP\Updater;
-
 /**
  * Class License is responsible for managing a SearchWP license.
  *
  * @since 4.0
  */
 class License {
+
+	/**
+	 * The license types.
+	 * Array key stands for EDD Price IDs corresponding to the license type.
+	 *
+	 * @since 4.2.2
+	 */
+	const LICENSE_TYPES = [
+		0 => 'standard',
+		1 => 'pro',
+		2 => 'agency',
+		3 => 'agency', // Agency Unlimited.
+	];
 
 	/**
 	 * The license data.
@@ -73,10 +84,12 @@ class License {
 	 * Getter for license.
 	 *
 	 * @since 4.0
+	 *
 	 * @return mixed
 	 */
 	public static function get() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		wp_send_json_success( Settings::get( 'license' ) );
 	}
@@ -89,12 +102,12 @@ class License {
 	 * @return array|boolean The result of activation.
 	 */
 	public static function activate( $key ) {
-		$api_params = array(
+		$api_params = [
 			'edd_action' => 'activate_license',
 			'license'    => $key,
 			'item_name'  => rawurlencode( SEARCHWP_EDD_ITEM_NAME ),
 			'url'        => home_url(),
-		);
+		];
 
 		$response = wp_remote_post(
 			SEARCHWP_EDD_STORE_URL,
@@ -126,12 +139,12 @@ class License {
 	 * @return array|false The response from deactivation.
 	 */
 	public static function deactivate( $key ) {
-		$api_params = array(
+		$api_params = [
 			'edd_action' => 'deactivate_license',
 			'license'    => $key,
 			'item_name'  => rawurlencode( SEARCHWP_EDD_ITEM_NAME ),
 			'url'        => home_url(),
-		);
+		];
 
 		$response = wp_remote_post(
 			SEARCHWP_EDD_STORE_URL,
@@ -173,10 +186,10 @@ class License {
 				$message = __( 'An error occurred, please try again.', 'searchwp' );
 			}
 
-			return array(
+			return [
 				'success' => false,
 				'data'    => $message,
-			);
+			];
 		}
 
 		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -186,10 +199,10 @@ class License {
 		}
 
 		// License activation was a success.
-		return array(
+		return [
 			'success' => true,
 			'data'    => $license_data,
-		);
+		];
 	}
 
 	/**
@@ -223,16 +236,35 @@ class License {
 	}
 
 	/**
+	 * Getter for license type.
+	 *
+	 * @since 4.2.2
+	 *
+	 * @return string The license type.
+	 */
+	public static function get_type() {
+
+		// Update the license data from remote if the license is active but 'type' key is missing.
+		if ( ! isset( self::$data['type'] ) && self::is_active() ) {
+			self::maintenance();
+		}
+
+		return self::$data['type'] ?? '';
+	}
+
+	/**
 	 * Callback for WP_Cron event that updates license status once a day.
 	 *
 	 * @since 4.0
 	 * @return void
 	 */
 	public static function maintenance() {
+
 		$api_params = [
 			'edd_action' => 'check_license',
 			'license'    => self::$key,
 			'item_name'  => rawurlencode( SEARCHWP_EDD_ITEM_NAME ),
+			'url'        => home_url(),
 		];
 
 		$api_args = [
@@ -247,15 +279,24 @@ class License {
 			return;
 		}
 
-		$parsed_response = self::handle_activation_response( $response );
+		$parsed_response        = self::handle_activation_response( $response );
+		$license_check_attempts = Settings::get( 'license_check_attempts', 'absint' );
+
+		if ( ! $parsed_response['success'] && $license_check_attempts < 2 ) {
+			Settings::update( 'license_check_attempts', $license_check_attempts + 1 );
+		}
+
+		if ( ! $parsed_response['success'] && $license_check_attempts >= 2 ) {
+			Settings::update( 'license', false );
+			Settings::delete( 'license_check_attempts' );
+		}
 
 		if ( $parsed_response['success'] ) {
 			self::$data        = $parsed_response['data'];
 			self::$data['key'] = self::$key;
 
 			Settings::update( 'license', self::$data );
-		} else {
-			Settings::update( 'license', false );
+			Settings::delete( 'license_check_attempts' );
 		}
 	}
 
@@ -276,6 +317,7 @@ class License {
 	 * @param array $response The response from wp_remote_post() call to licensing server.
 	 */
 	public static function handle_activation_response( $response ) {
+
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 
 			if ( is_wp_error( $response ) ) {
@@ -284,10 +326,10 @@ class License {
 				$message = __( 'An error occurred, please try again.', 'searchwp' );
 			}
 
-			return array(
+			return [
 				'success' => false,
 				'data'    => $message,
-			);
+			];
 		}
 
 		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -337,10 +379,10 @@ class License {
 
 		// A populated message constitutes an error.
 		if ( ! empty( $message ) ) {
-			return array(
+			return [
 				'success' => false,
 				'data'    => $message,
-			);
+			];
 		}
 
 		// Generate human readable remaining time.
@@ -355,14 +397,23 @@ class License {
 			);
 		}
 
+		// Assign the lowest license type as a fallback.
+		$type = self::LICENSE_TYPES[0];
+
+		// Translate the EDD Price ID into the license type.
+		if ( isset( $license_data->price_id ) && array_key_exists( $license_data->price_id, self::LICENSE_TYPES ) ) {
+			$type = self::LICENSE_TYPES[ $license_data->price_id ];
+		}
+
 		// License activation was a success.
-		return array(
+		return [
 			'success' => true,
 			'data'    => [
 				'status'    => $license_data->license,
 				'expires'   => $license_data->expires,
 				'remaining' => $expiration,
+				'type'      => $type,
 			],
-		);
+		];
 	}
 }

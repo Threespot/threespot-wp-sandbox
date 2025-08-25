@@ -2,12 +2,12 @@
 /*
 Plugin Name: SearchWP Exclude UI
 Plugin URI: https://searchwp.com/
-Description: Add a checkbox to edit screens to add an "Exclude from search" checkbox
-Version: 1.2.1
+Description: Add a checkbox to edit screens to add an "Exclude from SearchWP" checkbox
+Version: 1.2.4
 Author: SearchWP
 Author URI: https://searchwp.com/
 
-Copyright 2015-2020 SearchWP
+Copyright 2015-2024 SearchWP, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,13 +23,16 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-// exit if accessed directly
+use SearchWP\License;
+use SearchWP\Utils;
+
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! defined( 'SEARCHWP_EXCLUDEUI_VERSION' ) ) {
-	define( 'SEARCHWP_EXCLUDEUI_VERSION', '1.2.1' );
+	define( 'SEARCHWP_EXCLUDEUI_VERSION', '1.2.4' );
 }
 
 /**
@@ -58,7 +61,7 @@ function searchwp_excludeui_update_check(){
 
 	// SearchWP 4 compat.
 	if ( class_exists( '\\SearchWP\\License' ) ) {
-		$license_key = \SearchWP\License::get_key();
+		$license_key = License::get_key();
 	} else {
 		$license_key = trim( get_option( SEARCHWP_PREFIX . 'license_key' ) );
 		$license_key = sanitize_text_field( $license_key );
@@ -109,15 +112,14 @@ class SearchWPExcludeUI {
 	 */
 	function register_post_meta() {
 		$args = array(
-			'show_in_rest' => true,
-			'single'       => true
+			'show_in_rest'  => true,
+			'single'        => true,
+			'auth_callback' => function () {
+				return current_user_can( 'edit_posts' );
+			},
 		);
 
 		register_meta( 'post', $this->meta_key, $args );
-	}
-
-	function force_boolean( $val ) {
-		return (bool) $val;
 	}
 
 	/**
@@ -126,8 +128,17 @@ class SearchWPExcludeUI {
 	function enqueue_block_editor_assets() {
 		global $post;
 
+		if ( ! is_a( $post, 'WP_Post' ) ) {
+			return;
+		}
+
 		$excluded_post_types = apply_filters( 'searchwp_exclude_ui_excluded_post_types', array() );
 		$post_type_name = get_post_type( $post );
+
+		if ( $this->is_post_type_excluded( $post_type_name ) ) {
+			return;
+		}
+
 		$post_type = get_post_type_object( $post_type_name );
 
 		if ( ! function_exists( 'register_block_type' ) ) {
@@ -139,6 +150,12 @@ class SearchWPExcludeUI {
 		}
 
 		if ( in_array( $post_type_name, $excluded_post_types ) ) {
+			return;
+		}
+
+		// If custom-fields aren't supported, we need a traditional meta box.
+		if ( ! post_type_supports( $post_type_name, 'custom-fields' ) ) {
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
 			return;
 		}
 
@@ -170,11 +187,37 @@ class SearchWPExcludeUI {
 		// }
 	}
 
+	function add_meta_box() {
+		add_meta_box(
+			'searchwp-exclude-ui',
+			'Exclude From SearchWP',
+			array( $this, 'meta_box' ),
+			null,
+			'advanced',
+			'high',
+			array( '__block_editor_compatible_meta_box' => true, )
+		);
+	}
+
+	function meta_box() {
+		$this->output_exclude_checkbox();
+	}
+
 	function output_exclude_checkbox() {
+
 		global $post;
 
-		$excluded_post_types = apply_filters( 'searchwp_exclude_ui_excluded_post_types', array() );
-		$post_type_name = get_post_type( $post );
+		if ( ! is_a( $post, 'WP_Post' ) ) {
+			return;
+		}
+
+		$excluded_post_types = apply_filters( 'searchwp_exclude_ui_excluded_post_types', [] );
+		$post_type_name      = get_post_type( $post );
+
+		if ( $this->is_post_type_excluded( $post_type_name ) ) {
+			return;
+		}
+
 		$post_type = get_post_type_object( $post_type_name );
 
 		if ( ! $post_type->exclude_from_search && ! in_array( $post_type_name, $excluded_post_types ) ) : ?>
@@ -185,7 +228,7 @@ class SearchWPExcludeUI {
 			<div class="misc-pub-section">
 				<input type="checkbox" name="searchwp_exclude" id="searchwp_exclude"
 				       value="1"<?php echo checked( $val, '1', false ); ?> />
-				<label for="searchwp_exclude"><?php _e( 'Exclude from search', 'searchwp' ); ?></label>
+				<label for="searchwp_exclude"><?php _e( 'Exclude from SearchWP', 'searchwp' ); ?></label>
 			</div>
 		<?php endif;
 	}
@@ -263,6 +306,32 @@ class SearchWPExcludeUI {
 
 	function searchwp_prevent_indexing() {
 		return $this->get_excluded_ids();
+	}
+
+	/**
+	 * Checks if the post type is excluded from SearchWP.
+	 *
+	 * @since 1.2.3
+	 *
+	 * @param string $post_type The post type name.
+	 *
+	 * @return bool
+	 */
+	private function is_post_type_excluded( $post_type ) {
+
+		$source_name = Utils::get_post_type_source_name( $post_type );
+
+		if ( is_wp_error( $source_name ) ) {
+			return false;
+		}
+
+		$source = \SearchWP::$index->get_source_by_name( $source_name );
+
+		if ( ! $source instanceof \SearchWP\Source ) {
+			return false;
+		}
+
+		return ! Utils::any_engine_has_source( $source );
 	}
 
 }

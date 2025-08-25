@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -49,10 +51,7 @@ class Element
      */
     protected $document = null;
     protected $value = null;
-    /**
-     * @param Document $document
-     */
-    public function __construct($value, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null)
+    public function __construct($value, ?Document $document = null)
     {
         $this->value = $value;
         $this->document = $document;
@@ -60,17 +59,11 @@ class Element
     public function init()
     {
     }
-    /**
-     * @return bool
-     */
-    public function equals($value)
+    public function equals($value) : bool
     {
         return $value == $this->value;
     }
-    /**
-     * @return bool
-     */
-    public function contains($value)
+    public function contains($value) : bool
     {
         if (\is_array($this->value)) {
             /** @var Element $val */
@@ -87,23 +80,11 @@ class Element
     {
         return $this->value;
     }
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString() : string
     {
         return (string) $this->value;
     }
-    /**
-     * @param string   $content
-     * @param Document $document
-     * @param int      $position
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public static function parse($content, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null, &$position = 0)
+    public static function parse(string $content, ?Document $document = null, int &$position = 0)
     {
         $args = \func_get_args();
         $only_values = isset($args[3]) ? $args[3] : \false;
@@ -123,25 +104,25 @@ class Element
                 $name = \count($values);
                 $value = \substr($content, $position);
             }
-            if ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementName::parse($value, $document, $position)) {
+            if ($element = ElementName::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef::parse($value, $document, $position)) {
+            } elseif ($element = ElementXRef::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNumeric::parse($value, $document, $position)) {
+            } elseif ($element = ElementNumeric::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementStruct::parse($value, $document, $position)) {
+            } elseif ($element = ElementStruct::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementBoolean::parse($value, $document, $position)) {
+            } elseif ($element = ElementBoolean::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNull::parse($value, $document, $position)) {
+            } elseif ($element = ElementNull::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementDate::parse($value, $document, $position)) {
+            } elseif ($element = ElementDate::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementString::parse($value, $document, $position)) {
+            } elseif ($element = ElementString::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementHexa::parse($value, $document, $position)) {
+            } elseif ($element = ElementHexa::parse($value, $document, $position)) {
                 $values[$name] = $element;
-            } elseif ($element = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray::parse($value, $document, $position)) {
+            } elseif ($element = ElementArray::parse($value, $document, $position)) {
                 $values[$name] = $element;
             } else {
                 $position = $old_position;

@@ -15,6 +15,7 @@ use SearchWP\Dependencies\Monolog\Logger;
 use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
 use SearchWP\Dependencies\Monolog\Formatter\LogglyFormatter;
 use function array_key_exists;
+use CurlHandle;
 /**
  * Sends errors to Loggly.
  *
@@ -22,7 +23,7 @@ use function array_key_exists;
  * @author Adam Pancutt <adam@pancutt.com>
  * @author Gregory Barchard <gregory@barchard.net>
  */
-class LogglyHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class LogglyHandler extends AbstractProcessingHandler
 {
     protected const HOST = 'logs-01.loggly.com';
     protected const ENDPOINT_SINGLE = 'inputs';
@@ -30,22 +31,22 @@ class LogglyHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProce
     /**
      * Caches the curl handlers for every given endpoint.
      *
-     * @var array
+     * @var resource[]|CurlHandle[]
      */
     protected $curlHandlers = [];
+    /** @var string */
     protected $token;
+    /** @var string[] */
     protected $tag = [];
     /**
-     * @param string     $token  API token supplied by Loggly
-     * @param string|int $level  The minimum logging level to trigger this handler
-     * @param bool       $bubble Whether or not messages that are handled should bubble up the stack.
+     * @param string $token API token supplied by Loggly
      *
      * @throws MissingExtensionException If the curl extension is missing
      */
-    public function __construct(string $token, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(string $token, $level = Logger::DEBUG, bool $bubble = \true)
     {
         if (!\extension_loaded('curl')) {
-            throw new \SearchWP\Dependencies\Monolog\Handler\MissingExtensionException('The curl extension is needed to use the LogglyHandler');
+            throw new MissingExtensionException('The curl extension is needed to use the LogglyHandler');
         }
         $this->token = $token;
         parent::__construct($level, $bubble);
@@ -55,12 +56,12 @@ class LogglyHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProce
      *
      * @param string $endpoint
      *
-     * @return resource
+     * @return resource|CurlHandle
      */
     protected function getCurlHandler(string $endpoint)
     {
-        if (!\array_key_exists($endpoint, $this->curlHandlers)) {
-            $this->curlHandlers[$endpoint] = $this->loadCurlHandler($endpoint);
+        if (!array_key_exists($endpoint, $this->curlHandlers)) {
+            $this->curlHandlers[$endpoint] = $this->loadCurlHandle($endpoint);
         }
         return $this->curlHandlers[$endpoint];
     }
@@ -69,9 +70,9 @@ class LogglyHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProce
      *
      * @param string $endpoint
      *
-     * @return resource
+     * @return resource|CurlHandle
      */
-    private function loadCurlHandler(string $endpoint)
+    private function loadCurlHandle(string $endpoint)
     {
         $url = \sprintf("https://%s/%s/%s/", static::HOST, $endpoint, $this->token);
         $ch = \curl_init();
@@ -123,10 +124,10 @@ class LogglyHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProce
         }
         \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
         \curl_setopt($ch, \CURLOPT_HTTPHEADER, $headers);
-        \SearchWP\Dependencies\Monolog\Handler\Curl\Util::execute($ch, 5, \false);
+        Curl\Util::execute($ch, 5, \false);
     }
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\LogglyFormatter();
+        return new LogglyFormatter();
     }
 }

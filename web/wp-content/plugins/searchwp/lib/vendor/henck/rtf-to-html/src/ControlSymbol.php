@@ -2,7 +2,7 @@
 
 namespace SearchWP\Dependencies\RtfHtmlPhp;
 
-class ControlSymbol extends \SearchWP\Dependencies\RtfHtmlPhp\Element
+class ControlSymbol extends Element
 {
     public $symbol;
     public $parameter = 0;

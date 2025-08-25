@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -33,7 +35,7 @@ use SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray;
 use SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing;
 use SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNull;
 use SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef;
-class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
+class Page extends PDFObject
 {
     /**
      * @var Font[]
@@ -57,17 +59,17 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         }
         $resources = $this->get('Resources');
         if (\method_exists($resources, 'has') && $resources->has('Font')) {
-            if ($resources->get('Font') instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing) {
+            if ($resources->get('Font') instanceof ElementMissing) {
                 return [];
             }
-            if ($resources->get('Font') instanceof \SearchWP\Dependencies\Smalot\PdfParser\Header) {
+            if ($resources->get('Font') instanceof Header) {
                 $fonts = $resources->get('Font')->getElements();
             } else {
                 $fonts = $resources->get('Font')->getHeader()->getElements();
             }
             $table = [];
             foreach ($fonts as $id => $font) {
-                if ($font instanceof \SearchWP\Dependencies\Smalot\PdfParser\Font) {
+                if ($font instanceof Font) {
                     $table[$id] = $font;
                     // Store too on cleaned id value (only numeric)
                     $id = \preg_replace('/[^0-9\\.\\-_]/', '', $id);
@@ -80,12 +82,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         }
         return [];
     }
-    /**
-     * @param string $id
-     *
-     * @return Font|null
-     */
-    public function getFont($id)
+    public function getFont(string $id) : ?Font
     {
         $fonts = $this->getFonts();
         if (isset($fonts[$id])) {
@@ -116,7 +113,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         }
         $resources = $this->get('Resources');
         if (\method_exists($resources, 'has') && $resources->has('XObject')) {
-            if ($resources->get('XObject') instanceof \SearchWP\Dependencies\Smalot\PdfParser\Header) {
+            if ($resources->get('XObject') instanceof Header) {
                 $xobjects = $resources->get('XObject')->getElements();
             } else {
                 $xobjects = $resources->get('XObject')->getHeader()->getElements();
@@ -134,12 +131,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         }
         return [];
     }
-    /**
-     * @param string $id
-     *
-     * @return PDFObject|null
-     */
-    public function getXObject($id)
+    public function getXObject(string $id) : ?PDFObject
     {
         $xobjects = $this->getXObjects();
         if (isset($xobjects[$id])) {
@@ -154,92 +146,175 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                     return null;
                 }*/
     }
-    /**
-     * @param Page $page
-     *
-     * @return string
-     */
-    public function getText(self $page = null)
+    public function getText(self $page = null) : string
     {
         if ($contents = $this->get('Contents')) {
-            if ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing) {
+            if ($contents instanceof ElementMissing) {
                 return '';
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNull) {
+            } elseif ($contents instanceof ElementNull) {
                 return '';
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\PDFObject) {
+            } elseif ($contents instanceof PDFObject) {
                 $elements = $contents->getHeader()->getElements();
                 if (\is_numeric(\key($elements))) {
                     $new_content = '';
                     foreach ($elements as $element) {
-                        if ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef) {
+                        if ($element instanceof ElementXRef) {
                             $new_content .= $element->getObject()->getContent();
                         } else {
                             $new_content .= $element->getContent();
                         }
                     }
-                    $header = new \SearchWP\Dependencies\Smalot\PdfParser\Header([], $this->document);
-                    $contents = new \SearchWP\Dependencies\Smalot\PdfParser\PDFObject($this->document, $header, $new_content);
+                    $header = new Header([], $this->document);
+                    $contents = new PDFObject($this->document, $header, $new_content, $this->config);
                 }
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray) {
+            } elseif ($contents instanceof ElementArray) {
                 // Create a virtual global content.
                 $new_content = '';
                 foreach ($contents->getContent() as $content) {
                     $new_content .= $content->getContent() . "\n";
                 }
-                $header = new \SearchWP\Dependencies\Smalot\PdfParser\Header([], $this->document);
-                $contents = new \SearchWP\Dependencies\Smalot\PdfParser\PDFObject($this->document, $header, $new_content);
+                $header = new Header([], $this->document);
+                $contents = new PDFObject($this->document, $header, $new_content, $this->config);
             }
-            return $contents->getText($this);
+            /*
+             * Elements referencing each other on the same page can cause endless loops during text parsing.
+             * To combat this we keep a recursionStack containing already parsed elements on the page.
+             * The stack is only emptied here after getting text from a page.
+             */
+            $contentsText = $contents->getText($this);
+            PDFObject::$recursionStack = [];
+            return $contentsText;
         }
         return '';
     }
     /**
-     * @param Page $page
+     * Return true if the current page is a (setasign\Fpdi\Fpdi) FPDI/FPDF document
      *
-     * @return array
+     * The metadata 'Producer' should have the value of "FPDF" . FPDF_VERSION if the
+     * pdf file was generated by FPDF/Fpfi.
+     *
+     * @return bool true is the current page is a FPDI/FPDF document
      */
-    public function getTextArray(self $page = null)
+    public function isFpdf() : bool
     {
-        if ($contents = $this->get('Contents')) {
-            if ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing) {
-                return [];
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNull) {
-                return [];
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\PDFObject) {
-                $elements = $contents->getHeader()->getElements();
-                if (\is_numeric(\key($elements))) {
-                    $new_content = '';
-                    /** @var PDFObject $element */
-                    foreach ($elements as $element) {
-                        if ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef) {
-                            $new_content .= $element->getObject()->getContent();
-                        } else {
-                            $new_content .= $element->getContent();
+        if (\array_key_exists('Producer', $this->document->getDetails()) && \is_string($this->document->getDetails()['Producer']) && 0 === \strncmp($this->document->getDetails()['Producer'], 'FPDF', 4)) {
+            return \true;
+        }
+        return \false;
+    }
+    /**
+     * Return the page number of the PDF document of the page object
+     *
+     * @return int the page number
+     */
+    public function getPageNumber() : int
+    {
+        $pages = $this->document->getPages();
+        $numOfPages = \count($pages);
+        for ($pageNum = 0; $pageNum < $numOfPages; ++$pageNum) {
+            if ($pages[$pageNum] === $this) {
+                break;
+            }
+        }
+        return $pageNum;
+    }
+    /**
+     * Return the Object of the page if the document is a FPDF/FPDI document
+     *
+     * If the document was generated by FPDF/FPDI it returns the
+     * PDFObject of the given page
+     *
+     * @return PDFObject The PDFObject for the page
+     */
+    public function getPDFObjectForFpdf() : PDFObject
+    {
+        $pageNum = $this->getPageNumber();
+        $xObjects = $this->getXObjects();
+        return $xObjects[$pageNum];
+    }
+    /**
+     * Return a new PDFObject of the document created with FPDF/FPDI
+     *
+     * For a document generated by FPDF/FPDI, it generates a
+     * new PDFObject for that document
+     *
+     * @return PDFObject The PDFObject
+     */
+    public function createPDFObjectForFpdf() : PDFObject
+    {
+        $pdfObject = $this->getPDFObjectForFpdf();
+        $new_content = $pdfObject->getContent();
+        $header = $pdfObject->getHeader();
+        $config = $pdfObject->config;
+        return new PDFObject($pdfObject->document, $header, $new_content, $config);
+    }
+    /**
+     * Return page if document is a FPDF/FPDI document
+     *
+     * @return Page The page
+     */
+    public function createPageForFpdf() : self
+    {
+        $pdfObject = $this->getPDFObjectForFpdf();
+        $new_content = $pdfObject->getContent();
+        $header = $pdfObject->getHeader();
+        $config = $pdfObject->config;
+        return new self($pdfObject->document, $header, $new_content, $config);
+    }
+    public function getTextArray(self $page = null) : array
+    {
+        if ($this->isFpdf()) {
+            $pdfObject = $this->getPDFObjectForFpdf();
+            $newPdfObject = $this->createPDFObjectForFpdf();
+            return $newPdfObject->getTextArray($pdfObject);
+        } else {
+            if ($contents = $this->get('Contents')) {
+                if ($contents instanceof ElementMissing) {
+                    return [];
+                } elseif ($contents instanceof ElementNull) {
+                    return [];
+                } elseif ($contents instanceof PDFObject) {
+                    $elements = $contents->getHeader()->getElements();
+                    if (\is_numeric(\key($elements))) {
+                        $new_content = '';
+                        /** @var PDFObject $element */
+                        foreach ($elements as $element) {
+                            if ($element instanceof ElementXRef) {
+                                $new_content .= $element->getObject()->getContent();
+                            } else {
+                                $new_content .= $element->getContent();
+                            }
+                        }
+                        $header = new Header([], $this->document);
+                        $contents = new PDFObject($this->document, $header, $new_content, $this->config);
+                    } else {
+                        try {
+                            $contents->getTextArray($this);
+                        } catch (\Throwable $e) {
+                            return $contents->getTextArray();
                         }
                     }
-                    $header = new \SearchWP\Dependencies\Smalot\PdfParser\Header([], $this->document);
-                    $contents = new \SearchWP\Dependencies\Smalot\PdfParser\PDFObject($this->document, $header, $new_content);
+                } elseif ($contents instanceof ElementArray) {
+                    // Create a virtual global content.
+                    $new_content = '';
+                    /** @var PDFObject $content */
+                    foreach ($contents->getContent() as $content) {
+                        $new_content .= $content->getContent() . "\n";
+                    }
+                    $header = new Header([], $this->document);
+                    $contents = new PDFObject($this->document, $header, $new_content, $this->config);
                 }
-            } elseif ($contents instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray) {
-                // Create a virtual global content.
-                $new_content = '';
-                /** @var PDFObject $content */
-                foreach ($contents->getContent() as $content) {
-                    $new_content .= $content->getContent() . "\n";
-                }
-                $header = new \SearchWP\Dependencies\Smalot\PdfParser\Header([], $this->document);
-                $contents = new \SearchWP\Dependencies\Smalot\PdfParser\PDFObject($this->document, $header, $new_content);
+                return $contents->getTextArray($this);
             }
-            return $contents->getTextArray($this);
+            return [];
         }
-        return [];
     }
     /**
      * Gets all the text data with its internal representation of the page.
      *
-     * @return array An array with the data and the internal representation
+     * Returns an array with the data and the internal representation
      */
-    public function extractRawData()
+    public function extractRawData() : array
     {
         /*
          * Now you can get the complete content of the object with the text on it
@@ -260,6 +335,9 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                 }
             }
         } else {
+            if ($this->isFpdf()) {
+                $content = $this->getPDFObjectForFpdf();
+            }
             $sectionsText = $content->getSectionsText($content->getContent());
             foreach ($sectionsText as $sectionText) {
                 $extractedData[] = ['t' => '', 'o' => 'BT', 'c' => ''];
@@ -279,12 +357,18 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
      *
      * @return array An array with the data and the internal representation
      */
-    public function extractDecodedRawData($extractedRawData = null)
+    public function extractDecodedRawData(array $extractedRawData = null) : array
     {
         if (!isset($extractedRawData) || !$extractedRawData) {
             $extractedRawData = $this->extractRawData();
         }
         $currentFont = null;
+        /** @var Font $currentFont */
+        $clippedFont = null;
+        $fpdfPage = null;
+        if ($this->isFpdf()) {
+            $fpdfPage = $this->createPageForFpdf();
+        }
         foreach ($extractedRawData as &$command) {
             if ('Tj' == $command['o'] || 'TJ' == $command['o']) {
                 $data = $command['c'];
@@ -292,10 +376,10 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                     $tmpText = '';
                     if (isset($currentFont)) {
                         $tmpText = $currentFont->decodeOctal($data);
-                        //$tmpText = $currentFont->decodeHexadecimal($tmpText, false);
+                        // $tmpText = $currentFont->decodeHexadecimal($tmpText, false);
                     }
                     $tmpText = \str_replace(['\\\\', '\\(', '\\)', '\\n', '\\r', '\\t', '\\ '], ['\\', '(', ')', "\n", "\r", "\t", ' '], $tmpText);
-                    $tmpText = \utf8_encode($tmpText);
+                    $tmpText = \mb_convert_encoding($tmpText, 'UTF-8', 'ISO-8859-1');
                     if (isset($currentFont)) {
                         $tmpText = $currentFont->decodeContent($tmpText);
                     }
@@ -308,13 +392,9 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                         continue;
                     }
                     $tmpText = $data[$i]['c'];
-                    $decodedText = '';
-                    if (isset($currentFont)) {
-                        $decodedText = $currentFont->decodeOctal($tmpText);
-                        //$tmpText = $currentFont->decodeHexadecimal($tmpText, false);
-                    }
+                    $decodedText = isset($currentFont) ? $currentFont->decodeOctal($tmpText) : $tmpText;
                     $decodedText = \str_replace(['\\\\', '\\(', '\\)', '\\n', '\\r', '\\t', '\\ '], ['\\', '(', ')', "\n", "\r", "\t", ' '], $decodedText);
-                    $decodedText = \utf8_encode($decodedText);
+                    $decodedText = \mb_convert_encoding($decodedText, 'UTF-8', 'ISO-8859-1');
                     if (isset($currentFont)) {
                         $decodedText = $currentFont->decodeContent($decodedText);
                     }
@@ -323,8 +403,13 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                 }
             } elseif ('Tf' == $command['o'] || 'TF' == $command['o']) {
                 $fontId = \explode(' ', $command['c'])[0];
-                $currentFont = $this->getFont($fontId);
+                // If document is a FPDI/FPDF the $page has the correct font
+                $currentFont = isset($fpdfPage) ? $fpdfPage->getFont($fontId) : $this->getFont($fontId);
                 continue;
+            } elseif ('Q' == $command['o']) {
+                $currentFont = $clippedFont;
+            } elseif ('q' == $command['o']) {
+                $clippedFont = $currentFont;
             }
         }
         return $extractedRawData;
@@ -341,7 +426,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
      *
      * @return array An array with the text command of the page
      */
-    public function getDataCommands($extractedDecodedRawData = null)
+    public function getDataCommands(array $extractedDecodedRawData = null) : array
     {
         if (!isset($extractedDecodedRawData) || !$extractedDecodedRawData) {
             $extractedDecodedRawData = $this->extractDecodedRawData();
@@ -441,6 +526,10 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                 case '"':
                     $extractedData[] = $command;
                     break;
+                case 'Tf':
+                case 'TF':
+                    $extractedData[] = $command;
+                    break;
                 /*
                  * array TJ
                  * Show one or more text strings allow individual glyph positioning.
@@ -475,7 +564,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
      * @return array an array with the data of the page including the Tm information
      *               of any text in the page
      */
-    public function getDataTm($dataCommands = null)
+    public function getDataTm(array $dataCommands = null) : array
     {
         if (!isset($dataCommands) || !$dataCommands) {
             $dataCommands = $this->getDataCommands();
@@ -489,14 +578,34 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
          */
         $defaultTl = 0;
         /*
-         * Setting where are the X and Y coordinates in the matrix (Tm)
+         *  Set default values for font data
          */
+        $defaultFontId = -1;
+        $defaultFontSize = 1;
+        /*
+         * Indexes of horizontal/vertical scaling and X,Y-coordinates in the matrix (Tm)
+         */
+        $hSc = 0;
+        // horizontal scaling
+        /**
+         * index of vertical scaling in the array that encodes the text matrix.
+         * for more information: https://github.com/smalot/pdfparser/pull/559#discussion_r1053415500
+         */
+        $vSc = 3;
         $x = 4;
         $y = 5;
+        /*
+         * x,y-coordinates of text space origin in user units
+         *
+         * These will be assigned the value of the currently printed string
+         */
         $Tx = 0;
         $Ty = 0;
         $Tm = $defaultTm;
         $Tl = $defaultTl;
+        $fontId = $defaultFontId;
+        $fontSize = $defaultFontSize;
+        // reflects fontSize set by Tf or Tfs
         $extractedTexts = $this->getTextArray();
         $extractedData = [];
         foreach ($dataCommands as $command) {
@@ -504,14 +613,15 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
             switch ($command['o']) {
                 /*
                  * BT
-                 * Begin a text object, inicializind the Tm and Tlm to identity matrix
+                 * Begin a text object, initializing the Tm and Tlm to identity matrix
                  */
                 case 'BT':
                     $Tm = $defaultTm;
                     $Tl = $defaultTl;
-                    //review this.
                     $Tx = 0;
                     $Ty = 0;
+                    $fontId = $defaultFontId;
+                    $fontSize = $defaultFontSize;
                     break;
                 /*
                  * ET
@@ -520,17 +630,19 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                 case 'ET':
                     $Tm = $defaultTm;
                     $Tl = $defaultTl;
-                    //review this
                     $Tx = 0;
                     $Ty = 0;
+                    $fontId = $defaultFontId;
+                    $fontSize = $defaultFontSize;
                     break;
                 /*
-                 * leading TL
+                 * text leading TL
                  * Set the text leading, Tl, to leading. Tl is used by the T*, ' and " operators.
                  * Initial value: 0
                  */
                 case 'TL':
-                    $Tl = (float) $command['c'];
+                    // scaled text leading
+                    $Tl = (float) $command['c'] * (float) $Tm[$vSc];
                     break;
                 /*
                  * tx ty Td
@@ -539,8 +651,8 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                  */
                 case 'Td':
                     $coord = \explode(' ', $command['c']);
-                    $Tx += (float) $coord[0];
-                    $Ty += (float) $coord[1];
+                    $Tx += (float) $coord[0] * (float) $Tm[$hSc];
+                    $Ty += (float) $coord[1] * (float) $Tm[$vSc];
                     $Tm[$x] = (string) $Tx;
                     $Tm[$y] = (string) $Ty;
                     break;
@@ -555,9 +667,9 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                  */
                 case 'TD':
                     $coord = \explode(' ', $command['c']);
-                    $Tl = (float) $coord[1];
-                    $Tx += (float) $coord[0];
-                    $Ty -= (float) $coord[1];
+                    $Tl = -((float) $coord[1] * (float) $Tm[$vSc]);
+                    $Tx += (float) $coord[0] * (float) $Tm[$hSc];
+                    $Ty += (float) $coord[1] * (float) $Tm[$vSc];
                     $Tm[$x] = (string) $Tx;
                     $Tm[$y] = (string) $Ty;
                     break;
@@ -588,7 +700,12 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                  * Show a Text String
                  */
                 case 'Tj':
-                    $extractedData[] = [$Tm, $currentText];
+                    $data = [$Tm, $currentText];
+                    if ($this->config->getDataTmFontInfoHasToBeIncluded()) {
+                        $data[] = $fontId;
+                        $data[] = $fontSize;
+                    }
+                    $extractedData[] = $data;
                     break;
                 /*
                  * string '
@@ -618,7 +735,20 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                     $Ty -= $Tl;
                     $Tm[$y] = (string) $Ty;
                     $extractedData[] = [$Tm, $data[2]];
-                    //Verify
+                    // Verify
+                    break;
+                case 'Tf':
+                    /*
+                     * From PDF 1.0 specification, page 106:
+                     *     fontname size Tf Set font and size
+                     *     Sets the text font and text size in the graphics state. There is no default value for
+                     *     either fontname or size; they must be selected using Tf before drawing any text.
+                     *     fontname is a resource name. size is a number expressed in text space units.
+                     *
+                     * Source: https://ia902503.us.archive.org/10/items/pdfy-0vt8s-egqFwDl7L2/PDF%20Reference%201.0.pdf
+                     * Introduced with https://github.com/smalot/pdfparser/pull/516
+                     */
+                    list($fontId, $fontSize) = \explode(' ', $command['c'], 2);
                     break;
                 /*
                  * array TJ
@@ -633,7 +763,12 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
                  * amount.
                  */
                 case 'TJ':
-                    $extractedData[] = [$Tm, $currentText];
+                    $data = [$Tm, $currentText];
+                    if ($this->config->getDataTmFontInfoHasToBeIncluded()) {
+                        $data[] = $fontId;
+                        $data[] = $fontSize;
+                    }
+                    $extractedData[] = $data;
                     break;
                 default:
             }
@@ -659,7 +794,7 @@ class Page extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
      *               "near" the x,y coordinate, an empty array is returned. If Both, x
      *               and y coordinates are null, null is returned.
      */
-    public function getTextXY($x = null, $y = null, $xError = 0, $yError = 0)
+    public function getTextXY(float $x = null, float $y = null, float $xError = 0, float $yError = 0) : array
     {
         if (!isset($this->dataTm) || !$this->dataTm) {
             $this->getDataTm();

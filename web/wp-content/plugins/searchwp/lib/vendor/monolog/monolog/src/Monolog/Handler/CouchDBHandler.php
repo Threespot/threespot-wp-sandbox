@@ -19,10 +19,14 @@ use SearchWP\Dependencies\Monolog\Logger;
  *
  * @author Markus Bachmann <markus.bachmann@bachi.biz>
  */
-class CouchDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class CouchDBHandler extends AbstractProcessingHandler
 {
+    /** @var mixed[] */
     private $options;
-    public function __construct(array $options = [], $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    /**
+     * @param mixed[] $options
+     */
+    public function __construct(array $options = [], $level = Logger::DEBUG, bool $bubble = \true)
     {
         $this->options = \array_merge(['host' => 'localhost', 'port' => 5984, 'dbname' => 'logger', 'username' => null, 'password' => null], $options);
         parent::__construct($level, $bubble);
@@ -45,8 +49,8 @@ class CouchDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\JsonFormatter(\SearchWP\Dependencies\Monolog\Formatter\JsonFormatter::BATCH_MODE_JSON, \false);
+        return new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, \false);
     }
 }

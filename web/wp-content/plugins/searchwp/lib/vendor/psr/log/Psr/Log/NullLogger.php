@@ -10,7 +10,7 @@ namespace SearchWP\Dependencies\Psr\Log;
  * is a good way to avoid littering your code with `if ($this->logger) { }`
  * blocks.
  */
-class NullLogger extends \SearchWP\Dependencies\Psr\Log\AbstractLogger
+class NullLogger extends AbstractLogger
 {
     /**
      * Logs with an arbitrary level.

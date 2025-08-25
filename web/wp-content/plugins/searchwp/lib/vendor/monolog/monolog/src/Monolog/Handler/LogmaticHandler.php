@@ -17,7 +17,7 @@ use SearchWP\Dependencies\Monolog\Formatter\LogmaticFormatter;
 /**
  * @author Julien Breux <julien.breux@gmail.com>
  */
-class LogmaticHandler extends \SearchWP\Dependencies\Monolog\Handler\SocketHandler
+class LogmaticHandler extends SocketHandler
 {
     /**
      * @var string
@@ -36,36 +36,34 @@ class LogmaticHandler extends \SearchWP\Dependencies\Monolog\Handler\SocketHandl
      * @param string     $hostname Host name supplied by Logmatic.
      * @param string     $appname  Application name supplied by Logmatic.
      * @param bool       $useSSL   Whether or not SSL encryption should be used.
-     * @param int|string $level    The minimum logging level to trigger this handler.
-     * @param bool       $bubble   Whether or not messages that are handled should bubble up the stack.
      *
      * @throws MissingExtensionException If SSL encryption is set to true and OpenSSL is missing
      */
-    public function __construct(string $token, string $hostname = '', string $appname = '', bool $useSSL = \true, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(string $token, string $hostname = '', string $appname = '', bool $useSSL = \true, $level = Logger::DEBUG, bool $bubble = \true, bool $persistent = \false, float $timeout = 0.0, float $writingTimeout = 10.0, ?float $connectionTimeout = null, ?int $chunkSize = null)
     {
         if ($useSSL && !\extension_loaded('openssl')) {
-            throw new \SearchWP\Dependencies\Monolog\Handler\MissingExtensionException('The OpenSSL PHP extension is required to use SSL encrypted connection for LogmaticHandler');
+            throw new MissingExtensionException('The OpenSSL PHP extension is required to use SSL encrypted connection for LogmaticHandler');
         }
         $endpoint = $useSSL ? 'ssl://api.logmatic.io:10515' : 'api.logmatic.io:10514';
         $endpoint .= '/v1/';
-        parent::__construct($endpoint, $level, $bubble);
+        parent::__construct($endpoint, $level, $bubble, $persistent, $timeout, $writingTimeout, $connectionTimeout, $chunkSize);
         $this->logToken = $token;
         $this->hostname = $hostname;
         $this->appname = $appname;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     protected function generateDataStream(array $record) : string
     {
         return $this->logToken . ' ' . $record['formatted'];
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        $formatter = new \SearchWP\Dependencies\Monolog\Formatter\LogmaticFormatter();
+        $formatter = new LogmaticFormatter();
         if (!empty($this->hostname)) {
             $formatter->setHostname($this->hostname);
         }

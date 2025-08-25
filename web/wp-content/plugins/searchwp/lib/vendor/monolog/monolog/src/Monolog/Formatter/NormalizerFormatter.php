@@ -19,13 +19,17 @@ use Throwable;
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+class NormalizerFormatter implements FormatterInterface
 {
     public const SIMPLE_DATE = "Y-m-d\\TH:i:sP";
+    /** @var string */
     protected $dateFormat;
+    /** @var int */
     protected $maxNormalizeDepth = 9;
+    /** @var int */
     protected $maxNormalizeItemCount = 1000;
-    private $jsonEncodeOptions = \SearchWP\Dependencies\Monolog\Utils::DEFAULT_JSON_FLAGS;
+    /** @var int */
+    private $jsonEncodeOptions = Utils::DEFAULT_JSON_FLAGS;
     /**
      * @param string|null $dateFormat The format of the timestamp: one supported by DateTime::format
      */
@@ -37,14 +41,16 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
         }
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @param mixed[] $record
      */
     public function format(array $record)
     {
         return $this->normalize($record);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function formatBatch(array $records)
     {
@@ -52,6 +58,15 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
             $records[$key] = $this->format($record);
         }
         return $records;
+    }
+    public function getDateFormat() : string
+    {
+        return $this->dateFormat;
+    }
+    public function setDateFormat(string $dateFormat) : self
+    {
+        $this->dateFormat = $dateFormat;
+        return $this;
     }
     /**
      * The maximum number of normalization levels to go through
@@ -90,8 +105,8 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
         return $this;
     }
     /**
-     * @param  mixed                      $data
-     * @return int|bool|string|null|array
+     * @param  mixed                $data
+     * @return null|scalar|array<array|scalar|null>
      */
     protected function normalize($data, int $depth = 0)
     {
@@ -125,23 +140,21 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
             return $this->formatDate($data);
         }
         if (\is_object($data)) {
-            if ($data instanceof \Throwable) {
+            if ($data instanceof Throwable) {
                 return $this->normalizeException($data, $depth);
             }
             if ($data instanceof \JsonSerializable) {
+                /** @var null|scalar|array<array|scalar|null> $value */
                 $value = $data->jsonSerialize();
             } elseif (\method_exists($data, '__toString')) {
+                /** @var string $value */
                 $value = $data->__toString();
             } else {
                 // the rest is normalized by json encoding and decoding it
-                $encoded = $this->toJson($data, \true);
-                if ($encoded === \false) {
-                    $value = 'JSON_ERROR';
-                } else {
-                    $value = \json_decode($encoded, \true);
-                }
+                /** @var null|scalar|array<array|scalar|null> $value */
+                $value = \json_decode($this->toJson($data, \true), \true);
             }
-            return [\SearchWP\Dependencies\Monolog\Utils::getClass($data) => $value];
+            return [Utils::getClass($data) => $value];
         }
         if (\is_resource($data)) {
             return \sprintf('[resource(%s)]', \get_resource_type($data));
@@ -149,14 +162,17 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
         return '[unknown(' . \gettype($data) . ')]';
     }
     /**
-     * @return array
+     * @return mixed[]
      */
-    protected function normalizeException(\Throwable $e, int $depth = 0)
+    protected function normalizeException(Throwable $e, int $depth = 0)
     {
+        if ($depth > $this->maxNormalizeDepth) {
+            return ['Over ' . $this->maxNormalizeDepth . ' levels deep, aborting normalization'];
+        }
         if ($e instanceof \JsonSerializable) {
             return (array) $e->jsonSerialize();
         }
-        $data = ['class' => \SearchWP\Dependencies\Monolog\Utils::getClass($e), 'message' => $e->getMessage(), 'code' => (int) $e->getCode(), 'file' => $e->getFile() . ':' . $e->getLine()];
+        $data = ['class' => Utils::getClass($e), 'message' => $e->getMessage(), 'code' => (int) $e->getCode(), 'file' => $e->getFile() . ':' . $e->getLine()];
         if ($e instanceof \SoapFault) {
             if (isset($e->faultcode)) {
                 $data['faultcode'] = $e->faultcode;
@@ -192,23 +208,28 @@ class NormalizerFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Fo
      */
     protected function toJson($data, bool $ignoreErrors = \false) : string
     {
-        return \SearchWP\Dependencies\Monolog\Utils::jsonEncode($data, $this->jsonEncodeOptions, $ignoreErrors);
+        return Utils::jsonEncode($data, $this->jsonEncodeOptions, $ignoreErrors);
     }
+    /**
+     * @return string
+     */
     protected function formatDate(\DateTimeInterface $date)
     {
         // in case the date format isn't custom then we defer to the custom DateTimeImmutable
         // formatting logic, which will pick the right format based on whether useMicroseconds is on
-        if ($this->dateFormat === self::SIMPLE_DATE && $date instanceof \SearchWP\Dependencies\Monolog\DateTimeImmutable) {
+        if ($this->dateFormat === self::SIMPLE_DATE && $date instanceof DateTimeImmutable) {
             return (string) $date;
         }
         return $date->format($this->dateFormat);
     }
-    public function addJsonEncodeOption($option)
+    public function addJsonEncodeOption(int $option) : self
     {
         $this->jsonEncodeOptions |= $option;
+        return $this;
     }
-    public function removeJsonEncodeOption($option)
+    public function removeJsonEncodeOption(int $option) : self
     {
         $this->jsonEncodeOptions &= ~$option;
+        return $this;
     }
 }

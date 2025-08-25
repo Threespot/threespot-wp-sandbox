@@ -16,24 +16,28 @@ use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
 use SearchWP\Dependencies\Monolog\Formatter\LineFormatter;
 /**
  * Common syslog functionality
+ *
+ * @phpstan-import-type Level from \Monolog\Logger
  */
-abstract class AbstractSyslogHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+abstract class AbstractSyslogHandler extends AbstractProcessingHandler
 {
+    /** @var int */
     protected $facility;
     /**
      * Translates Monolog log levels to syslog log priorities.
+     * @var array
+     * @phpstan-var array<Level, int>
      */
-    protected $logLevels = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => \LOG_DEBUG, \SearchWP\Dependencies\Monolog\Logger::INFO => \LOG_INFO, \SearchWP\Dependencies\Monolog\Logger::NOTICE => \LOG_NOTICE, \SearchWP\Dependencies\Monolog\Logger::WARNING => \LOG_WARNING, \SearchWP\Dependencies\Monolog\Logger::ERROR => \LOG_ERR, \SearchWP\Dependencies\Monolog\Logger::CRITICAL => \LOG_CRIT, \SearchWP\Dependencies\Monolog\Logger::ALERT => \LOG_ALERT, \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => \LOG_EMERG];
+    protected $logLevels = [Logger::DEBUG => \LOG_DEBUG, Logger::INFO => \LOG_INFO, Logger::NOTICE => \LOG_NOTICE, Logger::WARNING => \LOG_WARNING, Logger::ERROR => \LOG_ERR, Logger::CRITICAL => \LOG_CRIT, Logger::ALERT => \LOG_ALERT, Logger::EMERGENCY => \LOG_EMERG];
     /**
      * List of valid log facility names.
+     * @var array<string, int>
      */
     protected $facilities = ['auth' => \LOG_AUTH, 'authpriv' => \LOG_AUTHPRIV, 'cron' => \LOG_CRON, 'daemon' => \LOG_DAEMON, 'kern' => \LOG_KERN, 'lpr' => \LOG_LPR, 'mail' => \LOG_MAIL, 'news' => \LOG_NEWS, 'syslog' => \LOG_SYSLOG, 'user' => \LOG_USER, 'uucp' => \LOG_UUCP];
     /**
      * @param string|int $facility Either one of the names of the keys in $this->facilities, or a LOG_* facility constant
-     * @param string|int $level    The minimum logging level at which this handler will be triggered
-     * @param bool       $bubble   Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct($facility = \LOG_USER, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct($facility = \LOG_USER, $level = Logger::DEBUG, bool $bubble = \true)
     {
         parent::__construct($level, $bubble);
         if (!\defined('PHP_WINDOWS_VERSION_BUILD')) {
@@ -72,10 +76,10 @@ abstract class AbstractSyslogHandler extends \SearchWP\Dependencies\Monolog\Hand
         $this->facility = $facility;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\LineFormatter('%channel%.%level_name%: %message% %context% %extra%');
+        return new LineFormatter('%channel%.%level_name%: %message% %context% %extra%');
     }
 }

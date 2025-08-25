@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -34,12 +36,9 @@ use SearchWP\Dependencies\Smalot\PdfParser\Element;
 /**
  * Class ElementXRef
  */
-class ElementXRef extends \SearchWP\Dependencies\Smalot\PdfParser\Element
+class ElementXRef extends Element
 {
-    /**
-     * @return string
-     */
-    public function getId()
+    public function getId() : string
     {
         return $this->getContent();
     }
@@ -47,29 +46,32 @@ class ElementXRef extends \SearchWP\Dependencies\Smalot\PdfParser\Element
     {
         return $this->document->getObjectById($this->getId());
     }
-    /**
-     * @return bool
-     */
-    public function equals($value)
+    public function equals($value) : bool
     {
+        /**
+         * In case $value is a number and $this->value is a string like 5_0
+         *
+         * Without this if-clause code like:
+         *
+         *      $element = new ElementXRef('5_0');
+         *      $this->assertTrue($element->equals(5));
+         *
+         * would fail (= 5_0 and 5 are not equal in PHP 8.0+).
+         */
+        if (\true === \is_numeric($value) && \true === \is_string($this->getContent()) && 1 === \preg_match('/[0-9]+\\_[0-9]+/', $this->getContent(), $matches)) {
+            return (float) $this->getContent() == $value;
+        }
         $id = $value instanceof self ? $value->getId() : $value;
         return $this->getId() == $id;
     }
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString() : string
     {
         return '#Obj#' . $this->getId();
     }
     /**
-     * @param string   $content
-     * @param Document $document
-     * @param int      $offset
-     *
      * @return bool|ElementXRef
      */
-    public static function parse($content, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null, &$offset = 0)
+    public static function parse(string $content, ?Document $document = null, int &$offset = 0)
     {
         if (\preg_match('/^\\s*(?P<id>[0-9]+\\s+[0-9]+\\s+R)/s', $content, $match)) {
             $id = $match['id'];

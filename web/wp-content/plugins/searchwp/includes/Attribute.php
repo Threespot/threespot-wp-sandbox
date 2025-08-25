@@ -289,6 +289,9 @@ final class Attribute {
 			}, $this->get_options( false, array_keys( $settings ) ) );
 
 			// Validate Option values.
+			// TODO: If a Taxonomy is registered outside `init` we get
+			//       Warning: array_merge() expects at least 1 parameter, 0 given
+			//       for this array_merge call.
 			$settings = call_user_func_array( 'array_merge',
 				array_filter( array_map( function( $key, $value ) use ( $options ) {
 					if ( ! in_array( $key, $options ) ) {

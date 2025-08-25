@@ -26,14 +26,16 @@ class HtmlFormatter
         }
         $this->encoding = $encoding;
     }
-    public function Format(\SearchWP\Dependencies\RtfHtmlPhp\Document $document)
+    public function Format(Document $document)
     {
+        // Clear current output
+        $this->output = '';
         // Keep track of style modifications
         $this->previousState = null;
         // and create a stack of states
         $this->states = array();
         // Put an initial standard state onto the stack
-        $this->state = new \SearchWP\Dependencies\RtfHtmlPhp\Html\State();
+        $this->state = new State();
         \array_push($this->states, $this->state);
         // Keep track of opened html tags
         $this->openedTags = array('span' => \false, 'p' => \false);
@@ -41,13 +43,15 @@ class HtmlFormatter
         $this->OpenTag('p');
         // Begin format
         $this->ProcessGroup($document->root);
-        // Remove any final unclosed 'p' tag and return result:
-        return $this->openedTags['p'] ? \substr($this->output, 0, -3) : $this->output;
+        // Instead of removing opened tags, we close them
+        $append = $this->openedTags['span'] ? '</span>' : '';
+        $append .= $this->openedTags['p'] ? '</p>' : '';
+        return $this->output . $append;
     }
     protected function LoadFont(\SearchWP\Dependencies\RtfHtmlPhp\Group $fontGroup)
     {
         $fontNumber = 0;
-        $font = new \SearchWP\Dependencies\RtfHtmlPhp\Html\Font();
+        $font = new Font();
         // Loop through children of the font group. The font group
         // contains control words with the font number and charset,
         // and a control text with the font name.
@@ -108,10 +112,10 @@ class HtmlFormatter
                     // the only authorized symbol here is '*':
                     // \*\fname = non tagged file name (only WordPad uses it)
                     continue;
-                  } 
+                  }
             */
         }
-        \SearchWP\Dependencies\RtfHtmlPhp\Html\State::SetFont($fontNumber, $font);
+        State::SetFont($fontNumber, $font);
     }
     protected function ExtractFontTable($fontTblGrp)
     {
@@ -163,11 +167,11 @@ class HtmlFormatter
                 }
             }
         }
-        \SearchWP\Dependencies\RtfHtmlPhp\Html\State::$colortbl = $colortbl;
+        State::$colortbl = $colortbl;
     }
     protected function ExtractImage($pictGrp)
     {
-        $Image = new \SearchWP\Dependencies\RtfHtmlPhp\Html\Image();
+        $Image = new Image();
         foreach ($pictGrp as $child) {
             if ($child instanceof \SearchWP\Dependencies\RtfHtmlPhp\ControlWord) {
                 switch ($child->word) {
@@ -393,9 +397,10 @@ class HtmlFormatter
             // Character value 9
             case 'line':
                 $this->output .= "<br/>";
+                break;
             // character value (line feed = &#10;) (carriage return = &#13;)
             /*
-             * Unicode characters 
+             * Unicode characters
              */
             case 'u':
                 $uchar = $this->DecodeUnicode($word->parameter);
@@ -521,10 +526,10 @@ class HtmlFormatter
     protected function GetSourceEncoding()
     {
         if (isset($this->state->font)) {
-            if (isset(\SearchWP\Dependencies\RtfHtmlPhp\Html\State::$fonttbl[$this->state->font]->codepage)) {
-                return \SearchWP\Dependencies\RtfHtmlPhp\Html\State::$fonttbl[$this->state->font]->codepage;
-            } elseif (isset(\SearchWP\Dependencies\RtfHtmlPhp\Html\State::$fonttbl[$this->state->font]->charset)) {
-                return \SearchWP\Dependencies\RtfHtmlPhp\Html\State::$fonttbl[$this->state->font]->charset;
+            if (isset(State::$fonttbl[$this->state->font]->codepage)) {
+                return State::$fonttbl[$this->state->font]->codepage;
+            } elseif (isset(State::$fonttbl[$this->state->font]->charset)) {
+                return State::$fonttbl[$this->state->font]->charset;
             }
         }
         return $this->RTFencoding;
@@ -600,10 +605,10 @@ class HtmlFormatter
             708 => 'ASMO-708',
             // also [ISO-8859-6][ARABIC] Arabic
             /*  Not supported by iconv
-                709, => '' // Arabic (ASMO 449+, BCON V4) 
-                710, => '' // Arabic (transparent Arabic) 
-                711, => '' // Arabic (Nafitha Enhanced) 
-                720, => '' // Arabic (transparent ASMO) 
+                709, => '' // Arabic (ASMO 449+, BCON V4)
+                710, => '' // Arabic (transparent Arabic)
+                711, => '' // Arabic (Nafitha Enhanced)
+                720, => '' // Arabic (transparent ASMO)
                 */
             819 => 'CP819',
             // Windows 3.1 (US and Western Europe)

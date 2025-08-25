@@ -33,7 +33,7 @@ use SearchWP\Dependencies\Monolog\Utils;
  *
  * @author Andrius Putna <fordnox@gmail.com>
  */
-class FluentdFormatter implements \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+class FluentdFormatter implements FormatterInterface
 {
     /**
      * @var bool $levelTag should message level be a part of the fluentd tag
@@ -61,7 +61,7 @@ class FluentdFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Forma
             $message['level'] = $record['level'];
             $message['level_name'] = $record['level_name'];
         }
-        return \SearchWP\Dependencies\Monolog\Utils::jsonEncode([$tag, $record['datetime']->getTimestamp(), $message]);
+        return Utils::jsonEncode([$tag, $record['datetime']->getTimestamp(), $message]);
     }
     public function formatBatch(array $records) : string
     {

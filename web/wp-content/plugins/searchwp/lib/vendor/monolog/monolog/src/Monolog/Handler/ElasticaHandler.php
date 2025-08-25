@@ -11,6 +11,7 @@ declare (strict_types=1);
  */
 namespace SearchWP\Dependencies\Monolog\Handler;
 
+use SearchWP\Dependencies\Elastica\Document;
 use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
 use SearchWP\Dependencies\Monolog\Formatter\ElasticaFormatter;
 use SearchWP\Dependencies\Monolog\Logger;
@@ -24,7 +25,7 @@ use SearchWP\Dependencies\Elastica\Exception\ExceptionInterface;
  *    $client = new \Elastica\Client();
  *    $options = array(
  *        'index' => 'elastic_index_name',
- *        'type' => 'elastic_doc_type',
+ *        'type' => 'elastic_doc_type', Types have been removed in Elastica 7
  *    );
  *    $handler = new ElasticaHandler($client, $options);
  *    $log = new Logger('application');
@@ -32,23 +33,21 @@ use SearchWP\Dependencies\Elastica\Exception\ExceptionInterface;
  *
  * @author Jelle Vink <jelle.vink@gmail.com>
  */
-class ElasticaHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class ElasticaHandler extends AbstractProcessingHandler
 {
     /**
      * @var Client
      */
     protected $client;
     /**
-     * @var array Handler config options
+     * @var mixed[] Handler config options
      */
     protected $options = [];
     /**
-     * @param Client     $client  Elastica Client object
-     * @param array      $options Handler configuration
-     * @param int|string $level   The minimum logging level at which this handler will be triggered
-     * @param bool       $bubble  Whether the messages that are handled can bubble up the stack or not
+     * @param Client  $client  Elastica Client object
+     * @param mixed[] $options Handler configuration
      */
-    public function __construct(\SearchWP\Dependencies\Elastica\Client $client, array $options = [], $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(Client $client, array $options = [], $level = Logger::DEBUG, bool $bubble = \true)
     {
         parent::__construct($level, $bubble);
         $this->client = $client;
@@ -68,15 +67,18 @@ class ElasticaHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
         $this->bulkSend([$record['formatted']]);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
-        if ($formatter instanceof \SearchWP\Dependencies\Monolog\Formatter\ElasticaFormatter) {
+        if ($formatter instanceof ElasticaFormatter) {
             return parent::setFormatter($formatter);
         }
         throw new \InvalidArgumentException('ElasticaHandler is only compatible with ElasticaFormatter');
     }
+    /**
+     * @return mixed[]
+     */
     public function getOptions() : array
     {
         return $this->options;
@@ -84,12 +86,12 @@ class ElasticaHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\ElasticaFormatter($this->options['index'], $this->options['type']);
+        return new ElasticaFormatter($this->options['index'], $this->options['type']);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
@@ -98,13 +100,16 @@ class ElasticaHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
     }
     /**
      * Use Elasticsearch bulk API to send list of documents
+     *
+     * @param Document[] $documents
+     *
      * @throws \RuntimeException
      */
     protected function bulkSend(array $documents) : void
     {
         try {
             $this->client->addDocuments($documents);
-        } catch (\SearchWP\Dependencies\Elastica\Exception\ExceptionInterface $e) {
+        } catch (ExceptionInterface $e) {
             if (!$this->options['ignore_error']) {
                 throw new \RuntimeException("Error sending messages to Elasticsearch", 0, $e);
             }

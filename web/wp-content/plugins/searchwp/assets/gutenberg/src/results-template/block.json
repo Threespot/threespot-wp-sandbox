@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "searchwp/results-template",
+    "version": "1.0.0",
+    "title": "SearchWP Results",
+    "category": "searchwp",
+    "icon": "list-view",
+    "description": "Display SearchWP search results with a customizable template.",
+    "attributes": {
+        "id": {
+            "type": "integer"
+        },
+        "engine": {
+            "type": "string"
+        }
+    },
+    "supports": {
+        "html": false
+    },
+    "textdomain": "searchwp",
+    "editorScript": "file:./index.js",
+    "editorStyle": [
+        "file:./../../../css/admin/framework/colors.css",
+        "file:./../../../css/admin/framework/layout.css",
+        "file:./../../../css/admin/framework/buttons.css",
+        "file:./../../../css/admin/framework/style.css",
+        "file:./../../../css/admin/framework/input.css",
+        "file:./../../../css/admin/framework/toggle-switch.css",
+        "file:./../../../css/admin/pages/search-forms.css",
+        "file:./index.css"
+    ],
+    "style": "searchwp-results-page"
+}

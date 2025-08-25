@@ -16,7 +16,7 @@ namespace SearchWP\Dependencies\Monolog\Formatter;
  *
  * @author Julien Breux <julien.breux@gmail.com>
  */
-class LogmaticFormatter extends \SearchWP\Dependencies\Monolog\Formatter\JsonFormatter
+class LogmaticFormatter extends JsonFormatter
 {
     protected const MARKERS = ["sourcecode", "php"];
     /**

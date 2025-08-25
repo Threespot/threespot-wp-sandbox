@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -50,7 +52,7 @@ class Header
      * @param Element[] $elements list of elements
      * @param Document  $document document
      */
-    public function __construct($elements = [], \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null)
+    public function __construct(array $elements = [], ?Document $document = null)
     {
         $this->elements = $elements;
         $this->document = $document;
@@ -58,7 +60,7 @@ class Header
     public function init()
     {
         foreach ($this->elements as $element) {
-            if ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element) {
+            if ($element instanceof Element) {
                 $element->init();
             }
         }
@@ -75,10 +77,8 @@ class Header
     }
     /**
      * Used only for debug.
-     *
-     * @return array
      */
-    public function getElementTypes()
+    public function getElementTypes() : array
     {
         $types = [];
         foreach ($this->elements as $key => $element) {
@@ -86,25 +86,20 @@ class Header
         }
         return $types;
     }
-    /**
-     * @param bool $deep
-     *
-     * @return array
-     */
-    public function getDetails($deep = \true)
+    public function getDetails(bool $deep = \true) : array
     {
         $values = [];
         $elements = $this->getElements();
         foreach ($elements as $key => $element) {
             if ($element instanceof self && $deep) {
                 $values[$key] = $element->getDetails($deep);
-            } elseif ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\PDFObject && $deep) {
+            } elseif ($element instanceof PDFObject && $deep) {
                 $values[$key] = $element->getDetails(\false);
-            } elseif ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray) {
+            } elseif ($element instanceof ElementArray) {
                 if ($deep) {
                     $values[$key] = $element->getDetails();
                 }
-            } elseif ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element) {
+            } elseif ($element instanceof Element) {
                 $values[$key] = (string) $element;
             }
         }
@@ -113,42 +108,36 @@ class Header
     /**
      * Indicate if an element name is available in header.
      *
-     * @param string $name The name of the element
-     *
-     * @return bool
+     * @param string $name the name of the element
      */
-    public function has($name)
+    public function has(string $name) : bool
     {
         return \array_key_exists($name, $this->elements);
     }
     /**
-     * @param string $name
-     *
      * @return Element|PDFObject
      */
-    public function get($name)
+    public function get(string $name)
     {
-        if (\array_key_exists($name, $this->elements)) {
-            return $this->resolveXRef($name);
+        if (\array_key_exists($name, $this->elements) && ($element = $this->resolveXRef($name))) {
+            return $element;
         }
-        return new \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing();
+        return new ElementMissing();
     }
     /**
      * Resolve XRef to object.
-     *
-     * @param string $name
      *
      * @return Element|PDFObject
      *
      * @throws \Exception
      */
-    protected function resolveXRef($name)
+    protected function resolveXRef(string $name)
     {
-        if (($obj = $this->elements[$name]) instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef && null !== $this->document) {
+        if (($obj = $this->elements[$name]) instanceof ElementXRef && null !== $this->document) {
             /** @var ElementXRef $obj */
             $object = $this->document->getObjectById($obj->getId());
             if (null === $object) {
-                return new \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementMissing();
+                return new ElementMissing();
             }
             // Update elements list for future calls.
             $this->elements[$name] = $object;
@@ -159,16 +148,14 @@ class Header
      * @param string   $content  The content to parse
      * @param Document $document The document
      * @param int      $position The new position of the cursor after parsing
-     *
-     * @return Header
      */
-    public static function parse($content, \SearchWP\Dependencies\Smalot\PdfParser\Document $document, &$position = 0)
+    public static function parse(string $content, Document $document, int &$position = 0) : self
     {
         /* @var Header $header */
         if ('<<' == \substr(\trim($content), 0, 2)) {
-            $header = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementStruct::parse($content, $document, $position);
+            $header = ElementStruct::parse($content, $document, $position);
         } else {
-            $elements = \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementArray::parse($content, $document, $position);
+            $elements = ElementArray::parse($content, $document, $position);
             $header = new self([], $document);
             if ($elements) {
                 $header = new self($elements->getRawContent(), null);

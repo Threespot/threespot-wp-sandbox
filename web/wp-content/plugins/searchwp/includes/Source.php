@@ -335,8 +335,13 @@ abstract class Source implements \JsonSerializable {
 		$this->options = [
 			'weight_transfer' => [
 				'label'   => __( 'Transfer Weight', 'searchwp' ),
-				'options' => $weight_transfer_options
-			]
+				'tooltip' => sprintf(
+					__( 'When a %s entry matches a search, the designated entry in the weight transfer option will be displayed in its place. <a href="%s" target="_blank">View&nbsp;Docs</a>', 'searchwp' ),
+					$this->labels['singular'],
+					'https://searchwp.com/documentation/setup/engines/#source-options'
+				),
+				'options' => $weight_transfer_options,
+			],
 		];
 	}
 
@@ -355,6 +360,10 @@ abstract class Source implements \JsonSerializable {
 
 		$this->options[ $option ]['enabled'] = ! empty( $config['enabled'] );
 		$this->options[ $option ]['value']   = isset( $config['value'] ) ? $config['value'] : '';
+
+		if ( is_string( $this->options[ $option ]['value'] ) ) {
+			$this->options[ $option ]['value'] = trim( $this->options[ $option ]['value'] );
+		}
 
 		foreach( $this->options[ $option ]['options'] as $optionObj ) {
 			if ( $config['option'] !== $optionObj['option']->get_value() ) {
@@ -421,7 +430,9 @@ abstract class Source implements \JsonSerializable {
 	 * @return string JSON representation of results.
 	 */
 	public function get_rule_option_values_via_ajax() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
+
 		$rule    = isset( $_REQUEST['rule'] )    ? Utils::decode_string( $_REQUEST['rule'] )   : false;
 		$option  = isset( $_REQUEST['option'] )  ? Utils::decode_string( $_REQUEST['option'] ) : false;
 		$search  = isset( $_REQUEST['search'] )  ? Utils::decode_string( $_REQUEST['search'] ) : false;
@@ -446,7 +457,9 @@ abstract class Source implements \JsonSerializable {
 	 * @return string JSON representation of results.
 	 */
 	public function get_attribute_options_via_ajax() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
+
 		$source    = isset( $_REQUEST['source'] )    ? Utils::decode_string( $_REQUEST['source'] ) : false;
 		$attribute = isset( $_REQUEST['attribute'] ) ? Utils::decode_string( $_REQUEST['attribute'] ) : false;
 		$search    = isset( $_REQUEST['search'] )    ? Utils::decode_string( $_REQUEST['search'] )    : false;
@@ -622,6 +635,11 @@ abstract class Source implements \JsonSerializable {
 	public function get_unhandled_ids( $limit = 1000 ) {
 		global $wpdb;
 
+		$pre_unhandled_ids = apply_filters( 'searchwp\source\pre_get_unhandled_ids', null, $this, $limit );
+		if ( is_array( $pre_unhandled_ids ) ) {
+			return $pre_unhandled_ids;
+		}
+
 		$index = \SearchWP::$index;
 
 		// Doing this in a single query doesn't scale very far. As a result we are going to make two separate
@@ -669,9 +687,6 @@ abstract class Source implements \JsonSerializable {
 		$source_column = $this->get_db_id_column();
 
 		$select = "{$source_table}.{$source_column}";
-		if ( $count_only ) {
-			$select = 'SQL_CALC_FOUND_ROWS ' . $select;
-		}
 
 		// Structure the query.
 		$query_values = [];
@@ -686,9 +701,9 @@ abstract class Source implements \JsonSerializable {
 		$this->apply_rules( $sql, $query_values );
 
 		// Build and execute the query.
-		$sql['select']  = implode( ', ', $sql['select'] );
-		$sql['from']    = implode( ', ', $sql['from'] );
-		$sql['where']   = implode( ' AND ', $sql['where'] );
+		$sql['select'] = implode( ', ', $sql['select'] );
+		$sql['from']   = implode( ', ', $sql['from'] );
+		$sql['where']  = implode( ' AND ', $sql['where'] );
 
 		$sql = "SELECT {$sql['select']} FROM {$sql['from']} WHERE {$sql['where']}";
 
@@ -696,14 +711,10 @@ abstract class Source implements \JsonSerializable {
 			$sql = $wpdb->prepare( $sql, $query_values );
 		}
 
-		if ( $count_only ) {
-			$sql .= " LIMIT 1 ";
-		}
-
 		$results = $wpdb->get_col( $sql );
 
 		if ( $count_only ) {
-			return (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+			return count( $results );
 		} else {
 			return $results;
 		}
@@ -916,7 +927,7 @@ abstract class Source implements \JsonSerializable {
 	 * @since 4.0
 	 * @return array
 	 */
-	public function jsonSerialize() {
+	public function jsonSerialize(): array {
 
 		$attributes = $this->get_attributes();
 		if ( ! empty( $attributes ) ) {
@@ -968,7 +979,7 @@ abstract class Source implements \JsonSerializable {
 							'get_options'  => $options_ajax_tag,
 						]
 					];
-				}, $attributes )
+				}, array_values( $attributes ) )
 			);
 		}
 
@@ -1005,7 +1016,7 @@ abstract class Source implements \JsonSerializable {
 							'settings'   => [], // This is just for the model.
 						]
 					];
-				}, $this->get_rules() ) )
+				}, array_values( (array) $this->get_rules() ) ) )
 			);
 		}
 
@@ -1056,7 +1067,7 @@ abstract class Source implements \JsonSerializable {
 				// and it doesn't even work properly because there's no proper setup/check in place.
 				if ( isset( $config['option'] ) ) {
 					$option_value = $config['option'];
-				} else if ( isset( $config['options'] ) && is_array( $config['options'] ) && isset( $config['options'][0] ) ) {
+				} elseif ( isset( $config['options'] ) && is_array( $config['options'] ) && isset( $config['options'][0] ) ) {
 					// Retrieve the value from the first Option.
 					$option_value = $config['options'][0]['option']->get_value();
 				} else {
@@ -1066,6 +1077,7 @@ abstract class Source implements \JsonSerializable {
 				return [
 					'name'    => $option,
 					'label'   => $config['label'],
+					'tooltip' => $config['tooltip'],
 					'options' => array_map( function( $option ) {
 						// Trigger jsonSerialize for these Options.
 						return json_decode( json_encode( $option['option'] ), true );
@@ -1088,5 +1100,27 @@ abstract class Source implements \JsonSerializable {
 				return json_decode( json_encode( $notice ), true );
 			}, $this->get_notices() ),
 		];
+	}
+
+	/**
+	 * Gets permalink for Source Entry ID.
+	 *
+	 * @since 4.1.14
+	 * @param int $id ID of the Entry
+	 * @return null|string
+	 */
+	public static function get_permalink( int $id ) {
+		return null;
+	}
+
+	/**
+	 * Gets edit link for Source Entry ID.
+	 *
+	 * @since 4.1.14
+	 * @param int $id ID of the Entry
+	 * @return null|string
+	 */
+	public static function get_edit_link( int $id ) {
+		return null;
 	}
 }

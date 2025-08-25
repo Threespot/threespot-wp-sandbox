@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -31,11 +33,13 @@ namespace SearchWP\Dependencies\Smalot\PdfParser;
 
 use Exception;
 use SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNumeric;
+use SearchWP\Dependencies\Smalot\PdfParser\Encoding\EncodingLocator;
 use SearchWP\Dependencies\Smalot\PdfParser\Encoding\PostScriptGlyphs;
+use SearchWP\Dependencies\Smalot\PdfParser\Exception\EncodingNotFoundException;
 /**
  * Class Encoding
  */
-class Encoding extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
+class Encoding extends PDFObject
 {
     /**
      * @var array
@@ -55,9 +59,7 @@ class Encoding extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         $this->differences = [];
         $this->encoding = [];
         if ($this->has('BaseEncoding')) {
-            $className = $this->getEncodingClass();
-            $class = new $className();
-            $this->encoding = $class->getTranslations();
+            $this->encoding = EncodingLocator::getEncoding($this->getEncodingClass())->getTranslations();
             // Build table including differences.
             $differences = $this->get('Differences')->getContent();
             $code = 0;
@@ -66,7 +68,7 @@ class Encoding extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
             }
             foreach ($differences as $difference) {
                 /** @var ElementNumeric $difference */
-                if ($difference instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementNumeric) {
+                if ($difference instanceof ElementNumeric) {
                     $code = $difference->getContent();
                     continue;
                 }
@@ -85,10 +87,7 @@ class Encoding extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
             }
         }
     }
-    /**
-     * @return array
-     */
-    public function getDetails($deep = \true)
+    public function getDetails(bool $deep = \true) : array
     {
         $details = [];
         $details['BaseEncoding'] = $this->has('BaseEncoding') ? (string) $this->get('BaseEncoding') : 'Ansi';
@@ -96,37 +95,40 @@ class Encoding extends \SearchWP\Dependencies\Smalot\PdfParser\PDFObject
         $details += parent::getDetails($deep);
         return $details;
     }
-    /**
-     * @return int
-     */
-    public function translateChar($dec)
+    public function translateChar($dec) : ?int
     {
         if (isset($this->mapping[$dec])) {
             $dec = $this->mapping[$dec];
         }
-        return \SearchWP\Dependencies\Smalot\PdfParser\Encoding\PostScriptGlyphs::getCodePoint($dec);
+        return PostScriptGlyphs::getCodePoint($dec);
     }
     /**
-     * @return string
+     * Returns encoding class name if available or empty string (only prior PHP 7.4).
      *
-     * @throws \Exception
+     * @throws \Exception On PHP 7.4+ an exception is thrown if encoding class doesn't exist.
      */
-    public function __toString()
+    public function __toString() : string
     {
-        return $this->getEncodingClass();
+        try {
+            return $this->getEncodingClass();
+        } catch (\Exception $e) {
+            // prior to PHP 7.4 toString has to return an empty string.
+            if (\version_compare(\PHP_VERSION, '7.4.0', '<')) {
+                return '';
+            }
+            throw $e;
+        }
     }
     /**
-     * @return string
-     *
-     * @throws \Exception
+     * @throws EncodingNotFoundException
      */
-    protected function getEncodingClass()
+    protected function getEncodingClass() : string
     {
         // Load reference table charset.
         $baseEncoding = \preg_replace('/[^A-Z0-9]/is', '', $this->get('BaseEncoding')->getContent());
-        $className = '\\Smalot\\PdfParser\\Encoding\\' . $baseEncoding;
+        $className = 'SearchWP\\Dependencies\\Smalot\\PdfParser\\Encoding\\' . $baseEncoding;
         if (!\class_exists($className)) {
-            throw new \Exception('Missing encoding data for: "' . $baseEncoding . '".');
+            throw new EncodingNotFoundException('Missing encoding data for: "' . $baseEncoding . '".');
         }
         return $className;
     }

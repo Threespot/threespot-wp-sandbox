@@ -1,0 +1,26 @@
+.searchwp-divi-form-placeholder,
+.searchwp-divi-template-placeholder {
+	text-align: center;
+	padding: 20px;
+	background-color: #f7f7f7;
+	border-radius: 3px;
+}
+
+.searchwp-divi-form-selector select,
+.searchwp-divi-template-selector select {
+	width: 100%;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 14px;
+}
+
+.searchwp-divi-form-preview.loading,
+.searchwp-divi-template-preview.loading {
+	opacity: 0.5;
+}
+
+.searchwp-divi-placeholder-text {
+	margin-top: 10px;
+	color: #6c7781;
+}

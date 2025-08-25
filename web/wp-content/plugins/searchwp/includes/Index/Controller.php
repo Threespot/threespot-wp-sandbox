@@ -1,7 +1,7 @@
 <?php
 
 /**
- * SearchWP's Index Controller. Heavily influenced by @link https://github.com/deliciousbrains/wp-background-processing
+ * SearchWP's Index Controller.
  *
  * @package SearchWP
  * @author  Jon Christopher
@@ -13,6 +13,7 @@ use SearchWP\Utils;
 use SearchWP\Entry;
 use SearchWP\Tokens;
 use SearchWP\BackgroundProcess;
+use SearchWP\Indexer;
 
 /**
  * Class Controller is responsible for facilitating interaction with the search index.
@@ -67,7 +68,7 @@ class Controller extends BackgroundProcess {
 	 */
 	function __construct() {
 		$this->name       = 'index';
-		$this->identifier = SEARCHWP_PREFIX . 'index_controller_' . get_current_blog_id();
+		$this->identifier = SEARCHWP_PREFIX . 'index_controller';
 
 		parent::init();
 		$this->set_tables();
@@ -75,7 +76,14 @@ class Controller extends BackgroundProcess {
 
 		self::$tokens_max = absint( apply_filters( 'searchwp\index\tokens_max', self::$tokens_max ) );
 
-		$this->enabled = ! \SearchWP\Settings::get( 'indexer_paused', 'boolean' ) && apply_filters( 'searchwp\index\process\enabled', true );
+		/**
+		 * Whether the indexer is enabled.
+		 *
+		 * @since 4.1
+		 *
+		 * @param bool $enabled Whether the indexer is enabled.
+		 */
+		$this->enabled = apply_filters( 'searchwp\index\process\enabled', ! \SearchWP\Settings::get( 'indexer_paused', 'boolean' ) );
 
 		add_action( 'shutdown', function() {
 			if ( $this->has_delta ) {
@@ -105,7 +113,45 @@ class Controller extends BackgroundProcess {
 	 * @since 4.1
 	 */
 	protected function time_limit_exceeded() {
-		do_action( 'searchwp\debug\log', 'Process time limit exceeded!', 'index' );
+		return false;
+	}
+
+	/**
+	 * Executed when the process has failed.
+	 *
+	 * @since 4.1.8
+	 * @return mixed
+	 */
+	protected function handle_process_failure() {
+		do_action( 'searchwp\debug\log', 'Process failed!', 'index' );
+	}
+
+	/**
+	 * Pauses the process.
+	 *
+	 * @since 4.1.16
+	 * @return void
+	 */
+	public function pause() {
+		if ( self::use_legacy_lock() ) {
+			$this->locked = $this->get_lock();
+		}
+
+		$this->enabled = false;
+	}
+
+	/**
+	 * Unpauses the process.
+	 *
+	 * @since 4.1.16
+	 * @return void
+	 */
+	public function unpause() {
+		if ( self::use_legacy_lock() ) {
+			$this->unlock_process();
+		}
+
+		$this->enabled = true;
 	}
 
 	/**
@@ -117,13 +163,29 @@ class Controller extends BackgroundProcess {
 	public function cycle() {
 		global $wpdb;
 
+		if ( ! apply_filters( 'searchwp\index\cycle\forced', $this->enabled, $this ) ) {
+			return;
+		}
+
+		$table   = $wpdb->options;
+		$column  = 'option_name';
+		$orderby = 'option_id';
+		$value   = 'option_value';
+
+		if ( is_multisite() ) {
+			$table   = $wpdb->sitemeta;
+			$column  = 'meta_key';
+			$orderby = 'meta_id';
+			$value   = 'meta_value';
+		}
+
 		$deltas = $wpdb->get_results( $wpdb->prepare( "
 			SELECT *
-			FROM {$wpdb->options}
-			WHERE option_name LIKE %s
-			ORDER BY option_id ASC
+			FROM {$table}
+			WHERE {$column} LIKE %s
+			ORDER BY {$orderby} ASC
 			LIMIT 11
-		", $wpdb->esc_like( SEARCHWP_PREFIX . 'index_drop_' ) . '%' ) );
+		", $wpdb->esc_like( SEARCHWP_PREFIX . 'index_drop_' . get_current_blog_id() . '_' ) . '%' ) );
 
 		$more = false;
 
@@ -136,14 +198,14 @@ class Controller extends BackgroundProcess {
 		// Drop the delta updates from the index.
 		if ( ! empty( $deltas ) ) {
 			foreach ( $deltas as $delta ) {
-				$entry_data = maybe_unserialize( $delta->option_value );
+				$entry_data = maybe_unserialize( $delta->{$value} );
 				$source_obj = $this->get_source_by_name( $entry_data['source'] );
 
 				if ( $source_obj instanceof \SearchWP\Source ) {
 					$this->drop( $source_obj, $entry_data['id'], true );
 				}
 
-				delete_option( $delta->option_name );
+				delete_site_option( $delta->{$column} );
 			}
 		}
 
@@ -157,7 +219,8 @@ class Controller extends BackgroundProcess {
 	 * @return void
 	 */
 	protected function complete() {
-		\SearchWP::$indexer->trigger();
+		$indexer = new Indexer();
+		$indexer->trigger();
 	}
 
 	/**
@@ -172,7 +235,11 @@ class Controller extends BackgroundProcess {
 		$wpdb->query( $wpdb->prepare( "
 			DELETE FROM {$wpdb->options}
 			WHERE option_name LIKE %s
-		", $wpdb->esc_like( SEARCHWP_PREFIX . 'index_drop_' ) . '%' ) );
+		", $wpdb->esc_like( SEARCHWP_PREFIX . 'index_drop_' . get_current_blog_id() . '_' ) . '%' ) );
+
+		if ( self::use_legacy_lock() ) {
+			$this->unlock_process();
+		}
 	}
 
 	/**
@@ -331,7 +398,13 @@ class Controller extends BackgroundProcess {
 	 */
 	public function _add_hooks() {
 		foreach ( $this->sources as $source ) {
-			$source->add_hooks( [ 'active' => Utils::any_engine_has_source( $source ), ] );
+			// Allow developers to control whether these hooks are added.
+			if ( apply_filters( 'searchwp\index\source\add_hooks', true, [
+				'source' => $source,
+				'active' => Utils::any_engine_has_source( $source ),
+			] ) ) {
+				$source->add_hooks( [ 'active' => Utils::any_engine_has_source( $source ), ] );
+			}
 		}
 
 		do_action( 'searchwp\index\init', $this );
@@ -347,9 +420,10 @@ class Controller extends BackgroundProcess {
 	 * @since 4.0
 	 */
 	public function _index_stats() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
 
-		return wp_send_json_success( $this->get_stats() );
+		Utils::check_ajax_permissions();
+
+		wp_send_json_success( $this->get_stats() );
 	}
 
 	/**
@@ -674,9 +748,6 @@ class Controller extends BackgroundProcess {
 			);
 		}
 
-		unset( $entry_data );
-		unset( $attributes );
-
 		if ( $result ) {
 			$this->mark_entry_as( $entry, 'indexed' );
 		} else {
@@ -688,6 +759,9 @@ class Controller extends BackgroundProcess {
 				'index'
 			);
 		}
+
+		unset( $entry_data );
+		unset( $attributes );
 
 		return $result;
 	}
@@ -818,7 +892,7 @@ class Controller extends BackgroundProcess {
 			// Add to the drop queue.
 			do_action( 'searchwp\debug\log', "Marking {$source_name} {$entry_id} to be dropped", 'index' );
 
-			update_option( $cache_key, [ 'source' => $source_name, 'id' => $entry_id, ], 'no' );
+			update_site_option( $cache_key, [ 'source' => $source_name, 'id' => $entry_id, ], 'no' );
 
 			if ( $this->enabled ) {
 				$this->has_delta = true;
@@ -1131,6 +1205,10 @@ class Controller extends BackgroundProcess {
 
 		if ( 'all' !== $sites ) {
 			$sites_clause = "i.site IN ( " . implode( ', ', array_fill( 0, count( $sites ), '%d' ) ) . ' )';
+			$values = array_merge( array_map( 'absint', $sites ), $sources, $tokens );
+		} else {
+			$sites_clause = '1=1';
+			$values = array_merge( $sources, $tokens );
 		}
 
 		return array_map( function( $token ) {
@@ -1142,8 +1220,26 @@ class Controller extends BackgroundProcess {
 			WHERE {$sites_clause}
 				AND {$sources_clause}
 				AND t.token IN ( " . implode( ', ', array_fill( 0, count( $tokens ), '%s' ) ) . ' )',
-			array_merge( array_map( 'absint', $sites ), $sources, $tokens )
+			$values
 		), OBJECT_K ) );
+	}
+
+	/**
+	 * Returns timestamp of the last recorded Index activity.
+	 *
+	 * @since 4.1.14
+	 * @return string MySQL-formatted timestamp of last indexed Entry.
+	 */
+	public function get_last_activity_timestamp() {
+		global $wpdb;
+
+		return $wpdb->get_var( "
+			SELECT indexed
+			FROM {$this->get_tables()['status']->table_name}
+			WHERE site = " . absint( get_current_blog_id() ) . "
+			ORDER BY indexed DESC
+			LIMIT 1
+		" );
 	}
 
 	/**
@@ -1153,15 +1249,7 @@ class Controller extends BackgroundProcess {
 	 * @return string
 	 */
 	public function get_last_activity() {
-		global $wpdb;
-
-		$last_activity = $wpdb->get_var( "
-			SELECT indexed
-			FROM {$this->get_tables()['status']->table_name}
-			WHERE site = " . absint( get_current_blog_id() ) . "
-			ORDER BY indexed DESC
-			LIMIT 1
-		" );
+		$last_activity = $this->get_last_activity_timestamp();
 
 		if ( ! empty( $last_activity ) ) {
 			$last_activity = sprintf(
@@ -1169,6 +1257,9 @@ class Controller extends BackgroundProcess {
 				__( '%s ago', 'searchwp' ),
 				human_time_diff( date( 'U', strtotime( $last_activity ) ), current_time( 'timestamp' ) )
 			);
+		} elseif ( is_multisite() ) {
+			// The indexer may be busy on another site in the network.
+			$last_activity = $this->locked ? __( 'Waiting in network queue', 'searchwp' ) : '--' ;
 		}
 
 		return $last_activity ? $last_activity : '--';
@@ -1265,11 +1356,12 @@ class Controller extends BackgroundProcess {
 		}
 
 		return [
-			'lastActivity' => $this->get_last_activity(),
-			'indexed'      => $indexed,
-			'total'        => $total,
-			'omitted'      => $omitted,
-			'outdated'     => (bool) \SearchWP\Settings::get( 'index_outdated' ),
+			'lastActivity'  => $this->get_last_activity(),
+			'indexed'       => $indexed,
+			'total'         => $total,
+			'omitted'       => $omitted,
+			'outdated'      => (bool) \SearchWP\Settings::get( 'index_outdated' ),
+			'indexerPaused' => ! $this->enabled,
 		];
 	}
 
@@ -1282,12 +1374,33 @@ class Controller extends BackgroundProcess {
 	public function get_omitted() {
 		global $wpdb;
 
-		return $wpdb->get_results( $wpdb->prepare( "
+		$omitted = $wpdb->get_results( $wpdb->prepare( "
 			SELECT id, source, site, omitted
 			FROM {$this->tables['status']->table_name} i
 			WHERE omitted IS NOT NULL AND site = %d",
 			get_current_blog_id()
 		) );
+
+		// Append applicable data to each record e.g. permalink, title, etc.
+		return array_map( function( $record ) {
+			if ( ! array_key_exists( $record->source, $this->sources ) ) {
+				return $record;
+			}
+
+			$class = get_class( $this->sources[ $record->source ] );
+
+			if ( ! class_exists( $class ) ) {
+				return $record;
+			}
+
+			$source = explode( SEARCHWP_SEPARATOR, $record->source );
+			$source = ! isset( $source[1] ) ? new $class : new $class( $source[1] );
+
+			$record->permalink = $source::get_permalink( $record->id );
+			$record->edit_link = $source::get_edit_link( $record->id );
+
+			return $record;
+		}, $omitted );
 	}
 
 	/**
@@ -1299,7 +1412,8 @@ class Controller extends BackgroundProcess {
 	public function get_queued( $site_id = false ) {
 		global $wpdb;
 
-		if ( empty( $site_id ) && ! is_numeric( $site_id ) ) {
+		// If a site ID was omitted (or an invalid ID passed) assume the current site.
+		if ( empty( $site_id ) || ! is_numeric( $site_id ) ) {
 			$site_id = get_current_blog_id();
 		}
 

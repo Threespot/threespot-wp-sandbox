@@ -20,17 +20,17 @@ namespace SearchWP\Dependencies\Monolog\Handler;
  *
  * @author Roel Harbers <roelharbers@gmail.com>
  */
-class NoopHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler
+class NoopHandler extends Handler
 {
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function isHandling(array $record) : bool
     {
         return \true;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handle(array $record) : bool
     {

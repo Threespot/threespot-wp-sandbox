@@ -10,7 +10,7 @@ use SearchWP\Notice;
  *
  * @since 4.1
  */
-final class Comment extends \SearchWP\Source {
+class Comment extends \SearchWP\Source {
 
 	/**
 	 * Column name used to track index status.
@@ -163,6 +163,66 @@ final class Comment extends \SearchWP\Source {
 		// TODO: add Rules?
 
 		// Integrate with \SearchWP\Query.
+		$this->implement_source_options();
+		$this->consider_parent_rules_during_queries();
+	}
+
+	/**
+	 * Modifies Queries to respect Rules added to parent Sources.
+	 *
+	 * @since 4.1.9
+	 * @return void
+	 */
+	private function consider_parent_rules_during_queries() {
+		add_filter( 'searchwp\query\mods', function( $mods, $query ) {
+			global $wpdb;
+
+			$global_source_names = $this->get_global_source_names();
+
+			if ( empty( $global_source_names ) ) {
+				return $mods;
+			}
+
+			foreach ( $global_source_names as $post_type_name ) {
+				foreach ( $query->get_engine()->get_sources() as $engine_source ) {
+					if ( 'post' . SEARCHWP_SEPARATOR . $post_type_name !== $engine_source->get_name() ) {
+						continue;
+					}
+
+					$rules = $engine_source->get_rules_as_sql_clauses();
+
+					if ( empty( $rules ) ) {
+						continue;
+					}
+
+					$mod = new \SearchWP\Mod( $this );
+
+					// We need to re-retireve the Rules SQL at runtime so as to work with the local alias.
+					$mod->raw_where_sql( function( $runtime ) use ( $engine_source ) {
+						$rules = $engine_source->get_rules_as_sql_clauses( $runtime->get_local_table_alias() . '.comment_post_ID' );
+
+						return '1=1 AND ' . implode( ' AND ', $rules );
+					} );
+
+					$mods[] = $mod;
+				}
+			}
+
+			return $mods;
+		}, 5, 2 );
+	}
+
+	/**
+	 * Implements Options for this Source.
+	 *
+	 * @since 4.1.9
+	 */
+	private function implement_source_options() {
+
+		if ( $this->is_weight_transfer_disabled() ) {
+			return;
+		}
+
 		add_filter( 'searchwp\query\source\options', function( $options, $params ) {
 			if ( $this->name !== $params['source']->get_name() ) {
 				return $options;
@@ -221,13 +281,40 @@ final class Comment extends \SearchWP\Source {
 	 * @return Notice[]
 	 */
 	protected function notices( $notices ) {
-		$notices[] = new Notice( __( 'Note: Comment relevance is automatically transferred to its parent, causing the Comment parent to be returned as a result.', 'searchwp' ), [
-			'type'      => 'info',
-			'icon'      => 'dashicons dashicons-info',
-			'placement' => 'details',
-		] );
+
+		if ( $this->is_weight_transfer_disabled() ) {
+			return $notices;
+		}
+
+		$notices[] = new Notice(
+			__( 'Note: Comment relevance is automatically transferred to its parent, causing the Comment parent (e.g. post or page) to be returned as a result.', 'searchwp' ),
+			[
+				'type'      => 'info',
+				'icon'      => 'dashicons dashicons-info',
+				'placement' => 'details',
+			]
+		);
 
 		return $notices;
+	}
+
+	/**
+	 * Determines whether weight transfer is disabled.
+	 *
+	 * @since 4.3.18
+	 *
+	 * @return bool Whether weight transfer is implemented.
+	 */
+	private function is_weight_transfer_disabled() {
+
+		/**
+		 * Filters whether weight transfer is disabled.
+		 *
+		 * @since 4.3.18
+		 *
+		 * @param bool $is_weight_transfer_disabled Whether weight transfer is disabled.
+		 */
+		return apply_filters( 'searchwp\source\comment\disable_weight_transfer', false );
 	}
 
 	/**
@@ -287,8 +374,8 @@ final class Comment extends \SearchWP\Source {
 			add_action( 'comment_post', [ $this, 'comment_post' ], 10, 2 );
 		}
 
-		if ( ! has_action( 'edit_comment', [ $this, 'drop_comment_post' ] ) ) {
-			add_action( 'edit_comment', [ $this, 'drop_comment_post' ] );
+		if ( ! has_action( 'edit_comment', [ $this, 'drop' ] ) ) {
+			add_action( 'edit_comment', [ $this, 'drop' ] );
 		}
 
 		if ( ! has_action( 'transition_comment_status', [ $this, 'transition_comment_status' ] ) ) {
@@ -419,31 +506,23 @@ final class Comment extends \SearchWP\Source {
 		$db_where = [
 			'relation' => 'AND',
 			[
-				'column'  => 'comment_type',
-				'value'   => 'comment',
-			], [
-				'column'  => 'comment_approved',
-				'value'   => '1',
+				'column' => 'comment_type',
+				'value'  => 'comment',
+			],
+			[
+				'column' => 'comment_approved',
+				'value'  => '1',
 			],
 		];
+
+		if ( $this->is_weight_transfer_disabled() ) {
+			return;
+		}
 
 		// We can restrict the indexed Comments to those that have applicable parents.
 		if ( $this->strict_transfer ) {
 			// Filter the array to only WP_Post Sources.
-			$global_source_names = array_filter( array_map(
-				function( $source_name ) {
-					$flag = 'post' . SEARCHWP_SEPARATOR;
-
-					if ( $flag !== substr( $source_name, 0, strlen( $flag ) ) ) {
-						return false;
-					}
-
-					$post_type = substr( $source_name, strlen( $flag ) );
-
-					return post_type_exists( $post_type ) ? $post_type : false;
-				},
-				\SearchWP\Utils::get_global_engine_source_potential_parents( $this )
-			) );
+			$global_source_names = $this->get_global_source_names();
 
 			// If there are no applicable parents, bail out.
 			if ( empty( $global_source_names ) ) {
@@ -453,9 +532,8 @@ final class Comment extends \SearchWP\Source {
 					'value'   => '0',
 				];
 			} else {
-				// TODO: Consider how this can further restrict to only Entries that follow the Rules?
-				// Difficult. Perhaps better to instead rely on the ability to filter these arguments,
-				// which would allow developers to custom tailor the clauses for their setup.
+				// TODO: In order to avoid a degree of Index bloat (e.g. indexing Comments belonging to Posts
+				// that are excluded by a Post Rule) we should apply Rules here, but that's a huge challenge.
 				$sql = $wpdb->prepare( "
 					SELECT ID
 					FROM {$wpdb->posts}
@@ -472,6 +550,29 @@ final class Comment extends \SearchWP\Source {
 		}
 
 		return apply_filters( 'searchwp\source\comment\db_where', $db_where, [ 'source' => $this, ] );
+	}
+
+	/**
+	 * Retrieves list of post type names that are potential parents.
+	 *
+	 * @since 4.1.9
+	 * @return string[] Post type names.
+	 */
+	public function get_global_source_names() {
+		return array_filter( array_map(
+			function( $source_name ) {
+				$flag = 'post' . SEARCHWP_SEPARATOR;
+
+				if ( $flag !== substr( $source_name, 0, strlen( $flag ) ) ) {
+					return false;
+				}
+
+				$post_type = substr( $source_name, strlen( $flag ) );
+
+				return post_type_exists( $post_type ) ? $post_type : false;
+			},
+			\SearchWP\Utils::get_global_engine_source_potential_parents( $this )
+		) );
 	}
 
 	/**

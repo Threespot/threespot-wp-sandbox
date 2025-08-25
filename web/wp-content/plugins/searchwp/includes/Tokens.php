@@ -149,55 +149,6 @@ class Tokens {
 	}
 
 	/**
-	 * Map tokens to Index token IDs.
-	 *
-	 * @since 4.0
-	 * @return array
-	 */
-	public function map_index_ids( array $tokens = [], $use_stems = false ) {
-		global $wpdb;
-
-		if ( empty( $tokens ) ) {
-			$tokens = $this->items;
-		}
-
-		$col = 'token';
-
-		if ( ! empty( $use_stems ) ) {
-			$stemmer = new Stemmer();
-			$col     = 'stem';
-			$tokens  = array_unique( array_map( function( $token ) use ( $stemmer ) {
-				return $stemmer->stem( $token );
-			}, $tokens ) );
-		}
-
-		$ids    = [];
-		$index  = \SearchWP::$index;
-		$tokens = ! empty( $tokens ) ? $wpdb->get_results( $wpdb->prepare(
-			"SELECT id, token
-			FROM {$index->get_tables()['tokens']->table_name}
-			WHERE {$col} IN ( " . implode( ', ', array_fill( 0, count( $tokens ), '%s' ) ) . " )
-			ORDER BY FIELD(token, " . implode( ', ', array_fill( 0, count( $tokens ), '%s' ) ) . ')',
-			array_merge( $tokens, $tokens )
-		), ARRAY_A ) : [];
-
-		foreach ( $tokens as $token ) {
-			$ids[ absint( $token['id'] ) ] = sanitize_text_field( $token['token'] );
-		}
-
-		// If there was a token submitted that's not in the index it will be flagged with an ID of zero.
-		// This may prove to be essential knowledge e.g. if forcing AND logic.
-		foreach ( $this->items as $search_token ) {
-			if ( ! in_array( $search_token, $ids, true ) ) {
-				$existing_missing = isset( $ids[0] ) ? $ids[0] : '';
-				$ids[0] = trim( $existing_missing . ' ' . sanitize_text_field( $search_token ) );
-			}
-		}
-
-		return $ids;
-	}
-
-	/**
 	 * Apply token regex patterns to a string and return matches.
 	 *
 	 * @since 4.0

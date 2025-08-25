@@ -12,22 +12,33 @@ declare (strict_types=1);
 namespace SearchWP\Dependencies\Monolog\Processor;
 
 use SearchWP\Dependencies\Monolog\Logger;
+use SearchWP\Dependencies\Psr\Log\LogLevel;
 /**
  * Injects Hg branch and Hg revision number in all records
  *
  * @author Jonathan A. Schweder <jonathanschweder@gmail.com>
+ *
+ * @phpstan-import-type LevelName from \Monolog\Logger
+ * @phpstan-import-type Level from \Monolog\Logger
  */
-class MercurialProcessor implements \SearchWP\Dependencies\Monolog\Processor\ProcessorInterface
+class MercurialProcessor implements ProcessorInterface
 {
+    /** @var Level */
     private $level;
-    private static $cache;
+    /** @var array{branch: string, revision: string}|array<never>|null */
+    private static $cache = null;
     /**
-     * @param string|int $level The minimum logging level at which this Processor will be triggered
+     * @param int|string $level The minimum logging level at which this Processor will be triggered
+     *
+     * @phpstan-param Level|LevelName|LogLevel::* $level
      */
-    public function __construct($level = \SearchWP\Dependencies\Monolog\Logger::DEBUG)
+    public function __construct($level = Logger::DEBUG)
     {
-        $this->level = \SearchWP\Dependencies\Monolog\Logger::toMonologLevel($level);
+        $this->level = Logger::toMonologLevel($level);
     }
+    /**
+     * {@inheritDoc}
+     */
     public function __invoke(array $record) : array
     {
         // return if the level is not high enough
@@ -37,6 +48,9 @@ class MercurialProcessor implements \SearchWP\Dependencies\Monolog\Processor\Pro
         $record['extra']['hg'] = self::getMercurialInfo();
         return $record;
     }
+    /**
+     * @return array{branch: string, revision: string}|array<never>
+     */
     private static function getMercurialInfo() : array
     {
         if (self::$cache) {

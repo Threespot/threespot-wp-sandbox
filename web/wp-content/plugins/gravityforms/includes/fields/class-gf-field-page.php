@@ -12,6 +12,30 @@ class GF_Field_Page extends GF_Field {
 		return esc_attr__( 'Page', 'gravityforms' );
 	}
 
+	/**
+	 * Returns the field's form editor description.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_description() {
+		return esc_attr__( 'Allows multi-page forms.', 'gravityforms' );
+	}
+
+	/**
+	 * Returns the field's form editor icon.
+	 *
+	 * This could be an icon url or a gform-icon class.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_icon() {
+		return 'gform-icon--page';
+	}
+
 	function get_form_editor_field_settings() {
 		return array(
 			'next_button_setting',
@@ -24,14 +48,16 @@ class GF_Field_Page extends GF_Field {
 
 	public function get_field_content( $value, $force_frontend_label, $form ) {
 		$admin_buttons = $this->get_admin_buttons();
-		$field_content = "{$admin_buttons} <label class='gfield_label'>&nbsp;</label><div class='gf-pagebreak-inline gf-pagebreak-container'><div class='gf-pagebreak-text-before'>" . esc_html__( 'end of page', 'gravityforms' ) . "</div><div class='gf-pagebreak-text-main'><span>" . esc_html__( 'PAGE BREAK', 'gravityforms' ) . "</span></div><div class='gf-pagebreak-text-after'>" . esc_html__( 'top of new page', 'gravityforms' ) . '</div></div>';
+		$field_content = "{$admin_buttons} <label class='gfield_label'>&nbsp;</label><div class='gf-pagebreak-inline gf-pagebreak'>" . esc_html__( 'Page Break', 'gravityforms' ) . '</div>';
 		return $field_content;
 	}
 
 	public function sanitize_settings() {
 		parent::sanitize_settings();
 		if ( $this->nextButton ) {
-			$this->nextButton['imageUrl'] = wp_strip_all_tags( $this->nextButton['imageUrl'] );
+			if ( isset( $this->nextButton['imageUrl'] ) )  {
+				$this->nextButton['imageUrl'] = wp_strip_all_tags( $this->nextButton['imageUrl'] );
+			}
 			$allowed_tags      = wp_kses_allowed_html( 'post' );
 			$this->nextButton['text'] = wp_kses( $this->nextButton['text'], $allowed_tags );
 			$this->nextButton['type'] = wp_strip_all_tags( $this->nextButton['type'] );

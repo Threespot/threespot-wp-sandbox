@@ -8,6 +8,7 @@
 
 use SearchWP\Utils;
 use SearchWP\Index\Controller as Index;
+use SearchWP\Admin\Extensions\ExcludeUIPreview;
 
 /**
  * Class SearchWP initializes core components.
@@ -71,13 +72,16 @@ class SearchWP {
 			\SearchWP\Upgrader::run();
 		}, 99999 );
 
+		\SearchWP\Admin\Views\WelcomeView::init();
+
+		// Initialize Page Builder Blocks integration.
+		\SearchWP\Integrations\PageBuilderBlocks::init();
+
 		add_action( 'init', [ $this, 'init' ], 99999 );
 
 		if ( ! has_action( SEARCHWP_PREFIX . 'network_install', [ __CLASS__, 'network_install' ] ) ) {
 			add_action( SEARCHWP_PREFIX . 'network_install', [ __CLASS__, 'network_install' ] );
 		}
-
-		add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 
 		// Single event after Engine save.
 		if ( ! has_action( SEARCHWP_PREFIX . 'index_dispatch', [ $this, '_dispatch' ] ) ) {
@@ -85,7 +89,10 @@ class SearchWP {
 		}
 
 		add_action( 'switch_blog', function( $new_blog_id, $prev_blog_id ) {
-			if ( $new_blog_id != $prev_blog_id ) {
+			if (
+				$new_blog_id != $prev_blog_id
+				&& apply_filters( 'searchwp\auto_update_providers', false, [ 'site' => $new_blog_id, ] )
+			) {
 				$this->set_providers();
 			}
 		}, 99, 2 );
@@ -171,9 +178,21 @@ class SearchWP {
 
 		$sources = array_values( $post_types );
 
+		// Add each Taxonomy as a Source
+		$registered_taxonomies = Utils::get_taxonomies();
+
+		$taxonomies = [];
+		foreach ( $registered_taxonomies as $key => $taxonomy_name ) {
+			$taxonomies[$key] = new \SearchWP\Sources\Taxonomy( $taxonomy_name );
+		}
+
+		$sources = array_merge( $sources, array_values( $taxonomies ) );
+
+
 		$sources[] = new \SearchWP\Sources\Attachment();
 		$sources[] = new \SearchWP\Sources\Comment();
 		$sources[] = new \SearchWP\Sources\User();
+
 
 		return $sources;
 	}
@@ -204,6 +223,11 @@ class SearchWP {
 	 * @return void
 	 */
 	public function init() {
+
+		$this->load_plugin_textdomain();
+
+		self::setup_integrations();
+
 		$this->set_providers();
 
 		// Implement global behaviors.
@@ -212,17 +236,56 @@ class SearchWP {
 		new \SearchWP\Logic\Synonyms();
 		new \SearchWP\Logic\PartialMatches();
 
+		searchwp()
+			->register( \SearchWP\Debug\Watcher::class )
+			->init();
+
+		searchwp()
+			->register( \SearchWP\Debug\Console\Console::class )
+			->init();
+
+		searchwp()
+			->register( \SearchWP\Forms\Frontend::class )
+			->init();
+
+		searchwp()
+			->register( \SearchWP\Templates\Frontend::class )
+			->init();
+
 		// Hook in to core behavior.
 		$this->add_hooks();
 
 		// Handle native searches.
 		self::$native = new \SearchWP\Native();
 
-		// Add REST search handler.
+		/**
+		 * Allow SearchWP to take over REST searches for posts.
+		 *
+		 * @since 4.0
+		 *
+		 * @param bool $take_over Whether SearchWP should take over REST searches.
+		 */
 		if ( apply_filters( 'searchwp\rest', true ) ) {
-			add_filter( 'wp_rest_search_handlers', function( $handlers ) {
-				return [ new \SearchWP\Rest() ];
-			}, 99 );
+			// Add REST search handler.
+			add_filter(
+				'wp_rest_search_handlers',
+				function ( $handlers ) {
+
+					$handlers = array_map(
+						function ( $handler ) {
+							if ( $handler instanceof \WP_REST_Post_Search_Handler ) {
+								return new \SearchWP\Rest();
+							}
+
+							return $handler;
+						},
+						$handlers
+					);
+
+					return $handlers;
+				},
+				99
+			);
 		}
 
 		// Schedule Maintenance.
@@ -230,7 +293,54 @@ class SearchWP {
 			wp_schedule_event( time(), 'daily', SEARCHWP_PREFIX . 'maintenance' );
 		}
 
+		// Load the Exclude UI Preview.
+		if ( ! is_plugin_active( 'searchwp-exclude-ui/searchwp-exclude-ui.php' ) ) {
+			new ExcludeUIPreview();
+		}
+
+		// Load the Email Summaries Client.
+		\SearchWP\Summaries\Client::init();
+
 		do_action( 'searchwp\loaded' );
+	}
+
+	/**
+	 * Set up global integrations.
+	 *
+	 * @since 4.1.5
+	 * @return void
+	 */
+	private static function setup_integrations() {
+		// Divi Search Results Template with Archive Posts Module.
+		if ( apply_filters( 'searchwp\integration\divi', 'divi' === strtolower( get_template() ) ) ) {
+			new \SearchWP\Integrations\Divi();
+		}
+
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			if ( file_exists( ABSPATH . 'wp-admin/includes/plugin.php' ) ) {
+				include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			} else {
+				return;
+			}
+		}
+
+		// Beaver Builder Themer Plugin doesn't need an integration in most cases, so it's opt-in.
+		if ( apply_filters(
+			'searchwp\integration\beaver-builder',
+			is_plugin_active( 'bb-plugin/fl-builder.php' ) )
+		) {
+			new \SearchWP\Integrations\BeaverBuilder();
+		}
+
+		if ( apply_filters(
+			'searchwp\integration\wp-all-import',
+			is_plugin_active( 'wp-all-import/plugin.php' )
+			|| is_plugin_active( 'wp-all-import-pro/wp-all-import-pro.php' )
+		)
+		) {
+			$wpai = new \SearchWP\Integrations\WpAllImport();
+			$wpai->init();
+		}
 	}
 
 	/**
@@ -246,9 +356,22 @@ class SearchWP {
 		// If we're in the Admin, implement our Options screen.
 		if ( is_admin() ) {
 			new \SearchWP\Admin\AdminBar();
+
+			if ( empty( \SearchWP\Settings::get( 'hide_announcements' ) ) ) {
+				\SearchWP\Admin\Notifications\Notifications::init();
+			}
+
+			// Legacy version of Metrics extension compatibility.
+			// This line has to be deleted once Metrics v1.4.2 is released.
+			\SearchWP\Admin\LegacyMetricsCompat::hooks();
+
 			new \SearchWP\Admin\OptionsView();
 
 			new \SearchWP\Admin\DashboardWidgets\StatisticsDashboardWidget();
+
+			if ( apply_filters( 'searchwp\deprecated_integration_notices', true ) ) {
+				add_action( 'admin_init', [ $this, 'check_for_deprecated_integrations' ] );
+			}
 
 			if ( apply_filters( 'searchwp\missing_integration_notices', true ) ) {
 				add_action( 'admin_init', [ $this, 'check_for_missing_integrations' ] );
@@ -285,8 +408,10 @@ class SearchWP {
 			&& ! $this->did_suggestion
 		) {
 			$this->did_suggestion = true;
-			add_action( 'loop_start', function() use( $query ) {
-				$this->output_suggested_search( $query->get_suggested_search() );
+			add_action( 'loop_start', function( $wp_query ) use( $query ) {
+				if ( $wp_query->is_main_query() ) {
+					$this->output_suggested_search( $query->get_suggested_search() );
+				}
 			} );
 		}
 	}
@@ -304,8 +429,10 @@ class SearchWP {
 		echo '<p class="searchwp-revised-search-notice">';
 		echo wp_kses(
 			sprintf(
-				// Translators: Placeholder is the revised search string.
-				__( 'Showing results for <em class="searchwp-suggested-revision-query">%s</em>', 'searchwp' ),
+				apply_filters( 'searchwp\query\revised_search_notice',
+					// Translators: Placeholder is the revised search string.
+					__( 'Showing results for <em class="searchwp-suggested-revision-query">%s</em>', 'searchwp' )
+				),
 				esc_html( $suggestion )
 			),
 			[ 'em' => [ 'class' => [], ], ]
@@ -320,7 +447,7 @@ class SearchWP {
 	 * @return void
 	 */
 	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'searchwp', false, SEARCHWP_PLUGIN_DIR . '/languages' );
+		load_plugin_textdomain( 'searchwp', false, dirname( plugin_basename( SEARCHWP_PLUGIN_FILE ) ) . '/languages/' );
 	}
 
 	/**
@@ -332,77 +459,83 @@ class SearchWP {
 	public function check_for_missing_integrations() {
 		// These are the available integration Extensions.
 		$integration_extensions = [
-			'bbpress' => [
-				'plugin' => [
+			'bbpress'        => [
+				'plugin'      => [
 					'file' => 'bbpress/bbpress.php',
 					'name' => 'bbPress',
-					'url' => 'https://wordpress.org/plugins/bbpress/',
+					'url'  => 'https://wordpress.org/plugins/bbpress/',
 				],
 				'integration' => [
 					'file' => 'searchwp-bbpress/searchwp-bbpress.php',
 					'name' => 'bbPress Integration',
-					'url' => 'https://searchwp.com/extensions/bbpress-integration/',
+					'url'  => 'https://searchwp.com/extensions/bbpress-integration/',
 				],
+				'license'     => 'standard',
 			],
-			'wpml' => [
-				'plugin' => [
+			'wpml'           => [
+				'plugin'      => [
 					'file' => 'sitepress-multilingual-cms/sitepress.php',
 					'name' => 'WPML',
-					'url' => 'http://wpml.org/',
+					'url'  => 'http://wpml.org/',
 				],
 				'integration' => [
 					'file' => 'searchwp-wpml/searchwp-wpml.php',
 					'name' => 'WPML Integration',
-					'url' => 'https://searchwp.com/extensions/wpml-integration/',
+					'url'  => 'https://searchwp.com/extensions/wpml-integration/',
 				],
+				'license'     => 'pro',
 			],
-			'polylang' => [
-				'plugin' => [
+			'polylang'       => [
+				'plugin'      => [
 					'file' => 'polylang/polylang.php',
 					'name' => 'Polylang',
-					'url' => 'https://wordpress.org/plugins/polylang/',
+					'url'  => 'https://wordpress.org/plugins/polylang/',
 				],
 				'integration' => [
 					'file' => 'searchwp-polylang/searchwp-polylang.php',
 					'name' => 'Polylang Integration',
-					'url' => 'https://searchwp.com/extensions/polylang-integration/',
+					'url'  => 'https://searchwp.com/extensions/polylang-integration/',
 				],
+				'license'     => 'pro',
 			],
-			'woocommerce' => [
-				'plugin' => [
+			'woocommerce'    => [
+				'plugin'      => [
 					'file' => 'woocommerce/woocommerce.php',
 					'name' => 'WooCommerce',
-					'url' => 'https://wordpress.org/plugins/woocommerce/',
+					'url'  => 'https://wordpress.org/plugins/woocommerce/',
 				],
 				'integration' => [
 					'file' => 'searchwp-woocommerce/searchwp-woocommerce.php',
 					'name' => 'WooCommerce Integration',
-					'url' => 'https://searchwp.com/extensions/woocommerce-integration/',
+					'url'  => 'https://searchwp.com/extensions/woocommerce-integration/',
 				],
+				'license'     => 'pro',
 			],
-			'wpjobmanager' => [
-				'plugin' => [
+			'wpjobmanager'   => [
+				'plugin'      => [
 					'file' => 'wp-job-manager/wp-job-manager.php',
 					'name' => 'WP Job Manager',
-					'url' => 'https://wordpress.org/plugins/wp-job-manager/',
+					'url'  => 'https://wordpress.org/plugins/wp-job-manager/',
 				],
 				'integration' => [
 					'file' => 'searchwp-wp-job-manager-integration/searchwp-wp-job-manager-integration.php',
 					'name' => 'WP Job Manager Integration',
-					'url' => 'https://searchwp.com/extensions/wp-job-manager-integration/',
+					'url'  => 'https://searchwp.com/extensions/wp-job-manager-integration/',
 				],
+				'license'     => 'pro',
 			],
 			'privatecontent' => [
-				'plugin' => [
+				'plugin'      => [
 					'file' => 'private-content/private_content.php',
 					'name' => 'PrivateContent',
-					'url' => 'http://codecanyon.net/item/privatecontent-multilevel-content-plugin/1467885',
+					'url'  => 'http://codecanyon.net/item/privatecontent-multilevel-content-plugin/1467885',
 				],
 				'integration' => [
 					'file' => 'searchwp-privatecontent/searchwp-privatecontent.php',
 					'name' => 'PrivateContent Integration',
-					'url' => 'https://searchwp.com/extensions/privatecontent-integration/',
+					'url'  => 'https://searchwp.com/extensions/privatecontent-integration/',
 				],
+				'license'     => 'pro',
 			],
 		];
 
@@ -412,6 +545,30 @@ class SearchWP {
 				&& ! is_plugin_active( $integration_extension['integration']['file'] )
 			) {
 				new \SearchWP\Admin\AdminNotices\MissingIntegrationAdminNotice( $slug, $integration_extension );
+			}
+		}
+	}
+
+	/**
+	 * Checks if any deprecated SearchWP Extensions is active and outputs an Admin Notice when one is found.
+	 *
+	 * @since 4.3.10
+	 */
+	public function check_for_deprecated_integrations() {
+
+		// These are the deprecated integration Extensions.
+		$integration_extensions = [
+			'searchwp-term-priority' => [
+				'file' => 'searchwp-term-priority/searchwp-term-priority.php',
+			],
+			'searchwp-diagnostics'   => [
+				'file' => 'searchwp-diagnostics/searchwp-diagnostics.php',
+			],
+		];
+
+		foreach ( $integration_extensions as $slug => $integration_extension ) {
+			if ( is_plugin_active( $integration_extension['file'] ) ) {
+				new \SearchWP\Admin\AdminNotices\DeprecatedIntegrationAdminNotice( $slug );
 			}
 		}
 	}

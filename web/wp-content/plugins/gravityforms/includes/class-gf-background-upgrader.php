@@ -11,12 +11,15 @@
  * @author   Rocketgenius
  */
 
+use Gravity_Forms\Gravity_Forms\Async\GF_Background_Process;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once( 'libraries/wp-async-request.php' );
-require_once( 'libraries/gf-background-process.php' );
+if ( ! class_exists( 'Gravity_Forms\Gravity_Forms\Async\GF_Background_Process' ) ) {
+	require_once GF_PLUGIN_DIR_PATH . 'includes/async/class-gf-background-process.php';
+}
 
 /**
  * GF_Background_Upgrader Class.

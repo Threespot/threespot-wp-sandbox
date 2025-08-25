@@ -1,6 +1,6 @@
 <?php
 /**
- * SearchWP's Indexer. Heavily influenced by @link https://github.com/deliciousbrains/wp-background-processing
+ * SearchWP's Indexer.
  *
  * @package SearchWP
  * @author  Jon Christopher
@@ -34,6 +34,15 @@ class Indexer extends BackgroundProcess {
 
 		// When a site is deleted from the network, we need to drop it too.
 		add_action( 'wp_uninitialize_site', [ $this, 'wp_delete_site' ] );
+
+		/**
+		 * Whether the indexer is enabled.
+		 *
+		 * @since 4.1
+		 *
+		 * @param bool $enabled Whether the indexer is enabled.
+		 */
+		$this->enabled = apply_filters( 'searchwp\index\process\enabled', ! \SearchWP\Settings::get( 'indexer_paused', 'boolean' ) );
 	}
 
 	/**
@@ -45,7 +54,7 @@ class Indexer extends BackgroundProcess {
 	public function init() {
 		$this->index      = \SearchWP::$index;
 		$this->name       = 'indexer';
-		$this->identifier = SEARCHWP_PREFIX . 'indexer_' . get_current_blog_id();
+		$this->identifier = SEARCHWP_PREFIX . 'indexer';
 
 		parent::init();
 
@@ -53,21 +62,58 @@ class Indexer extends BackgroundProcess {
 	}
 
 	/**
-	 * Handler when process time limit has been exceeded.
+	 * Handler if/when process time limit has been exceeded.
 	 *
 	 * @since 4.1
+	 * @return bool|array
 	 */
 	protected function time_limit_exceeded() {
+		// Retrieve the last Entry we tried to index.
+		$latest_entry = get_site_option( $this->identifier . '_indexing' );
+
+		// If nothing is there then there was no failure.
+		if ( empty( $latest_entry ) || ! is_array( $latest_entry ) ) {
+			return false;
+		}
+
+		// The failed entry was timestamped at index start. If that timestamp plus
+		// the process time limit is less than now, it has not failed.
+		if ( time() < absint( $latest_entry['timestamp'] ) + absint( apply_filters( 'searchwp\background_process\process_time_limit', 60 ) ) ) {
+			return false;
+		}
+
+		// We have exceeded the time limit on the failed entry.
 		do_action( 'searchwp\debug\log', 'Process time limit exceeded!', 'indexer' );
 
-		// Retrieve the last Entry we tried to index and mark it as omitted.
-		$failed_entry = get_option( $this->identifier . '_indexing' );
+		return true;
+	}
+
+	/**
+	 * Executed when the process has failed. Omits latest Entry we tried to index.
+	 *
+	 * @since 4.1.8
+	 * @return mixed
+	 */
+	protected function handle_process_failure() {
+		// The failed entry was defined in time_limit_exceeded().
+		$failed_entry = get_site_option( $this->identifier . '_indexing' );
 
 		if ( empty( $failed_entry ) || ! is_array( $failed_entry ) ) {
+			do_action( 'searchwp\debug\log', 'Irrecoverable process failure.', 'indexer' );
+
 			return;
 		}
 
-		$this->index->mark_entry_as( new Entry( $failed_entry['source'], $failed_entry['id'] ), 'omitted' );
+		// If the failed Entry was not part of this site, the indexing process failed over there, don't mess with it.
+		if ( get_current_blog_id() != $failed_entry['site'] ) {
+			do_action( 'searchwp\debug\log', 'Indexing failed on site [' . $failed_entry['site'] . '] exiting to let that job finish', 'indexer' );
+
+			return;
+		}
+
+		do_action( 'searchwp\debug\log', $failed_entry['source'] . ':' . $failed_entry['id'] . ' failed to index', 'indexer' );
+		delete_site_option( $this->identifier . '_indexing' );
+		$this->index->mark_entry_as( new Entry( $failed_entry['source'], $failed_entry['id'], false, false ), 'omitted' );
 	}
 
 	/**
@@ -77,7 +123,7 @@ class Indexer extends BackgroundProcess {
 	 * @return void
 	 */
 	public function _uninstall() {
-		delete_option( $this->identifier . '_indexing' );
+		delete_site_option( $this->identifier . '_indexing' );
 
 		parent::_uninstall();
 	}
@@ -120,7 +166,7 @@ class Indexer extends BackgroundProcess {
 				do_action( 'searchwp\indexer\complete' );
 				do_action( 'searchwp\debug\log', 'Index built', 'indexer' );
 
-				delete_option( $this->identifier . '_indexing' );
+				delete_site_option( $this->identifier . '_indexing' );
 			}
 		}
 
@@ -145,6 +191,10 @@ class Indexer extends BackgroundProcess {
 			AND site = %d",
 			get_current_blog_id()
 		) );
+
+		if ( self::use_legacy_lock() ) {
+			$this->unlock_process();
+		}
 	}
 
 	/**
@@ -156,7 +206,6 @@ class Indexer extends BackgroundProcess {
 	public function _wake_up() {
 		do_action( 'searchwp\debug\log', 'Waking up', 'indexer' );
 		$this->_destroy_queue();
-		$this->unlock_process();
 		sleep( 1 );
 		$this->trigger();
 	}
@@ -165,15 +214,45 @@ class Indexer extends BackgroundProcess {
 	 * Index queued Entries.
 	 *
 	 * @since 4.1
-	 * @param \SearchWP\Entry[] $to_index Entries to index.
+	 * @param \stdClass[] $to_index Entries to index as retrieved by \SearchWP\Index\Controller::get_queued().
 	 * @return void
 	 */
 	private function index_entries( array $to_index ) {
 		do_action( 'searchwp\indexer\batch' );
 
+		$start_time = time();
+
+		// Detect whether this is a repeated index attempt e.g. caused an Error
+		// of some sort but went under the radar of the health check which
+		// in turn could cause an infinite indexing loop on this Entry.
+		$last_indexed = get_site_option( $this->identifier . '_indexing' );
+		if (
+			! empty( $last_indexed )
+			&& isset( $to_index[0] )
+			&& ( $to_index[0]->source === $last_indexed['source'] )
+			&& ( $to_index[0]->id === $last_indexed['id'] )
+		) {
+			do_action( 'searchwp\debug\log', "Detected repeated index attempt: omitting {$to_index[0]->source}:{$to_index[0]->id}", 'indexer' );
+			$redundant_entry = new Entry( $to_index[0]->source, $to_index[0]->id, false );
+			$this->index->mark_entry_as( $redundant_entry, 'omitted' );
+			unset( $to_index[0] );
+		}
+
 		foreach ( $to_index as $entry_to_index ) {
 			$source     = $entry_to_index->source;
 			$source_id  = $entry_to_index->id;
+
+			do_action( 'searchwp\debug\log', 'Indexing ' . $source . ':' . $source_id, 'indexer' );
+
+			update_site_option(
+				$this->identifier . '_indexing', [
+					'source'    => $source,
+					'id'        => $source_id,
+					'timestamp' => current_time( 'timestamp' ),
+					'site'      => get_current_blog_id(),
+				], 'no'
+			);
+
 			$entry_orig = new Entry( $source, $source_id );
 			$entry      = apply_filters( 'searchwp\indexer\entry', $entry_orig );
 
@@ -185,8 +264,6 @@ class Indexer extends BackgroundProcess {
 				continue;
 			}
 
-			do_action( 'searchwp\debug\log', 'Indexing ' . $source . ':' . $source_id, 'indexer' );
-			update_option( $this->identifier . '_indexing', [ 'source' => $source, 'id' => $source_id, ], 'no' );
 			$result = $this->index->add( $entry );
 
 			// Did this Entry fail to index?
@@ -194,17 +271,25 @@ class Indexer extends BackgroundProcess {
 				do_action( 'searchwp\debug\log', '[Failed] Omitting ' . $source . ':' . $source_id, 'indexer' );
 				$this->index->mark_entry_as( $entry, 'omitted' );
 			} else {
-				delete_option( $this->identifier . '_indexing' );
+				delete_site_option( $this->identifier . '_indexing' );
 			}
 
 			// Have we exceeded our time limit?
-			if ( time() > $this->start_time + absint( apply_filters( 'searchwp\indexer\process_time_limit', 60 ) ) ) {
-				do_action( 'searchwp\debug\log', 'Process time limit exceeded!', 'indexer' );
+			if ( time() > $start_time + absint( apply_filters( 'searchwp\indexer\process_time_limit', 60 ) ) ) {
+				do_action( 'searchwp\debug\log', 'Process time limit exceeded! Exiting batch.', 'indexer' );
+
+				// Destroy the queue so as to not neglect any remaining entries during the next cycle.
+				$this->_destroy_queue();
+
 				break;
 			}
 
 			if ( $this->memory_exceeded() ) {
-				do_action( 'searchwp\debug\log', 'Memory threshold exceeded!', 'indexer' );
+				do_action( 'searchwp\debug\log', 'Memory threshold exceeded! Exiting batch.', 'indexer' );
+
+				// Destroy the queue so as to not neglect any remaining entries during the next cycle.
+				$this->_destroy_queue();
+
 				break;
 			}
 		}
@@ -217,7 +302,11 @@ class Indexer extends BackgroundProcess {
 	 * @return void
 	 */
 	public function pause() {
-		$this->lock_process();
+		if ( self::use_legacy_lock() ) {
+			$this->locked = $this->get_lock();
+		}
+
+		$this->enabled = false;
 		Settings::update( 'indexer_paused', true );
 	}
 
@@ -228,7 +317,11 @@ class Indexer extends BackgroundProcess {
 	 * @return void
 	 */
 	public function unpause() {
-		$this->unlock_process();
+		if ( self::use_legacy_lock() ) {
+			$this->unlock_process();
+		}
+
+		$this->enabled = true;
 		Settings::update( 'indexer_paused', false );
 	}
 

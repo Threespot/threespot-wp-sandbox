@@ -251,24 +251,25 @@ class SWP_Query {
 	 * @param array $args
 	 */
 	function __construct( array $args = [] ) {
+
 		$defaults = array(
-			's'                 => '',
-			'engine'            => 'default',
-			'posts_per_page'    => intval( get_option( 'posts_per_page' ) ),
-			'load_posts'        => true,
-			'fields'            => 'all',
-			'nopaging'          => false,
-			'page'              => null,
-			'paged'             => 1,
-			'post__in'          => [],
-			'post__not_in'      => [],
-			'post_type'         => [],
-			'post_status'       => [ 'publish' ],
-			'tax_query'         => [],
-			'meta_query'        => [],
-			'date_query'        => [],
-			'order'             => 'DESC',
-			'orderby'           => 'relevance',
+			's'              => '',
+			'engine'         => 'default',
+			'posts_per_page' => intval( get_option( 'posts_per_page' ) ),
+			'load_posts'     => true,
+			'fields'         => 'all',
+			'nopaging'       => false,
+			'page'           => null,
+			'paged'          => 1,
+			'post__in'       => [],
+			'post__not_in'   => [],
+			'post_type'      => [],
+			'post_status'    => [ 'publish' ],
+			'tax_query'      => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			'meta_query'     => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'date_query'     => [],
+			'order'          => '',
+			'orderby'        => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -283,7 +284,12 @@ class SWP_Query {
 			$args['load_posts'] = false;
 		}
 
-		if ( 'any' === $args['post_type'] ) {
+		// A post type of 'any' will simply not limit to one of
+		// the post types that has been added to the Engine.
+		if (
+			'any' === $args['post_type']
+			|| ( is_array( $args['post_type'] ) && in_array( 'any', $args['post_type'], true ) )
+		) {
 			$args['post_type'] = [];
 		}
 
@@ -295,17 +301,35 @@ class SWP_Query {
 		// Initial processing of search query. \SearchWP\Query decodes.
 		$args['s'] = empty( $args['s'] ) ? get_search_query() : $args['s'];
 
-		if ( isset( $_REQUEST['orderby'] ) ) {
-			$this->orderby = is_string( $_REQUEST['orderby'] )
-				? stripslashes( $_REQUEST['orderby'] ) : stripslashes_deep( $_REQUEST['orderby'] );
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_REQUEST['orderby'] ) && empty( $args['orderby'] ) ) {
+			$args['orderby'] =
+				is_string( $_REQUEST['orderby'] ) ?
+				sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) ) :
+				array_map( 'sanitize_text_field', stripslashes_deep( $_REQUEST['orderby'] ) );
 		}
 
-		if ( isset( $_REQUEST['order'] ) ) {
-			$this->order = ! empty( $_REQUEST['order'] ) ? $_REQUEST['order'] : 'DESC';
+		if ( isset( $_REQUEST['order'] ) && empty( $args['order'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$args['order'] =
+				! empty( $_REQUEST['order'] ) ?
+					sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) : 'DESC';
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		// If the orderby and order arguments are still empty, set them to the default values.
+		$args['orderby'] = empty( $args['orderby'] ) ? 'relevance' : $args['orderby'];
+		$args['order']   = empty( $args['order'] ) ? 'DESC' : $args['order'];
+
+		/**
+		 * Filter the arguments passed to the SWP_Query constructor.
+		 *
+		 * @since 2.6
+		 *
+		 * @param array $args Arguments passed to the SWP_Query constructor.
+		 */
+		$args = apply_filters( 'searchwp\swp_query\args', $args );
 
 		// Set up properties based on arguments.
-		$args = apply_filters( 'searchwp\swp_query\args', $args );
 		if ( is_array( $args ) ) {
 			foreach ( $args as $property => $val ) {
 				$this->__set( $property, $val );
@@ -390,7 +414,7 @@ class SWP_Query {
 	 * @since 2.6.2
 	 */
 	function maybe_post_type() {
-		if ( isset( $_REQUEST['post_type'] ) ) {
+		if ( empty( $this->post_type ) && isset( $_REQUEST['post_type'] ) ) {
 			$this->post_type = is_string( $_REQUEST['post_type'] )
 				? stripslashes( $_REQUEST['post_type'] ) : stripslashes_deep( $_REQUEST['post_type'] );
 		}
@@ -540,6 +564,11 @@ class SWP_Query {
 		$this->post_status = array_map( 'trim', $this->post_status );
 
 		foreach ( $this->post_type as $post_type ) {
+
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
 			$mod = new \SearchWP\Mod( 'post' . SEARCHWP_SEPARATOR . $post_type );
 			$mod->set_where( [ [
 				'column'  => 'post_status',

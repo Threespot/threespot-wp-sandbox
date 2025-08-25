@@ -18,15 +18,30 @@ use SearchWP\Dependencies\Monolog\Logger;
  * @author Eric Clemmons (@ericclemmons) <eric@uxdriven.com>
  * @author Christophe Coevoet <stof@notk.org>
  * @author Kirill chEbba Chebunin <iam@chebba.org>
+ *
+ * @phpstan-import-type Level from \Monolog\Logger
  */
-class WildfireFormatter extends \SearchWP\Dependencies\Monolog\Formatter\NormalizerFormatter
+class WildfireFormatter extends NormalizerFormatter
 {
     /**
      * Translates Monolog log levels to Wildfire levels.
+     *
+     * @var array<Level, string>
      */
-    private $logLevels = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => 'LOG', \SearchWP\Dependencies\Monolog\Logger::INFO => 'INFO', \SearchWP\Dependencies\Monolog\Logger::NOTICE => 'INFO', \SearchWP\Dependencies\Monolog\Logger::WARNING => 'WARN', \SearchWP\Dependencies\Monolog\Logger::ERROR => 'ERROR', \SearchWP\Dependencies\Monolog\Logger::CRITICAL => 'ERROR', \SearchWP\Dependencies\Monolog\Logger::ALERT => 'ERROR', \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => 'ERROR'];
+    private $logLevels = [Logger::DEBUG => 'LOG', Logger::INFO => 'INFO', Logger::NOTICE => 'INFO', Logger::WARNING => 'WARN', Logger::ERROR => 'ERROR', Logger::CRITICAL => 'ERROR', Logger::ALERT => 'ERROR', Logger::EMERGENCY => 'ERROR'];
     /**
-     * {@inheritdoc}
+     * @param string|null $dateFormat The format of the timestamp: one supported by DateTime::format
+     */
+    public function __construct(?string $dateFormat = null)
+    {
+        parent::__construct($dateFormat);
+        // http headers do not like non-ISO-8559-1 characters
+        $this->removeJsonEncodeOption(\JSON_UNESCAPED_UNICODE);
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * @return string
      */
     public function format(array $record) : string
     {
@@ -40,6 +55,7 @@ class WildfireFormatter extends \SearchWP\Dependencies\Monolog\Formatter\Normali
             $line = $record['extra']['line'];
             unset($record['extra']['line']);
         }
+        /** @var mixed[] $record */
         $record = $this->normalize($record);
         $message = ['message' => $record['message']];
         $handleError = \false;
@@ -68,15 +84,18 @@ class WildfireFormatter extends \SearchWP\Dependencies\Monolog\Formatter\Normali
         return \sprintf('%d|%s|', \strlen($json), $json);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @phpstan-return never
      */
     public function formatBatch(array $records)
     {
         throw new \BadMethodCallException('Batch formatting does not make sense for the WildfireFormatter');
     }
     /**
-     * {@inheritdoc}
-     * @suppress PhanTypeMismatchReturn
+     * {@inheritDoc}
+     *
+     * @return null|scalar|array<array|scalar|null>|object
      */
     protected function normalize($data, int $depth = 0)
     {

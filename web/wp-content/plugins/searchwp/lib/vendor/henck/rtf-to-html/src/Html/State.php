@@ -14,9 +14,9 @@ class State
     /* 
      * Store a font in the font table at the specified index.
      */
-    public static function SetFont(int $index, \SearchWP\Dependencies\RtfHtmlPhp\Html\Font $font)
+    public static function SetFont(int $index, Font $font)
     {
-        \SearchWP\Dependencies\RtfHtmlPhp\Html\State::$fonttbl[$index] = $font;
+        State::$fonttbl[$index] = $font;
     }
     public function Reset($defaultFont = null)
     {
@@ -85,7 +85,7 @@ class State
      */
     public function equals($state)
     {
-        if (!$state instanceof \SearchWP\Dependencies\RtfHtmlPhp\Html\State) {
+        if (!$state instanceof State) {
             return \false;
         }
         if ($this->bold != $state->bold) {

@@ -30,89 +30,90 @@ use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
  *
  * @author Alexey Karapetov <alexey@karapetov.com>
  */
-class HandlerWrapper implements \SearchWP\Dependencies\Monolog\Handler\HandlerInterface, \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface, \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface, \SearchWP\Dependencies\Monolog\ResettableInterface
+class HandlerWrapper implements HandlerInterface, ProcessableHandlerInterface, FormattableHandlerInterface, ResettableInterface
 {
     /**
      * @var HandlerInterface
      */
     protected $handler;
-    public function __construct(\SearchWP\Dependencies\Monolog\Handler\HandlerInterface $handler)
+    public function __construct(HandlerInterface $handler)
     {
         $this->handler = $handler;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function isHandling(array $record) : bool
     {
         return $this->handler->isHandling($record);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handle(array $record) : bool
     {
         return $this->handler->handle($record);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
         $this->handler->handleBatch($records);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function close() : void
     {
         $this->handler->close();
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function pushProcessor(callable $callback) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function pushProcessor(callable $callback) : HandlerInterface
     {
-        if ($this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface) {
+        if ($this->handler instanceof ProcessableHandlerInterface) {
             $this->handler->pushProcessor($callback);
             return $this;
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface::class);
+        throw new \LogicException('The wrapped handler does not implement ' . ProcessableHandlerInterface::class);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function popProcessor() : callable
     {
-        if ($this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface) {
+        if ($this->handler instanceof ProcessableHandlerInterface) {
             return $this->handler->popProcessor();
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface::class);
+        throw new \LogicException('The wrapped handler does not implement ' . ProcessableHandlerInterface::class);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
-        if ($this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface) {
+        if ($this->handler instanceof FormattableHandlerInterface) {
             $this->handler->setFormatter($formatter);
+            return $this;
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface::class);
+        throw new \LogicException('The wrapped handler does not implement ' . FormattableHandlerInterface::class);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function getFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    public function getFormatter() : FormatterInterface
     {
-        if ($this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface) {
+        if ($this->handler instanceof FormattableHandlerInterface) {
             return $this->handler->getFormatter();
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface::class);
+        throw new \LogicException('The wrapped handler does not implement ' . FormattableHandlerInterface::class);
     }
     public function reset()
     {
-        if ($this->handler instanceof \SearchWP\Dependencies\Monolog\ResettableInterface) {
-            return $this->handler->reset();
+        if ($this->handler instanceof ResettableInterface) {
+            $this->handler->reset();
         }
     }
 }

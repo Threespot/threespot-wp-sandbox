@@ -110,21 +110,35 @@ class Stopwords {
 	 * are throughout the entire index. A single entry that has the same word many times doesn't satisfy.
 	 *
 	 * @since 4.0
+	 *
+	 * @param array $args Optional arguments.
+	 *
 	 * @return string[]
 	 */
 	public function get_suggestions( $args ) {
+
 		global $wpdb;
 
-		if ( isset( $args['exclude'] ) && ! empty( $args['exclude'] ) ) {
-			$tokens = new Tokens( $args['exclude'] );
-			$args['exclude'] = $tokens->map_index_ids();
+		$cache_key = SEARCHWP_PREFIX . 'stopwords_suggestions';
+		$cache     = wp_cache_get( $cache_key );
+
+		if ( ! empty( $cache ) ) {
+			return $cache;
 		}
 
-		$args = wp_parse_args( $args, [
-			'limit'     => 20,
-			'threshold' => 0.3,
-			'exclude'   => [''],
-		] );
+		if ( isset( $args['exclude'] ) && ! empty( $args['exclude'] ) ) {
+			$tokens          = new Tokens( $args['exclude'] );
+			$args['exclude'] = \SearchWP\Utils::map_token_ids( $tokens->get() );
+		}
+
+		$args = wp_parse_args(
+			$args,
+			[
+				'limit'     => 20,
+				'threshold' => 0.3,
+				'exclude'   => [ '' ],
+			]
+		);
 
 		$args = [
 			'limit'     => absint( $args['limit'] ),
@@ -132,33 +146,46 @@ class Stopwords {
 			'exclude'   => array_map( 'sanitize_text_field', (array) $args['exclude'] ),
 		];
 
-		$threshold = absint( $args['threshold'] * 100 );
-		$index     = \SearchWP::$index;
-		$values    = [ $index->get_count_entries() ];
-		$where     = [ '1=1' ];
+		$index = \SearchWP::$index;
+		$where = [ '1=1' ];
 
 		if ( ! empty( $args['exclude'][0] ) ) {
-			$where[] = 'i.token NOT IN (' . implode( ',', array_fill( 0, count( $args['exclude'] ), '%d' ) ) . ')';
-			$values  = array_merge( $values, array_keys( $args['exclude'] ) );
+			$where[] = 'i.token NOT IN (' . implode( ',', $args['exclude'] ) . ')';
 		}
 
-		$values = array_merge( $values, [ $threshold, $args['limit'] ] );
+		$table_tokens  = esc_sql( $index->get_tables()['tokens']->table_name );
+		$table_index   = esc_sql( $index->get_tables()['index']->table_name );
+		$count_entries = $index->get_count_entries();
+		$where_clause  = implode( ' AND ', array_map( 'esc_sql', $where ) );
+		$threshold     = absint( $args['threshold'] * 100 );
+		$limit         = (int) $args['limit'];
 
-		$suggested_stopwords = $wpdb->get_results( $wpdb->prepare( "
-			SELECT t.id AS id,
+		$query = "
+			SELECT
+				t.id AS id,
 				t.token AS token,
-				( ( SELECT COUNT(DISTINCT i.id, i.source) AS occurrences
-					FROM {$index->get_tables()['index']->table_name} i
-					WHERE i.token = t.id
-					GROUP BY i.token ) / ( %d ) * 100
-				) AS prevalence
-			FROM {$index->get_tables()['tokens']->table_name} t
-			LEFT JOIN {$index->get_tables()['index']->table_name} i ON i.token = t.id
-			WHERE " . implode( ' AND ', $where ) . "
-			GROUP BY t.token
-			HAVING prevalence >= %d
-			ORDER BY prevalence DESC LIMIT %d",
-			$values ),
+				COUNT(DISTINCT i.id, i.source) / %d * 100 AS prevalence
+			FROM
+				$table_tokens t
+			LEFT JOIN
+				$table_index i ON i.token = t.id
+			WHERE $where_clause
+			GROUP BY
+				t.id, t.token
+			HAVING
+				prevalence >= %d
+			ORDER BY
+				prevalence DESC
+			LIMIT %d
+		";
+
+		$suggested_stopwords = $wpdb->get_results(
+			$wpdb->prepare(
+				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$count_entries,
+				$threshold,
+				$limit
+			),
 			ARRAY_A
 		);
 
@@ -169,6 +196,8 @@ class Stopwords {
 				'prevalence' => number_format( floatval( $suggested_stopword['prevalence'] ), 2 ),
 			];
 		}
+
+		wp_cache_set( $cache_key, $suggested_stopwords );
 
 		return $suggested_stopwords;
 	}

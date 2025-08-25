@@ -32,15 +32,19 @@
         $container.on('change', '.gform-filter-field', function(){
             changeField(this);
         });
-        $container.on('click', '#gform-no-filters', function(e){
-			if($('.gform-field-filter').length == 0){
-				addNewFieldFilter(this);
+
+		$container.on( 'click', '#gform-no-filters', function() {
+			if ( $( '.gform-field-filter' ).length == 0 ) {
+				addNewFieldFilter( this );
 			}
-			$(this).remove();
-        });
-        $container.on('click', '.gform-add', function(){
-			addNewFieldFilter(this);
-        });
+			$( this ).remove();
+		});
+
+		$container.on( 'click', '.gform-add', function( e ) {
+			addNewFieldFilter( this );
+			e.preventDefault();
+		});
+
         $container.on('click', '.gform-remove', function(){
             removeFieldFilter(this);
         });
@@ -127,20 +131,20 @@
 				label = indent + subFilter.text;
 				val = subFilter.key;
 				disabled = isFieldSelected(val) ? 'disabled="disabled"' : "";
-				options.push('<option {0} value="{1}">{2}</option>'.format(disabled, val, label));
+				options.push('<option {0} value="{1}">{2}</option>'.gformFormat(disabled, val, label));
 			}
 			indent = indentString.repeat(depth);
 			groupLabel = indent + setting.text;
 			if ( setting.isNestable ) {
 				// Optgroups can't be nested so close the optgroup immediately and fake the nested options with indentation.
-				select.push('<optgroup label="{0}"></optgroup>{1}'.format(groupLabel, options.join('')));
+				select.push('<optgroup label="{0}"></optgroup>{1}'.gformFormat(groupLabel, options.join('')));
 			} else {
-				select.push('<optgroup label="{0}">{1}</optgroup>'.format(groupLabel, options.join('')));
+				select.push('<optgroup label="{0}">{1}</optgroup>'.gformFormat(groupLabel, options.join('')));
 			}
 		} else {
 			disabled = setting.preventMultiple && isFieldSelected(key) ? "disabled='disabled'" : "";
 			label = setting.text;
-			select.push('<option {0} value="{1}">{2}</option>'.format(disabled, key, label));
+			select.push('<option {0} value="{1}">{2}</option>'.gformFormat(disabled, key, label));
 		}
 		return select.join('');
 	}
@@ -183,7 +187,7 @@
         if (filter) {
             for (i = 0; i < filter.operators.length; i++) {
                 operator = filter.operators[i];
-                str += '<option value="{0}">{1}</option>'.format(operator, gf_vars[operatorStrings[operator]] );
+                str += '<option value="{0}">{1}</option>'.gformFormat(operator, gf_vars[operatorStrings[operator]] );
             }
         }
         str += "</select>";
@@ -201,7 +205,7 @@
         if ( filter && filter.values && selectedOperator != 'contains' ) {
 
             if ( typeof filter.placeholder != 'undefined' ){
-                options += '<option value="">{0}</option>'.format(filter.placeholder);
+                options += '<option value="">{0}</option>'.gformFormat(filter.placeholder);
             }
 
             for (i = 0; i < filter.values.length; i++) {
@@ -210,13 +214,13 @@
                 if ( filter.values[i].operators && $.inArray( selectedOperator, filter.values[i].operators ) === -1 ) {
                     continue;
                 }
-                options += '<option value="{0}">{1}</option>'.format(val, text);
+                options += '<option value="{0}">{1}</option>'.gformFormat(val, text);
             }
-            str = "<select name='v[]' class='{0}'>{1}</select>".format(cssClass, options);
+            str = "<select name='v[]' class='{0}'>{1}</select>".gformFormat(cssClass, options);
         } else {
-            placeholder = ( filter && typeof filter.placeholder != 'undefined' ) ? "placeholder='{0}'".format(filter.placeholder) : '';
+            placeholder = ( filter && typeof filter.placeholder != 'undefined' ) ? "placeholder='{0}'".gformFormat(filter.placeholder) : '';
 
-            str = "<input type='text' value='' name='v[]' class='{0}' {1}/>".format(cssClass, placeholder);
+            str = "<input type='text' value='' name='v[]' class='{0}' {1}/>".gformFormat(cssClass, placeholder);
         }
 
         return str;
@@ -251,8 +255,14 @@
         if(!allowMultiple)
             return str;
 
-        str += "<img class='gform-add' src='{0}/add.png' alt='{1}' title='{2}'>".format(imagesURL, gf_vars.addFieldFilter, gf_vars.addFieldFilter);
-        str += "<img class='gform-remove' src='" + imagesURL + "/remove.png' alt='" + gf_vars.removeFieldFilter + "' title='" + gf_vars.removeFieldFilter + "'>";
+        str += "<button " +
+	        "class='gform-add add_field_choice gform-st-icon gform-st-icon--circle-plus' " +
+	        "title='{0}'" +
+	        "></button>".gformFormat(gf_vars.addFieldFilter);
+        str += "<button " +
+	        "class='gform-remove delete_field_choice gform-st-icon gform-st-icon--circle-minus' " +
+	        "title='" + gf_vars.removeFieldFilter + "'" +
+	        "></button>";
         return str;
     }
 
@@ -287,7 +297,10 @@
     function displayNoFiltersMessage () {
         var str = "";
         str += "<div id='gform-no-filters' >" + gf_vars.addFieldFilter;
-        str += "<img class='gform-add' src='{0}/add.png' alt='{1}' title='{2}'></div>".format(imagesURL, gf_vars.addFieldFilter, gf_vars.addFieldFilter);
+        str += "<button " +
+	        "class='gform-add add_field_choice gform-st-icon gform-st-icon--circle-plus' " +
+	        "title='{0}'" +
+	        "></div>".gformFormat(gf_vars.addFieldFilter);
         $("#gform-field-filters").html(str);
         if(isResizable){
             $container.css({'min-height': '', 'border-bottom': ''});
@@ -310,8 +323,8 @@
 
     function getFilterMode(mode){
         var html;
-        html = '<select name="mode"><option value="all" {0}>{1}</option><option value="any" {2}>{3}</option></select>'.format(selected("all", mode), gf_vars.all, selected("any", mode), gf_vars.any);
-        html = gf_vars.filterAndAny.format(html);
+        html = '<select name="mode"><option value="all" {0}>{1}</option><option value="any" {2}>{3}</option></select>'.gformFormat(selected("all", mode), gf_vars.all, selected("any", mode), gf_vars.any);
+        html = gf_vars.filterAndAny.gformFormat(html);
         return html
     }
 
@@ -324,24 +337,25 @@
         $filterRow.after(getFilterMode());
     }
 
-    function addNewFieldFilter (el) {
-        var $el, $filterRow;
-        $el = $(el);
-        if($el.is("img"))
-            $filterRow = $el.parent();
-        else
-            $filterRow = $el;
+	function addNewFieldFilter ( el ) {
+		var $el, $filterRow;
+		$el = $( el );
+		if ( $el.is( "button" ) ) {
+			$filterRow = $el.parent();
+		} else {
+			$filterRow = $el;
+		}
 
-        $filterRow.after(getNewFilterRow());
-        $filterRow.next("div")
-            .find(".gform-filter-field").change()
-            .find(".gform-filter-operator").change();
-        if ($(".gform-field-filter").length == 1){
-            addFilterMode($filterRow);
-        }
+		$filterRow.after( getNewFilterRow() );
+		$filterRow.next( "div" )
+			.find( ".gform-filter-field" ).change()
+			.find( ".gform-filter-operator" ).change();
+		if ($( ".gform-field-filter" ).length == 1 ) {
+			addFilterMode( $filterRow );
+		}
 
-        maybeMakeResizable();
-    }
+		maybeMakeResizable();
+	}
 
     function removeFieldFilter (img) {
         $(img).parent().remove();
@@ -351,14 +365,13 @@
         maybeMakeResizable();
     }
 
-    String.prototype.format = function () {
-        var args = arguments;
-        return this.replace(/{(\d+)}/g, function (match, number) {
-            return typeof args[number] != 'undefined'
-                ? args[number]
-                : match
-                ;
-        });
-    };
+	if ( ! String.prototype.gformFormat ) {
+		String.prototype.gformFormat = function() {
+			var args = arguments;
+			return this.replace( /{(\d+)}/g, function( match, number ) {
+				return typeof args[ number ] != 'undefined' ? args[ number ] : match;
+			} );
+		};
+	}
 
 }(window.gfFilterUI = window.gfFilterUI || {}, jQuery));

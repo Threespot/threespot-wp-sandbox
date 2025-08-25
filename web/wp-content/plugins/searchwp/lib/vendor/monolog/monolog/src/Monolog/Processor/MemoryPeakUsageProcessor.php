@@ -17,8 +17,11 @@ namespace SearchWP\Dependencies\Monolog\Processor;
  * @see Monolog\Processor\MemoryProcessor::__construct() for options
  * @author Rob Jensen
  */
-class MemoryPeakUsageProcessor extends \SearchWP\Dependencies\Monolog\Processor\MemoryProcessor
+class MemoryPeakUsageProcessor extends MemoryProcessor
 {
+    /**
+     * {@inheritDoc}
+     */
     public function __invoke(array $record) : array
     {
         $usage = \memory_get_peak_usage($this->realUsage);

@@ -2,7 +2,7 @@
 
 namespace SearchWP\Dependencies\RtfHtmlPhp;
 
-class Group extends \SearchWP\Dependencies\RtfHtmlPhp\Element
+class Group extends Element
 {
     public $parent;
     public $children;
@@ -23,9 +23,9 @@ class Group extends \SearchWP\Dependencies\RtfHtmlPhp\Element
         // If the first child is a control word, then
         // the group type is the word.
         $child = $this->children[0];
-        if ($child instanceof \SearchWP\Dependencies\RtfHtmlPhp\ControlWord) {
+        if ($child instanceof ControlWord) {
             return $child->word;
-        } elseif ($child instanceof \SearchWP\Dependencies\RtfHtmlPhp\ControlSymbol) {
+        } elseif ($child instanceof ControlSymbol) {
             return $child->symbol == '*' ? '*' : null;
         }
         // If first child is neither word nor symbol, then
@@ -42,7 +42,7 @@ class Group extends \SearchWP\Dependencies\RtfHtmlPhp\Element
         }
         // First child not a control symbol?
         $child = $this->children[0];
-        if (!$child instanceof \SearchWP\Dependencies\RtfHtmlPhp\ControlSymbol) {
+        if (!$child instanceof ControlSymbol) {
             return null;
         }
         return $child->symbol == '*';

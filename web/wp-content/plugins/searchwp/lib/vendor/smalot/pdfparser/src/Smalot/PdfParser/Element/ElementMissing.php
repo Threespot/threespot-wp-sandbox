@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -33,37 +35,25 @@ use SearchWP\Dependencies\Smalot\PdfParser\Element;
 /**
  * Class ElementMissing
  */
-class ElementMissing extends \SearchWP\Dependencies\Smalot\PdfParser\Element
+class ElementMissing extends Element
 {
     public function __construct()
     {
         parent::__construct(null, null);
     }
-    /**
-     * @return bool
-     */
-    public function equals($value)
+    public function equals($value) : bool
     {
         return \false;
     }
-    /**
-     * @return bool
-     */
-    public function contains($value)
+    public function contains($value) : bool
     {
         return \false;
     }
-    /**
-     * @return bool
-     */
-    public function getContent()
+    public function getContent() : bool
     {
         return \false;
     }
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString() : string
     {
         return '';
     }

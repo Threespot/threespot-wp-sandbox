@@ -19,7 +19,7 @@ use SearchWP\Dependencies\Monolog\Utils;
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class PsrLogMessageProcessor implements \SearchWP\Dependencies\Monolog\Processor\ProcessorInterface
+class PsrLogMessageProcessor implements ProcessorInterface
 {
     public const SIMPLE_DATE = "Y-m-d\\TH:i:s.uP";
     /** @var string|null */
@@ -36,8 +36,7 @@ class PsrLogMessageProcessor implements \SearchWP\Dependencies\Monolog\Processor
         $this->removeUsedContextFields = $removeUsedContextFields;
     }
     /**
-     * @param  array $record
-     * @return array
+     * {@inheritDoc}
      */
     public function __invoke(array $record) : array
     {
@@ -61,9 +60,9 @@ class PsrLogMessageProcessor implements \SearchWP\Dependencies\Monolog\Processor
                     $replacements[$placeholder] = $val->format($this->dateFormat ?: static::SIMPLE_DATE);
                 }
             } elseif (\is_object($val)) {
-                $replacements[$placeholder] = '[object ' . \SearchWP\Dependencies\Monolog\Utils::getClass($val) . ']';
+                $replacements[$placeholder] = '[object ' . Utils::getClass($val) . ']';
             } elseif (\is_array($val)) {
-                $replacements[$placeholder] = 'array' . @\json_encode($val);
+                $replacements[$placeholder] = 'array' . Utils::jsonEncode($val, null, \true);
             } else {
                 $replacements[$placeholder] = '[' . \gettype($val) . ']';
             }

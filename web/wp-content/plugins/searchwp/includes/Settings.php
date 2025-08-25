@@ -20,14 +20,17 @@ class Settings {
 	 * Capability requirement for managing Settings.
 	 *
 	 * @since 4.0
+	 * @since 4.2.6 Visibility changed from public to private.
+	 *
 	 * @var string
 	 */
-	public static $capability = 'manage_options';
+	private static $capability = 'manage_options';
 
 	/**
 	 * Cache key.
 	 *
 	 * @since 4.0
+	 *
 	 * @var string
 	 */
 	public static $engines_cache_key = SEARCHWP_PREFIX . 'engines_settings';
@@ -42,6 +45,8 @@ class Settings {
 		'engines',
 		'stopwords',
 		'synonyms',
+		'forms',
+		'results_templates',
 		'migrated',
 		'upgraded_from',
 		'ignored_queries',
@@ -49,6 +54,8 @@ class Settings {
 		'trim_stats_logs_after',
 		'document_content_reset',
 		'document_content_reset_dismissed',
+		'onboarding_wizard',
+		'license_check_attempts',
 	];
 
 	/**
@@ -69,6 +76,8 @@ class Settings {
 		'tokenize_pattern_matches',
 		'remove_min_word_length',
 		'reduced_indexer_aggressiveness',
+		'hide_announcements',
+		'disable_email_summaries',
 		'nuke_on_delete',
 		'indexer_paused',
 		'license',
@@ -79,10 +88,12 @@ class Settings {
 	 * Getter for capability tag.
 	 *
 	 * @since 4.0.12
+	 *
 	 * @return string
 	 */
 	public static function get_capability() {
-		return (string) apply_filters( 'searchwp\settings\capability', 'manage_options' );
+
+		return (string) apply_filters( 'searchwp\settings\capability', self::$capability );
 	}
 
 	/**
@@ -168,16 +179,21 @@ class Settings {
 	 * @return mixed The normalized value.
 	 */
 	public static function normalize_value( $setting_value, $type = null ) {
-		if ( 'boolean' === $type || 'bool' === $type ) {
+
+		if ( $type === 'boolean' || $type === 'bool' ) {
 			$setting_value = '1' == $setting_value ? true : false;
 		}
 
-		if ( 'array' === $type ) {
+		if ( $type === 'array' ) {
 			$setting_value = is_array( $setting_value ) ? $setting_value : [];
 		}
 
-		if ( 'int' === $type || 'integer' === $type ) {
-			$setting_value = intval( $setting_value );
+		if ( $type === 'int' || $type === 'integer' ) {
+			$setting_value = (int) $setting_value;
+		}
+
+		if ( $type === 'absint' ) {
+			$setting_value = absint( $setting_value );
 		}
 
 		return $setting_value;
@@ -191,7 +207,7 @@ class Settings {
 	 * @param mixed  $value   The setting value.
 	 * @return mixed
 	 */
-	public static function update( string $setting = '', $value ) {
+	public static function update( string $setting = '', $value = null ) {
 		if ( ! in_array( $setting, self::get_keys() ) ) {
 			return null;
 		}
@@ -281,15 +297,31 @@ class Settings {
 	 * @return array Engine models.
 	 */
 	public static function get_engines( $skip_cache = false ) {
+
+		// Statically cache engines to improve runtime performance.
+		static $_engines = null;
+		static $_engines_settings = null;
+
+		$engines_settings = self::_get_engines_settings( $skip_cache );
+
+		// Make sure we return statically cached $engines only if $engines_settings didn't change in the runtime.
+		if ( $_engines !== null && $_engines_settings === $engines_settings ) {
+			return $_engines;
+		}
+
 		$engines = [];
 
-		foreach ( self::_get_engines_settings( $skip_cache ) as $engine => $engine_settings ) {
+		foreach ( $engines_settings as $engine => $engine_settings ) {
 			$engine_model = new Engine( $engine, $engine_settings );
 
 			if ( ! empty( $engine_model->get_name() ) ) {
 				$engines[ $engine ] = $engine_model;
 			}
 		}
+
+		// Save the static cache.
+		$_engines = $engines;
+		$_engines_settings = $engines_settings;
 
 		return $engines;
 	}
@@ -319,10 +351,17 @@ class Settings {
 	 * Getter for single Engine settings.
 	 *
 	 * @since 4.0
-	 * @param string $name Engine name.
+	 *
+	 * @param string|null $name Engine name.
+	 *
 	 * @return mixed|false
 	 */
-	public static function get_engine_settings( string $name ) {
+	public static function get_engine_settings( ?string $name ) {
+
+		if ( empty( $name ) ) {
+			return false;
+		}
+
 		$engines = self::_get_engines_settings();
 
 		return array_key_exists( $name, $engines ) ? $engines[ $name ] : false;
@@ -332,18 +371,28 @@ class Settings {
 	 * Getter for saved Engines settings stored in the database.
 	 *
 	 * @since 4.0
+	 *
+	 * @param bool $skip_cache Skip caching.
+	 *
 	 * @return array Raw Engine settings.
 	 */
 	public static function _get_engines_settings( $skip_cache = false ) {
-		$engines_settings = wp_cache_get( self::$engines_cache_key, '' );
+
+		if ( ! $skip_cache ) {
+			$cache = wp_cache_get( self::$engines_cache_key, '' );
+		}
 
 		if ( empty( $cache ) || $skip_cache ) {
 			$engines_settings = get_option( SEARCHWP_PREFIX . 'engines' );
+		} else {
+			$engines_settings = $cache;
 		}
 
-		wp_cache_set( self::$engines_cache_key, $engines_settings, '', 1 );
+		if ( ! $skip_cache ) {
+			wp_cache_set( self::$engines_cache_key, $engines_settings, '', 1 );
+		}
 
-		return ! is_array( $engines_settings ) ? [] : $engines_settings;
+		return is_array( $engines_settings ) ? $engines_settings : [];
 	}
 
 	/**

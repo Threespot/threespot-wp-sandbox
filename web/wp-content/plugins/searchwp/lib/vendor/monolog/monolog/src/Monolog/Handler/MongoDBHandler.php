@@ -30,10 +30,13 @@ use SearchWP\Dependencies\Monolog\Formatter\MongoDBFormatter;
  * The above examples uses the MongoDB PHP library's client class; however, the
  * MongoDB\Driver\Manager class from ext-mongodb is also supported.
  */
-class MongoDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class MongoDBHandler extends AbstractProcessingHandler
 {
+    /** @var \MongoDB\Collection */
     private $collection;
+    /** @var Client|Manager */
     private $manager;
+    /** @var string */
     private $namespace;
     /**
      * Constructor.
@@ -41,15 +44,13 @@ class MongoDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
      * @param Client|Manager $mongodb    MongoDB library or driver client
      * @param string         $database   Database name
      * @param string         $collection Collection name
-     * @param string|int     $level      The minimum logging level at which this handler will be triggered
-     * @param bool           $bubble     Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct($mongodb, string $database, string $collection, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct($mongodb, string $database, string $collection, $level = Logger::DEBUG, bool $bubble = \true)
     {
-        if (!($mongodb instanceof \SearchWP\Dependencies\MongoDB\Client || $mongodb instanceof \MongoDB\Driver\Manager)) {
+        if (!($mongodb instanceof Client || $mongodb instanceof Manager)) {
             throw new \InvalidArgumentException('MongoDB\\Client or MongoDB\\Driver\\Manager instance required');
         }
-        if ($mongodb instanceof \SearchWP\Dependencies\MongoDB\Client) {
+        if ($mongodb instanceof Client) {
             $this->collection = $mongodb->selectCollection($database, $collection);
         } else {
             $this->manager = $mongodb;
@@ -63,7 +64,7 @@ class MongoDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
             $this->collection->insertOne($record['formatted']);
         }
         if (isset($this->manager, $this->namespace)) {
-            $bulk = new \MongoDB\Driver\BulkWrite();
+            $bulk = new BulkWrite();
             $bulk->insert($record["formatted"]);
             $this->manager->executeBulkWrite($this->namespace, $bulk);
         }
@@ -71,8 +72,8 @@ class MongoDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\MongoDBFormatter();
+        return new MongoDBFormatter();
     }
 }

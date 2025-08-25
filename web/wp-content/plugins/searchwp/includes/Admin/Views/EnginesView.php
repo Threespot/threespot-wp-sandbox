@@ -9,6 +9,7 @@
 
 namespace SearchWP\Admin\Views;
 
+use SearchWP\License;
 use SearchWP\Utils;
 use SearchWP\Entry;
 use SearchWP\Engine;
@@ -22,7 +23,7 @@ use SearchWP\Admin\NavTab;
  */
 class EnginesView {
 
-	private static $slug = 'default';
+	private static $slug = 'engines';
 
 	/**
 	 * EnginesView constructor.
@@ -30,13 +31,20 @@ class EnginesView {
 	 * @since 4.0
 	 */
 	function __construct() {
-		new NavTab([
-			'tab'   => self::$slug,
-			'label' => __( 'Engines', 'searchwp' ),
-		]);
 
-		add_action( 'searchwp\settings\view\\' . self::$slug,  [ $this, 'render' ] );
-		add_action( 'searchwp\settings\after\\' . self::$slug, [ $this, 'assets' ], 999 );
+		if ( Utils::is_swp_admin_page( 'algorithm' ) ) {
+			new NavTab( [
+				'page'       => 'algorithm',
+				'tab'        => self::$slug,
+				'label'      => __( 'Engines', 'searchwp' ),
+				'is_default' => true,
+			] );
+		}
+
+		if ( Utils::is_swp_admin_page( 'algorithm', 'default' ) ) {
+			add_action( 'searchwp\settings\view',  [ $this, 'render' ] );
+			add_action( 'searchwp\settings\after', [ $this, 'assets' ] );
+		}
 
 		add_action( 'wp_ajax_' . SEARCHWP_PREFIX . 'engines_view',      [ __CLASS__, 'update_config' ] );
 		add_action( 'wp_ajax_' . SEARCHWP_PREFIX . 'engines_configs',   [ __CLASS__, 'update_engines' ] );
@@ -57,19 +65,18 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function memory_limits() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		$wp  = wp_convert_hr_to_bytes( WP_MEMORY_LIMIT );
-		$php = \SearchWP\Utils::get_memory_limit();
+		$php = Utils::get_memory_limit();
 
 		// At least 64MB RAM is recommended if available.
 		$recommended = 67108864; // 64MB.
 		$sufficient  = true;     // Assume true in case recommended is not available.
 
-		// If PHP has more memory avaiable than what is recommended...
-		if ( $php > $recommended ) {
-			// Memory is sufficient if WordPress is using more than what is recommended.
-			$sufficient = $wp > $recommended;
+		if ( $php < $recommended ) {
+			$sufficient = false;
 		}
 
 		$sufficient = (bool) apply_filters( 'searchwp\memory_sufficient', $sufficient );
@@ -91,20 +98,22 @@ class EnginesView {
 	public static function migrate_stats() {
 		global $wpdb;
 
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+		Utils::check_ajax_permissions();
 
 		$statistics_table = new \SearchWP\Index\Tables\LogTable();
 		$legacy_table     = $wpdb->prefix . 'swp_log';
 
 		$wpdb->query( $wpdb->prepare( "
-			INSERT INTO $statistics_table->table_name
+			INSERT INTO {$statistics_table->table_name}
 			SELECT
+				id AS logid,
 				query AS query,
 				tstamp AS tstamp,
 				hits AS hits,
 				engine AS engine,
 				%d AS site
-			FROM $legacy_table",
+			FROM {$legacy_table}
+			WHERE CHAR_LENGTH(query) < 80", // There is a schema change with an 80 char limit in the new table.
 		get_current_blog_id() ) );
 
 		wp_send_json_success();
@@ -117,7 +126,8 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function reintroduce_entry() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		$source = isset( $_REQUEST['source'] ) ? stripslashes( $_REQUEST['source'] ) : '';
 		$id     = isset( $_REQUEST['id'] )     ? stripslashes( $_REQUEST['id'] )     : '';
@@ -136,7 +146,8 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function rebuild_index() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		// Reset the Index.
 		$index = \SearchWP::$index;
@@ -157,7 +168,7 @@ class EnginesView {
 
 		$doing_import = ! empty( $configs );
 		if ( ! $doing_import ) {
-			check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+			Utils::check_ajax_permissions();
 			$configs = isset( $_REQUEST['configs'] ) ? json_decode( stripslashes( $_REQUEST['configs'] ), true ) : false;
 		}
 
@@ -379,9 +390,9 @@ class EnginesView {
 		}
 
 		return array_unique( call_user_func_array( 'array_merge',
-			array_map( function( $engine ) {
+			array_values( array_map( function( $engine ) {
 				return array_keys( $engine['sources'] );
-			}, $config ) )
+			}, array_values( $config ) ) ) )
 		);
 	}
 
@@ -450,15 +461,26 @@ class EnginesView {
 			SEARCHWP_PLUGIN_URL . "assets/javascript/dist/engines{$debug}.js",
 			[ 'jquery' ], SEARCHWP_VERSION, true );
 
-		wp_enqueue_style( $handle,
+		wp_enqueue_style(
+            $handle,
 			SEARCHWP_PLUGIN_URL . "assets/javascript/dist/engines{$debug}.css",
-			[], SEARCHWP_VERSION );
+			[
+				Utils::$slug . 'collapse-layout',
+				Utils::$slug . 'input',
+				Utils::$slug . 'modal',
+				Utils::$slug . 'style',
+			],
+            SEARCHWP_VERSION
+        );
 
 		$settings = Settings::get();
 
 		if ( empty( $settings['misc']['hasInitialSave'] ) ) {
+			$default_engine_settings = json_decode( json_encode( new Engine( 'default' ) ), true );
+			$default_engine_settings['settings']['stemming'] = true;
+
 			$settings['engines'] = [
-				'default' => json_decode( json_encode( new Engine( 'default' ) ), true )
+				'default' => $default_engine_settings,
 			];
 		}
 
@@ -481,13 +503,23 @@ class EnginesView {
 			\SearchWP::$indexer->trigger();
 		}
 
-		Utils::localize_script( $handle, array_merge( [
-			'view'     => self::get_config(),
-			'index'    => $index->get_stats(),
-			'welcome'  => empty( $settings['misc']['hasInitialSave'] )
-							&& isset( $_GET['welcome'] ),
-			'migrated' => $migrated,
-		], $settings ) );
+		Utils::localize_script(
+			$handle,
+			array_merge(
+				[
+					'view'                     => self::get_config(),
+					'index'                    => $index->get_stats(),
+					'welcome'                  => isset( $_GET['welcome'] ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					'migrated'                 => $migrated,
+					'cron'                     => Utils::is_cron_operational(),
+					// Use the source prefix to exclude all sources from that family. (e.g. 'taxonomy.' excludes all Taxonomy sources).
+					// Use the whole source name to exclude a specific source only (e.g. 'post.page' excludes Pages only).
+					'newEngineExcludedSources' => [ 'taxonomy.' ],
+					'isLicenseActive'          => License::is_active(),
+				],
+				$settings
+			)
+		);
 	}
 
 	/**
@@ -515,13 +547,9 @@ class EnginesView {
 	public function render() {
 		// This node structure is as such to inherit WP-admin CSS.
 		?>
-		<div class="edit-post-meta-boxes-area">
-			<div id="poststuff">
-				<div class="meta-box-sortables">
-					<div id="searchwp-engines"></div>
-				</div>
-			</div>
-		</div>
+        <div class="swp-content-container">
+            <div id="searchwp-engines"></div>
+        </div>
 		<?php
 	}
 
@@ -532,7 +560,8 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function update_config() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		$config   = isset( $_REQUEST['config'] ) ? $_REQUEST['config'] : false;
 		$existing = self::get_config();
@@ -608,7 +637,8 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function _indexer_method() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		$indexer = \SearchWP::$indexer;
 
@@ -622,7 +652,8 @@ class EnginesView {
 	 * @return void
 	 */
 	public static function _trigger_indexer() {
-		check_ajax_referer( SEARCHWP_PREFIX . 'settings' );
+
+		Utils::check_ajax_permissions();
 
 		\SearchWP::$indexer->trigger();
 

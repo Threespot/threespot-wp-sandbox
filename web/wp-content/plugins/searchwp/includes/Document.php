@@ -107,6 +107,8 @@ class Document extends Parser {
 			return null;
 		}
 
+		// TODO: If an external process is extracting this data, that external process is
+		// run each time which adds overhead.
 		$metadata = apply_filters( 'searchwp\document\pdf_metadata',
 			get_post_meta( $post->ID, self::$meta_key . '_pdf_metadata', true ), $post );
 

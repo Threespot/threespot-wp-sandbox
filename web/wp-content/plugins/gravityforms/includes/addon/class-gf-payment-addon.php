@@ -13,6 +13,9 @@ if ( ! class_exists( 'GFForms' ) ) {
 // Require GFFeedAddOn.
 require_once( 'class-gf-feed-addon.php' );
 
+use \Gravity_Forms\Gravity_Forms\Orders\Factories\GF_Order_Factory;
+use \Gravity_Forms\Gravity_Forms\Orders\Exporters\GF_Save_Entry_Order_Exporter;
+
 /**
  * Class GFPaymentAddOn
  *
@@ -159,6 +162,15 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	 */
 	protected $_requires_smallest_unit = false;
 
+	/**
+	 * Out of the box, payment add-ons do not support feed reprocessing.
+	 *
+	 * @since 2.9.2
+	 *
+	 * @var bool
+	 */
+	protected $_supports_feed_reprocessing = false;
+
 	//--------- Initialization ----------
 	/**
 	 * Runs before the payment add-on is initialized.
@@ -205,8 +217,8 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		add_filter( 'gform_confirmation', array( $this, 'confirmation' ), 20, 4 );
 
-		add_filter( 'gform_validation', array( $this, 'maybe_validate' ), 20 );
-		add_filter( 'gform_entry_post_save', array( $this, 'entry_post_save' ), 10, 2 );
+		add_filter( 'gform_validation', array( $this, 'maybe_validate' ), 20, 2 );
+		add_filter( 'gform_entry_post_save', array( $this, 'entry_post_save' ), 11, 2 );
 
 		if ( $this->_requires_credit_card ) {
 			add_filter( 'gform_register_init_scripts', array( $this, 'register_creditcard_token_script' ), 10, 3 );
@@ -216,6 +228,9 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		add_filter( 'gform_is_delayed_pre_process_feed', array( $this, 'maybe_delay_feed_processing' ), 20, 4 );
 
+		// Maybe support payment status in conditional logic.
+		add_filter( 'gform_entry_meta_conditional_logic_confirmations', array( $this, 'maybe_add_payment_status_to_meta' ), 10, 2 );
+		add_filter( 'gform_entry_meta_pre_evaluate_conditional_logic', array( $this, 'maybe_add_payment_status_to_meta' ), 10, 2 );
 	}
 
 	/**
@@ -246,7 +261,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		add_filter( 'gform_delete_lead', array( $this, 'entry_deleted' ) );
 		add_action( 'gform_before_delete_field', array( $this, 'before_delete_field' ), 10, 2 );
 
-		if ( rgget( 'page' ) == 'gf_entries' ) {
+		if ( GFForms::get_page_query_arg() == 'gf_entries' ) {
 			add_action( 'gform_payment_details', array( $this, 'entry_info' ), 10, 2 );
 		}
 	}
@@ -297,14 +312,14 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		if ( $installed_version != $this->_payment_version ) {
 			$this->upgrade_payment( $installed_version );
 
-			$installed_addons = array( $this->_slug );
+			$installed_addons = array( $this->get_slug() );
 			update_option( 'gravityformsaddon_payment_addons', $installed_addons );
 		}
-		elseif ( ! in_array( $this->_slug, $installed_addons ) ) {
+		elseif ( ! in_array( $this->get_slug(), $installed_addons ) ) {
 
 			$this->upgrade_payment( $installed_version );
 
-			$installed_addons[] = $this->_slug;
+			$installed_addons[] = $this->get_slug();
 			update_option( 'gravityformsaddon_payment_addons', $installed_addons );
 		}
 
@@ -415,6 +430,9 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		}
 
 		$payment_feed = $this->current_feed;
+		if ( empty( $payment_feed ) ) {
+			$payment_feed = $this->get_single_submission_feed( $entry, $form );
+		}
 
 		return (bool) rgars( $payment_feed, 'meta/delay_' . $slug );
 	}
@@ -445,6 +463,60 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			 */
 			do_action( 'gform_trigger_payment_delayed_feeds', $transaction_id, $payment_feed, $entry, $form );
 		}
+	}
+
+	/**
+	 * Adds additional relevant information for payment add-ons to the frontend feeds
+	 *
+	 * @since unknown
+	 *
+	 * @param array $form The Form object to get Frontend Feeds from.
+	 *
+	 * @return array An array with feeds eligible to be a Front End Feed, including feed data necessary for payment add-ons.
+	 */
+	public function get_frontend_feeds( $form ) {
+
+		if ( ! $this->_supports_frontend_feeds ) {
+			return array();
+		}
+
+		$feeds = $this->get_active_feeds( $form['id'] );
+		if ( empty( $feeds ) ) {
+			return array();
+		}
+
+		$frontend_feeds = parent::get_frontend_feeds( $form );
+
+		foreach ( $frontend_feeds as $key => $frontend_feed ) {
+			foreach ( $feeds as $feed ) {
+				if ( rgar( $frontend_feed, 'feedId' ) !== rgar( $feed, 'id' ) ) {
+					continue;
+				}
+
+				$feed_meta = $feed['meta'];
+
+				$frontend_feeds[ $key ]['transactionType']                    = rgar( $feed_meta, 'transactionType' );
+				$frontend_feeds[ $key ]['subscription_name']                  = rgar( $feed_meta, 'subscription_name' );
+				$frontend_feeds[ $key ]['recurringAmount']                    = rgar( $feed_meta, 'recurringAmount' );
+				$frontend_feeds[ $key ]['billingCycle_length']                = rgar( $feed_meta, 'billingCycle_length' );
+				$frontend_feeds[ $key ]['billingCycle_unit']                  = rgar( $feed_meta, 'billingCycle_unit' );
+				$frontend_feeds[ $key ]['setupFee_enabled']                   = rgar( $feed_meta, 'setupFee_enabled' );
+				$frontend_feeds[ $key ]['trial_enabled']                      = rgar( $feed_meta, 'trial_enabled' );
+				$frontend_feeds[ $key ]['trialPeriod']                        = rgar( $feed_meta, 'trialPeriod' );
+				$frontend_feeds[ $key ]['paymentAmount']                      = rgar( $feed_meta, 'paymentAmount' );
+				$frontend_feeds[ $key ]['billingInformation_address_line1']   = rgar( $feed_meta, 'billingInformation_address_line1' );
+				$frontend_feeds[ $key ]['billingInformation_address_line2']   = rgar( $feed_meta, 'billingInformation_address_line1' );
+				$frontend_feeds[ $key ]['billingInformation_address_city']    = rgar( $feed_meta, 'billingInformation_address_city' );
+				$frontend_feeds[ $key ]['billingInformation_address_state']   = rgar( $feed_meta, 'billingInformation_address_state' );
+				$frontend_feeds[ $key ]['billingInformation_address_zip']     = rgar( $feed_meta, 'billingInformation_address_zip' );
+				$frontend_feeds[ $key ]['billingInformation_address_country'] = rgar( $feed_meta, 'billingInformation_address_country' );
+				$frontend_feeds[ $key ]['customerInformation_email']          = rgar( $feed_meta, 'customerInformation_email' );
+				$frontend_feeds[ $key ]['customerInformation_description']    = rgar( $feed_meta, 'customerInformation_description' );
+				$frontend_feeds[ $key ]['customerInformation_coupon']         = rgar( $feed_meta, 'customerInformation_coupon' );
+			}
+		}
+
+		return $frontend_feeds;
 	}
 
 	/**
@@ -523,37 +595,98 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	/**
 	 * Check if the rest of the form has passed validation, is the last page, and that the honeypot field has not been completed.
 	 *
-	 * @since  Unknown
-	 * @access public
+	 * @since Unknown
+	 * @since 2.6.4 Added the $context param.
 	 *
-	 * @used-by GFPaymentAddOn::init()
-	 * @uses    GFFormDisplay::is_last_page()
-	 * @uses    GFFormDisplay::get_max_field_id()
-	 * @uses    GFPaymentAddOn::validation()
-	 *
-	 * @param array $validation_result Contains the validation result, the Form Object, and the failed validation page number.
+	 * @param array  $validation_result Contains the validation result, the Form Object, and the failed validation page number.
+	 * @param string $context           The context for the current submission. Possible values: form-submit, api-submit, api-validate.
 	 *
 	 * @return array $validation_result
 	 */
-	public function maybe_validate( $validation_result ) {
+	public function maybe_validate( $validation_result, $context = 'api-submit' ) {
+		if ( $context === 'api-validate' || ! $validation_result['is_valid'] ) {
+			return $validation_result;
+		}
 
 		$form            = $validation_result['form'];
 		$is_last_page    = GFFormDisplay::is_last_page( $form );
-		$failed_honeypot = false;
-
-		if ( $is_last_page && rgar( $form, 'enableHoneypot' ) ) {
-			$honeypot_id     = GFFormDisplay::get_max_field_id( $form ) + 1;
-			$failed_honeypot = ! rgempty( "input_{$honeypot_id}" );
-		}
 
 		// Validation called by partial entries feature via the heartbeat API.
 		$is_heartbeat = rgpost('action') == 'heartbeat';
 
-		if ( ! $validation_result['is_valid'] || ! $is_last_page || $failed_honeypot || $is_heartbeat ) {
+		if ( ! $is_last_page || $is_heartbeat ) {
 			return $validation_result;
 		}
 
 		return $this->validation( $validation_result );
+	}
+
+	/**
+	 * Handle the entry meta conditional logic confirmations. Adds support for the payment_status entry field to the confirmation condition logic setting.
+	 *
+	 * @since 2.9.1
+	 *
+	 * @param array $entry_meta      The entry meta.
+	 * @param array $form            The form object.
+	 * @param int   $confirmation_id The confirmation ID.
+	 *
+	 * @return array Returns the entry meta, with the payment_status field added to it.
+	 */
+	public function maybe_add_payment_status_to_meta( $entry_meta, $form ) {
+
+		// Get the payment statuses supported by this add-on. Emtpy array means this add-on does not support payment status conditional logic.
+		$payment_statuses = $this->get_conditional_logic_payment_statuses( $form );
+
+		// If this add-on does not support payment status conditinal logic, return the entry meta as is.
+		if ( empty( $payment_statuses ) ) {
+			return $entry_meta;
+		}
+
+		// If no other add-on has added the payment_status field to the entry meta, add it.
+		if ( rgempty( 'payment_status', $entry_meta ) ) {
+			$entry_meta['payment_status'] = array(
+				'label'      => esc_html__( 'Payment Status', 'gravityformsstripe' ),
+				'is_numeric' => false,
+				'filter'     => array(
+					'operators' => array( 'is', 'isnot' ),
+					'choices'    => array(),
+				),
+			);
+		}
+
+		// Getting an array of payment statuses already present in the entry meta.
+		$existing_payment_statuses = empty( rgars( $entry_meta, 'payment_status/filter/choices' ) ) ? array() : array_column( rgars( $entry_meta, 'payment_status/filter/choices' ), 'value' );
+
+		// Append this add-on's payment statuses to $entry_meta if they are not already present.
+		foreach ( $payment_statuses as $value => $text ) {
+			if ( ! in_array( $value, $existing_payment_statuses ) ) {
+				$entry_meta['payment_status']['filter']['choices'][] = array(
+					'value' => $value,
+					'text'  => $text,
+				);
+			}
+		}
+
+		return $entry_meta;
+	}
+
+	/**
+	 * Returns the payment statuses that can be used in conditional logic. Override this function to add support for payment statuses in conditional logic.
+	 * Example:
+	 * return array(
+	 *    'Paid' => __( 'Paid', 'gravityforms' ),
+	 *    'Failed' => __( 'Failed', 'gravityforms' ),
+	 *    'Processing' => __( 'Processing', 'gravityforms' ),
+	 * );
+	 *
+	 * @since 2.9.1
+	 *
+	 * @param array $form The form object.
+	 *
+	 * @return array Return an array with the payment statuses that can be used in conditional logic. Return an empty array to disable this feature.
+	 */
+	public function get_conditional_logic_payment_statuses( $form ) {
+		return array();
 	}
 
 	/**
@@ -587,19 +720,19 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			return $validation_result;
 		}
 
-		$form  = $validation_result['form'];
-		$entry = GFFormsModel::create_lead( $form );
-		$feed  = $this->get_payment_feed( $entry, $form );
-
-		if ( ! $feed ) {
-			return $validation_result;
-		}
-
 		global $gf_payment_gateway;
 
 		if ( $gf_payment_gateway && $gf_payment_gateway !== $this->get_slug() ) {
 			$this->log_debug( __METHOD__ . '() Aborting. Submission already processed by ' . $gf_payment_gateway );
 
+			return $validation_result;
+		}
+
+		$form  = $validation_result['form'];
+		$entry = GFFormsModel::get_current_lead( $form );
+		$feed  = $this->get_payment_feed( $entry, $form );
+
+		if ( ! $feed ) {
 			return $validation_result;
 		}
 
@@ -611,15 +744,15 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			return $validation_result;
 		}
 
+		$gf_payment_gateway       = $this->get_slug();
+		$this->is_payment_gateway = true;
+
 		if ( GFCommon::is_spam_entry( $entry, $form ) ) {
 			$this->log_debug( __METHOD__ . '() Aborting. Submission flagged as spam.' );
 
 			return $validation_result;
 		}
 
-		$gf_payment_gateway = $this->get_slug();
-
-		$this->is_payment_gateway      = true;
 		$this->current_feed            = $this->_single_submission_feed = $feed;
 		$this->current_submission_data = $submission_data;
 
@@ -921,7 +1054,11 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		}
 
 		// Saving which gateway was used to process this entry.
-		gform_update_meta( $entry['id'], 'payment_gateway', $this->_slug );
+		gform_update_meta( $entry['id'], 'payment_gateway', $this->get_slug() );
+
+		if ( empty( $this->current_feed ) || empty( $this->current_submission_data ) ) {
+			return $entry;
+		}
 
 		$feed = $this->current_feed;
 
@@ -954,6 +1091,13 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			$entry['payment_status']   = 'Processing';
 
 		}
+
+		$order = GF_Order_Factory::create_from_feed( $feed, $form, $entry, $this->current_submission_data, $this );
+		gform_add_meta(
+			$entry['id'],
+			'gform_order',
+			( new GF_Save_Entry_Order_Exporter( $order ) )->export()
+		);
 
 		return $entry;
 	}
@@ -1064,7 +1208,6 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		// Updating subscription information.
 		if ( $subscription['is_success'] ) {
-
 			$entry = $this->start_subscription( $entry, $subscription );
 
 		} else {
@@ -1169,7 +1312,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$submission_feed = false;
 
 		// Only occurs if entry has already been processed and feed has been stored in entry meta.
-		if ( $entry['id'] ) {
+		if ( ! empty( $entry['id'] ) ) {
 			$feeds           = $this->get_feeds_by_entry( $entry['id'] );
 			$submission_feed = empty( $feeds ) ? false : $this->get_feed( $feeds[0] );
 		} elseif ( $form ) {
@@ -1210,9 +1353,14 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			return true;
 		}
 
+		global $gf_payment_gateway;
+		if ( is_array( $gf_payment_gateway ) && $this->get_slug() === rgar( $gf_payment_gateway, $entry_id ) ) {
+			return true;
+		}
+
 		$gateway = gform_get_meta( $entry_id, 'payment_gateway' );
 
-		return $gateway == $this->_slug;
+		return $gateway == $this->get_slug();
 	}
 
 	/**
@@ -1359,7 +1507,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$trial_amount = 0;
 		foreach ( $products['products'] as $field_id => $product ) {
 
-			$quantity      = $product['quantity'] ? $product['quantity'] : 1;
+			$quantity      = isset( $product['quantity'] ) ? (int) $product['quantity'] : 1;
 			$product_price = GFCommon::to_number( $product['price'], $entry['currency'] );
 
 			$options = array();
@@ -1441,7 +1589,6 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$currency = RGCurrency::get_currency( $entry['currency'] );
 		$decimals = rgar( $currency, 'decimals', 0 );
 		$amount   = GFCommon::round_number( $amount, $decimals );
-
 		return array(
 			'payment_amount' => $amount,
 			'setup_fee'      => $fee_amount,
@@ -1480,7 +1627,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	 * @return bool True if valid. False otherwise.
 	 */
 	public function is_callback_valid() {
-		if ( rgget( 'callback' ) != $this->_slug ) {
+		if ( rgget( 'callback' ) != $this->get_slug() ) {
 			return false;
 		}
 
@@ -1517,7 +1664,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		// Returns either false or an array of data about the callback request which payment add-on will then use
 		// to generically process the callback data
-		$this->log_debug( __METHOD__ . '(): Initializing callback processing for: ' . $this->_slug );
+		$this->log_debug( __METHOD__ . '(): Initializing callback processing for: ' . $this->get_slug() );
 
 		$callback_action = $this->callback();
 
@@ -1743,7 +1890,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		global $wpdb;
 
 		$wpdb->insert( "{$wpdb->prefix}gf_addon_payment_callback", array(
-			'addon_slug'   => $this->_slug,
+			'addon_slug'   => $this->get_slug(),
 			'callback_id'  => $callback_id,
 			'lead_id'      => $entry_id,
 			'date_created' => gmdate( 'Y-m-d H:i:s' )
@@ -1768,7 +1915,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	public function is_duplicate_callback( $callback_id ) {
 		global $wpdb;
 
-		$sql = $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}gf_addon_payment_callback WHERE addon_slug=%s AND callback_id=%s", $this->_slug, $callback_id );
+		$sql = $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}gf_addon_payment_callback WHERE addon_slug=%s AND callback_id=%s", $this->get_slug(), $callback_id );
 		if ( $wpdb->get_var( $sql ) ) {
 			return true;
 		}
@@ -1976,7 +2123,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		}
 
 		GFAPI::update_entry_property( $entry['id'], 'payment_status', $action['payment_status'] );
-		$this->add_note( $entry['id'], $action['note'] );
+		$this->add_note( $entry['id'], $action['note'], 'error' );
 		$this->post_payment_action( $entry, $action );
 
 		return true;
@@ -2013,7 +2160,8 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 	public function start_subscription( $entry, $subscription ) {
 		$this->log_debug( __METHOD__ . '(): Processing request.' );
-		if ( ! $this->has_subscription( $entry ) ) {
+		$has_active_subscription = $this->has_subscription( $entry ) && $entry['payment_status'] === 'Active';
+		if ( ! $has_active_subscription ) {
 			$entry['payment_status']   = 'Active';
 			$entry['payment_amount']   = $subscription['amount'];
 			$entry['payment_date']     = ! rgempty( 'subscription_start_date', $subscription ) ? $subscription['subscription_start_date'] : gmdate( 'Y-m-d H:i:s' );
@@ -2067,8 +2215,10 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			$action['payment_status'] = 'Active';
 		}
 
-		// Set payment status back to active if a previous payment attempt failed.
-		if ( strtolower( $entry['payment_status'] ) != 'active' ) {
+		if ( strtolower( $entry['payment_status'] ) === 'processing' ) {
+			$this->start_subscription( $entry, $action );
+		} elseif ( strtolower( $entry['payment_status'] ) != 'active' ) {
+			// Set payment status back to active if a previous payment attempt failed.
 			$entry['payment_status'] = 'Active';
 			GFAPI::update_entry_property( $entry['id'], 'payment_status', 'Active' );
 		}
@@ -2139,10 +2289,12 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		// keep 'gform_subscription_payment_failed' for backward compatability
 		/**
-		 * @deprecated Use gform_post_fail_subscription_payment now
+		 * @deprecated Use gform_post_fail_subscription_payment now.
+		 * @remove-in 3.0
 		 */
 		do_action( 'gform_subscription_payment_failed', $entry, $action['subscription_id'] );
 		if ( has_filter( 'gform_subscription_payment_failed' ) ) {
+			trigger_error( 'gform_subscription_payment_failed is deprecated and will be removed in version 3.0. Use gform_post_fail_subscription_payment.', E_USER_DEPRECATED );
 			$this->log_debug( __METHOD__ . '(): Executing functions hooked to gform_subscription_payment_failed.' );
 		}
 		/**
@@ -2196,7 +2348,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		}
 
 		GFAPI::update_entry_property( $entry['id'], 'payment_status', 'Cancelled' );
-		$this->add_note( $entry['id'], $note );
+		$this->add_note( $entry['id'], $note, 'error' );
 
 		// Include $subscriber_id as 3rd parameter for backwards compatibility
 		do_action( 'gform_subscription_canceled', $entry, $feed, $entry['transaction_id'] );
@@ -2304,7 +2456,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	// -------- Cron --------------------
 	public function setup_cron() {
 		// Setting up cron
-		$cron_name = "{$this->_slug}_cron";
+		$cron_name = "{$this->get_slug()}_cron";
 
 		add_action( $cron_name, array( $this, 'check_status' ) );
 
@@ -2360,6 +2512,20 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 
 	//--------- Feed Settings ----------------
+
+	/**
+	 * Returning an empty array because payment feed logic is evaluated before entry meta is saved.
+	 *
+	 * @since 2.9
+	 *
+	 * @param array $form       The form the feed is being created or edited for.
+	 * @param array $entry_meta An empty array or the entry meta fields to be assigned to the JavaScript entry_meta variable.
+	 *
+	 * @return array
+	 */
+	public function get_feed_settings_entry_meta( $form, $entry_meta = array() ) {
+		return array();
+	}
 
 	/**
 	 * Remove the add new button from the title if the form requires a credit card field.
@@ -2458,9 +2624,10 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 						'tooltip' => '<h6>' . esc_html__( 'Recurring Times', 'gravityforms' ) . '</h6>' . esc_html__( 'Select how many times the recurring payment should be made.  The default is to bill the customer until the subscription is canceled.', 'gravityforms' )
 					),
 					array(
-						'name'  => 'setupFee',
-						'label' => esc_html__( 'Setup Fee', 'gravityforms' ),
-						'type'  => 'setup_fee',
+						'name'   => 'setupFee',
+						'label'  => esc_html__( 'Setup Fee', 'gravityforms' ),
+						'type'   => 'setup_fee',
+						'hidden' => $this->get_setting( 'trial_enabled' ),
 					),
 					array(
 						'name'    => 'trial',
@@ -2589,9 +2756,9 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 					'label'    => esc_html__( 'Enabled', 'gravityforms' ),
 					'name'     => $field['name'] . '_enabled',
 					'value'    => '1',
-					'onchange' => "if(jQuery(this).prop('checked')){jQuery('#{$field['name']}_product').show('slow'); jQuery('#gaddon-setting-row-trial').hide('slow');} else {jQuery('#{$field['name']}_product').hide('slow'); jQuery('#gaddon-setting-row-trial').show('slow');}",
+					'onchange' => "if(jQuery(this).prop('checked')){jQuery('#{$field['name']}_product').prop('disabled', false); jQuery('#gaddon-setting-row-trial').hide();} else {jQuery('#{$field['name']}_product').prop('disabled', true); jQuery('#gaddon-setting-row-trial').show();}",
 				),
-			)
+			),
 		);
 
 		$html = $this->settings_checkbox( $enabled_field, false );
@@ -2601,10 +2768,10 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$is_enabled = $this->get_setting( "{$field['name']}_enabled" );
 
 		$product_field = array(
-			'name'    => $field['name'] . '_product',
-			'type'    => 'select',
-			'class'   => $is_enabled ? '' : 'hidden',
-			'choices' => $this->get_payment_choices( $form )
+			'name'     => $field['name'] . '_product',
+			'type'     => 'select',
+			'disabled' => $is_enabled ? '' : 'disabled',
+			'choices'  => $this->get_payment_choices( $form ),
 		);
 
 		$html .= '&nbsp' . $this->settings_select( $product_field, false );
@@ -2618,7 +2785,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 	public function set_trial_onchange( $field ) {
 
-		return "if(jQuery(this).prop('checked')){jQuery('#{$field['name']}_product').show('slow');if (jQuery('#{$field['name']}_product').val() == 'enter_amount'){jQuery('#{$field['name']}_amount').show();}} else {jQuery('#{$field['name']}_product').hide('slow');jQuery('#{$field['name']}_amount').hide();}";
+		return "if(jQuery(this).prop('checked')){jQuery('#{$field['name']}_product').show();if (jQuery('#{$field['name']}_product').val() == 'enter_amount'){jQuery('#{$field['name']}_amount').show();}} else {jQuery('#{$field['name']}_product').hide();jQuery('#{$field['name']}_amount').hide();}";
 
 	}
 
@@ -2641,6 +2808,8 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		$html = $this->settings_checkbox( $enabled_field, false );
 
+		$html .= '<div class="gform-settings-field__toggleable-inputs">';
+
 		//--- Select Product field ---
 		$form            = $this->get_current_form();
 		$payment_choices = array_merge( $this->get_payment_choices( $form ), array(
@@ -2658,7 +2827,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			'choices'  => $payment_choices,
 		);
 
-		$html .= '&nbsp' . $this->settings_select( $product_field, false );
+		$html .= $this->settings_select( $product_field, false );
 
 		//--- Trial Amount field ----
 		$amount_field = array(
@@ -2667,8 +2836,8 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			'class' => $this->get_setting( "{$field['name']}_enabled" ) && $this->get_setting( "{$field['name']}_product" ) == 'enter_amount' ? 'gform_currency' : 'hidden gform_currency',
 		);
 
-		$html .= '&nbsp;' . $this->settings_text( $amount_field, false );
-
+		$html .= $this->settings_text( $amount_field, false );
+		$html .= '</div>';
 
 		if ( $echo ) {
 			echo $html;
@@ -2786,49 +2955,37 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 	public function results_markup( $html, $data, $form, $fields ) {
 
-		$html = "<table width='100%' id='gaddon-results-summary'>
-                    <tr>
-                        <td class='gaddon-results-summary-label'>" . esc_html__( 'Today', 'gravityforms' ) . "</td>
-                        <td class='gaddon-results-summary-label'>" . esc_html__( 'Yesterday', 'gravityforms' ) . "</td>
-                        <td class='gaddon-results-summary-label'>" . esc_html__( 'Last 30 Days', 'gravityforms' ) . "</td>
-                        <td class='gaddon-results-summary-label'>" . esc_html__( 'Total', 'gravityforms' ) . "</td>
-                    </tr>
-                    <tr>
-                        <td class='gaddon-results-summary-data'>
-                            <div class='gaddon-results-summary-data-box'>
-                                <div class='gaddon-results-summary-primary'>{$data['summary']['today']['revenue']}</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['today']['subscriptions']} " . esc_html__( 'subscriptions', 'gravityforms' ) . "</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['today']['orders']} " . esc_html__( 'orders', 'gravityforms' ) . "</div>
-                            </div>
-                        </td>
-                        <td class='gaddon-results-summary-data'>
-                            <div class='gaddon-results-summary-data-box'>
-                                <div class='gaddon-results-summary-primary'>{$data['summary']['yesterday']['revenue']}</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['yesterday']['subscriptions']} " . esc_html__( 'subscriptions', 'gravityforms' ) . "</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['yesterday']['orders']} " . esc_html__( 'orders', 'gravityforms' ) . "</div>
-                            </div>
-                        </td>
+		$html = '<div class="gform-results wide">' ;
+		$boxes = array(
+			'today'     => esc_html__( 'Today', 'gravityforms' ),
+			'yesterday' => esc_html__( 'Yesterday', 'gravityforms' ),
+			'last30'    => esc_html__( 'Last 30 Days', 'gravityforms' ),
+			'total'     => esc_html__( 'Total', 'gravityforms' )
+		);
 
-                        <td class='gaddon-results-summary-data'>
-                            <div class='gaddon-results-summary-data-box'>
-                                <div class='gaddon-results-summary-primary'>{$data['summary']['last30']['revenue']}</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['last30']['subscriptions']} " . esc_html__( 'subscriptions', 'gravityforms' ) . "</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['last30']['orders']} " . esc_html__( 'orders', 'gravityforms' ) . "</div>
-                            </div>
-                        </td>
-                        <td class='gaddon-results-summary-data'>
-                            <div class='gaddon-results-summary-data-box'>
-                                <div class='gaddon-results-summary-primary'>{$data['summary']['total']['revenue']}</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['total']['subscriptions']} " . esc_html__( 'subscriptions', 'gravityforms' ) . "</div>
-                                <div class='gaddon-results-summary-secondary'>{$data['summary']['total']['orders']} " . esc_html__( 'orders', 'gravityforms' ) . '</div>
-                            </div>
-                        </td>
+			foreach ( $boxes as $key => $label ){
+				$html .= '
+				<div class="gform-result-box">
+					<div class="gform-result-box__primary">
+						<div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M8 7V3V7ZM16 7V3V7ZM7 11H17H7ZM5 21H19C19.5304 21 20.0391 20.7893 20.4142 20.4142C20.7893 20.0391 21 19.5304 21 19V7C21 6.46957 20.7893 5.96086 20.4142 5.58579C20.0391 5.21071 19.5304 5 19 5H5C4.46957 5 3.96086 5.21071 3.58579 5.58579C3.21071 5.96086 3 6.46957 3 7V19C3 19.5304 3.21071 20.0391 3.58579 20.4142C3.96086 20.7893 4.46957 21 5 21Z" stroke="#F15A2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg></div>
+						<div class="box-data">
+							<div class="box-label">'.$label.'</div>
+							<div class="box-number">'.$data['summary'][$key]['revenue'].'</div>
+						</div>
+					</div>
+					<div class="gform-result-box__secondary">
+						<div class="box-orders">'.$data['summary'][$key]['orders'].' '. esc_html__( 'orders', 'gravityforms' ) .'</div>
+						<div class="box-subscriptions">'.$data['summary'][$key]['subscriptions'].' '.esc_html__( 'subscriptions', 'gravityforms' ) .'</div>
+					</div>
+				</div>';
+			}
+		$html .= '</div>';
 
-                    </tr>
-                 </table>';
 
 		if ( $data['row_count'] == '0' ) {
-			$html .= "<div class='updated' style='padding:20px; margin-top:40px;'>" . esc_html__( "There aren't any transactions that match your criteria.", 'gravityforms' ) . '</div>';
+			$html .= "<div class='alert info'>" . esc_html__( "There aren't any transactions that match your criteria.", 'gravityforms' ) . '</div>';
 		} else {
 			$chart_data = $this->get_chart_data( $data );
 			$html .= $this->get_sales_chart( $chart_data );
@@ -2876,7 +3033,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$chart_options = array(
 			'series' => array(
 				'0' => array(
-					'color'           => '#66CCFF',
+					'color'           => '#F15A29',
 					'visibleInLegend' => 'false',
 				),
 			),
@@ -2935,6 +3092,13 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 	public function get_sales_data( $form_id, $search, $state ) {
 		global $wpdb;
 
+		$group          = rgar( $search, 'group' ) ? $search['group'] : rgpost( 'group' );
+		$payment_method = rgar( $search, 'payment_method' ) ? $search['payment_method'] : rgpost( 'payment_method' );
+		$current_page   = rgar( $search, 'paged' ) ? absint( $search['paged'] ) : absint( rgpost( 'paged' ) );
+		if ( empty( $current_page ) ) {
+			$current_page = 1;
+		}
+
 		$data = array(
 			'chart' => array(
 				'hAxis' => array(),
@@ -2958,7 +3122,8 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$tz_offset = $this->get_mysql_tz_offset();
 
 		$page_size = 10;
-		$group     = strtolower( rgpost( 'group' ) );
+
+		$group = strtolower( $group );
 		switch ( $group ) {
 
 			case 'weekly' :
@@ -2967,7 +3132,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$select_inner2 = "yearweek(CONVERT_TZ(t.date_created, '+00:00', '" . $tz_offset . "')) week";
 				$group_by      = 'week';
 				$order_by      = 'week desc';
-				$join          = 'lead.week = transaction.week';
+				$join          = 'leads.week = transaction.week';
 
 				$data['chart']['hAxis']['column'] = 'week';
 				$data['chart']['hAxis']['label']  = esc_html__( 'Week', 'gravityforms' );
@@ -2976,6 +3141,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$current_period_format = 'o - W';
 				$decrement_period = 'week';
 				$result_period = 'week';
+				$current_date = gmdate( 'Y-m-d' );
 				break;
 
 			case 'monthly' :
@@ -2984,7 +3150,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$select_inner2 = "date_format(CONVERT_TZ(t.date_created, '+00:00', '" . $tz_offset . "'), '%%Y-%%m-01') inner_month";
 				$group_by      = 'inner_month';
 				$order_by      = 'year desc, (month+0) desc';
-				$join          = 'lead.inner_month = transaction.inner_month';
+				$join          = 'leads.inner_month = transaction.inner_month';
 
 				$data['chart']['hAxis']['column'] = 'month_year';
 				$data['chart']['hAxis']['label']  = esc_html__( 'Month', 'gravityforms' );
@@ -2993,6 +3159,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$current_period_format = 'n'; // Numeric representation of a month, without leading zeros
 				$decrement_period = 'month';
 				$result_period = 'month';
+				$current_date = gmdate( 'Y-m-01' ); // First day of the month ( to prevent issues with strtotime() when going to previous month )
 				break;
 
 			default : //daily
@@ -3001,7 +3168,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$select_inner2 = "date(CONVERT_TZ(t.date_created, '+00:00', '" . $tz_offset . "')) as date";
 				$group_by      = 'date';
 				$order_by      = 'date desc';
-				$join          = 'lead.date = transaction.date';
+				$join          = 'leads.date = transaction.date';
 
 				$data['chart']['hAxis']['column'] = 'month_day';
 				$data['chart']['hAxis']['label']  = esc_html__( 'Day', 'gravityforms' );
@@ -3013,6 +3180,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				$current_period_format = 'Y-m-d';
 				$decrement_period = 'day';
 				$result_period = 'date';
+				$current_date = gmdate( 'Y-m-d' );
 				break;
 		}
 
@@ -3029,19 +3197,16 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			$transaction_date_filter .= $wpdb->prepare( " AND timestampdiff(SECOND, %s, CONVERT_TZ(t.date_created, '+00:00', '" . $tz_offset . "')) <= 0", $search['end_date'] );
 		}
 
-		$payment_method        = rgpost( 'payment_method' );
 		$payment_method_filter = '';
 		if ( ! empty( $payment_method ) ) {
 			$payment_method_filter = $wpdb->prepare( ' AND l.payment_method=%s', $payment_method );
 		}
 
-		$current_page = rgempty( 'paged' ) ? 1 : absint( rgpost( 'paged' ) );
-		$offset       = $page_size * ( $current_page - 1 );
-
+		$offset           = $page_size * ( $current_page - 1 );
 		$entry_table_name = self::get_entry_table_name();
 
 		$sql = $wpdb->prepare(
-			" SELECT SQL_CALC_FOUND_ROWS {$select}, lead.orders, lead.subscriptions, transaction.refunds, transaction.recurring_payments, transaction.revenue
+			" SELECT SQL_CALC_FOUND_ROWS {$select}, leads.orders, leads.subscriptions, transaction.refunds, transaction.recurring_payments, transaction.revenue
                                 FROM (
                                   SELECT  {$select_inner1},
                                           sum( if(transaction_type = 1,1,0) ) as orders,
@@ -3049,7 +3214,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
                                   FROM {$entry_table_name} l
                                   WHERE l.status='active' AND form_id=%d {$lead_date_filter} {$payment_method_filter}
                                   GROUP BY {$group_by}
-                                ) AS lead
+                                ) AS leads
 
                                 RIGHT OUTER JOIN(
                                   SELECT  {$select_inner2},
@@ -3071,8 +3236,6 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
-		$display_results = array();
-		$current_period = date( $current_period_format );
 
 		if ( isset( $search['start_date'] ) || isset( $search['end_date'] ) ) {
 			foreach ( $results as &$result ) {
@@ -3092,7 +3255,9 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			$data['rows'] = $results;
 
 		} else {
-			$current_date = date( 'Y-m-d' );
+			$display_results = array();
+			$current_period = gmdate( $current_period_format );
+
 			$current_period_timestamp = strtotime( $current_date );
 			for ( $i = 1;  $i <= 10 ; $i++ ) {
 				$result_for_date = false;
@@ -3106,11 +3271,11 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 				if ( ! $result_for_date ) {
 					$display_result = array(
 						$result_period      => $current_period,
-						'month'              => date( 'm', $current_period_timestamp ),
-						'day'                => date( 'd', $current_period_timestamp ),
-						'day_of_week'        => date( 'l', $current_period_timestamp ),
+						'month'              => gmdate( 'm', $current_period_timestamp ),
+						'day'                => gmdate( 'd', $current_period_timestamp ),
+						'day_of_week'        => gmdate( 'l', $current_period_timestamp ),
 						'month_day'          => '',
-						'year' => date( 'Y', $current_period_timestamp ),
+						'year' => gmdate( 'Y', $current_period_timestamp ),
 						'month_abbrev' => '',
 						'orders'             => '0',
 						'subscriptions'      => '0',
@@ -3133,7 +3298,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 				$current_period_timestamp = strtotime( $decremented_date );
 
-				$current_period = date( $current_period_format, $current_period_timestamp );
+				$current_period = gmdate( $current_period_format, $current_period_timestamp );
 
 			}
 			$data['row_count'] = $page_size;
@@ -3152,7 +3317,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			esc_html__( 'Feb', 'gravityforms' ),
 			esc_html__( 'Mar', 'gravityforms' ),
 			esc_html__( 'Apr', 'gravityforms' ),
-			esc_html__( 'May', 'gravityforms' ),
+			esc_html_x( 'May', 'Abbreviated month name', 'gravityforms' ),
 			esc_html__( 'Jun', 'gravityforms' ),
 			esc_html__( 'Jul', 'gravityforms' ),
 			esc_html__( 'Aug', 'gravityforms' ),
@@ -3185,7 +3350,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$summary = $wpdb->get_results(
 			$wpdb->prepare(
 				"
-                    SELECT transaction.date, lead.orders, lead.subscriptions, transaction.revenue
+                    SELECT transaction.date, leads.orders, leads.subscriptions, transaction.revenue
                     FROM (
                        SELECT  date( CONVERT_TZ(payment_date, '+00:00', '" . $tz_offset . "') ) as date,
                                sum( if(transaction_type = 1,1,0) ) as orders,
@@ -3193,7 +3358,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
                        FROM {$entry_table_name}
                        WHERE status='active' AND form_id = %d AND datediff(now(), CONVERT_TZ(payment_date, '+00:00', '" . $tz_offset . "') ) <= 30
                        GROUP BY date
-                     ) AS lead
+                     ) AS leads
 
                      RIGHT OUTER JOIN(
                        SELECT  date( CONVERT_TZ(t.date_created, '+00:00', '" . $tz_offset . "') ) as date,
@@ -3202,7 +3367,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
                          INNER JOIN {$entry_table_name} l ON l.id = t.lead_id
                        WHERE l.form_id=%d AND l.status='active'
                        GROUP BY date
-                     ) AS transaction on lead.date = transaction.date
+                     ) AS transaction on leads.date = transaction.date
                     ORDER BY date desc", $form_id, $form_id
 			), ARRAY_A
 		);
@@ -3269,9 +3434,12 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 	public function results_filter_ui( $filter_ui, $form_id, $page_title, $gf_page, $gf_view ) {
 
-		if ( $gf_view == "gf_results_{$this->_slug}" ) {
-			unset( $filter_ui['fields'] );
+		// Don't use this filter if we aren't on the results page for this add-on
+		if ( $gf_view !== "gf_results_{$this->get_slug()}" ) {
+			return $filter_ui;
 		}
+
+		unset( $filter_ui['fields'] );
 
 		$view_markup = "<div>
                     <select id='gaddon-sales-group' name='group'>
@@ -3289,29 +3457,32 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		);
 
 		$payment_methods = $this->get_payment_methods( $form_id );
-
-		$payment_method_markup = "
+		if ( ! empty( $payment_methods ) ) {
+			$payment_method_markup = "
                 <div>
                     <select id='gaddon-sales-group' name='payment_method'>
                         <option value=''>" . esc_html__( _x( 'Any', 'regarding a payment method', 'gravityforms' ) ) . '</option>';
 
-		foreach ( $payment_methods as $payment_method ) {
-			$payment_method_markup .= "<option value='" . esc_attr( $payment_method ) . "' " . selected( $payment_method, rgget( 'payment_method' ), false ) . '>' . $payment_method . '</option>';
-		}
-		$payment_method_markup .= '
+			foreach ( $payment_methods as $payment_method ) {
+				$payment_method_markup .= "<option value='" . esc_attr( $payment_method ) . "' " . selected( $payment_method, rgget( 'payment_method' ), false ) . '>' . $payment_method . '</option>';
+			}
+			$payment_method_markup .= '
                     </select>
                  </div>';
 
-		$payment_method_filter = array(
-			'payment_method' => array(
-				'label'   => esc_html__( 'Payment Method', 'gravityforms' ),
-				'tooltip' => '',
-				'markup'  => $payment_method_markup
-			)
-		);
+			$payment_method_filter = array(
+				'payment_method' => array(
+					'label'   => esc_html__( 'Payment Method', 'gravityforms' ),
+					'tooltip' => '',
+					'markup'  => $payment_method_markup,
+				),
+			);
 
+			$filter_ui = array_merge( $payment_method_filter, $filter_ui );
 
-		$filter_ui = array_merge( $view_filter, $payment_method_filter, $filter_ui );
+		}
+
+		$filter_ui = array_merge( $view_filter, $filter_ui );
 
 		return $filter_ui;
 
@@ -3397,18 +3568,18 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$sql = $wpdb->prepare(
 			"DELETE FROM {$wpdb->prefix}gf_addon_payment_transaction
                                 WHERE lead_id IN
-                                   (SELECT lead_id FROM {$entry_meta_table_name} WHERE meta_key='payment_gateway' AND meta_value=%s)", $this->_slug
+                                   (SELECT lead_id FROM {$entry_meta_table_name} WHERE meta_key='payment_gateway' AND meta_value=%s)", $this->get_slug()
 		);
 		$wpdb->query( $sql );
 
 		if ( $this->_supports_callbacks ) {
 			// deleting callback log
-			$sql = $wpdb->prepare( "DELETE FROM {$wpdb->prefix}gf_addon_payment_callback WHERE addon_slug=%s", $this->_slug );
+			$sql = $wpdb->prepare( "DELETE FROM {$wpdb->prefix}gf_addon_payment_callback WHERE addon_slug=%s", $this->get_slug() );
 			$wpdb->query( $sql );
 		}
 
 		//clear cron
-		wp_clear_scheduled_hook( $this->_slug . '_cron' );
+		wp_clear_scheduled_hook( $this->get_slug() . '_cron' );
 
 		parent::uninstall();
 	}
@@ -3428,7 +3599,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 					'subscriptionError'         => __( 'The subscription could not be canceled. Please try again later.', 'gravityforms' )
 				),
 				'enqueue' => array(
-					array( 'admin_page' => array( 'form_settings' ), 'tab' => $this->_slug ),
+					array( 'admin_page' => array( 'form_settings' ), 'tab' => $this->get_slug() ),
 					array( 'admin_page' => array( 'entry_view' ) ),
 				)
 			),
@@ -3494,7 +3665,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			return $content;
 		}
 
-		$slug = str_replace( 'gravityforms', '', $this->_slug );
+		$slug = str_replace( 'gravityforms', '', $this->get_slug() );
 		$content .= '<input type=\'hidden\' name=\'' . $slug . '_response\' id=\'gf_' . $slug . '_response\' value=\'' . rgpost( $slug . '_response' ) . '\' />';
 
 		return $content;
@@ -3559,7 +3730,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 			'formId'        => rgar( $form, 'id' ),
 			'hasPages'      => GFCommon::has_pages( $form ),
 			'pageCount'     => GFFormDisplay::get_max_page_number( $form ),
-			'responseField' => '#gf_' . str_replace( 'gravityforms', '', $this->_slug ) . '_response'
+			'responseField' => '#gf_' . str_replace( 'gravityforms', '', $this->get_slug() ) . '_response'
 		);
 
 		/* Get needed fields. */
@@ -3688,13 +3859,13 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 
 		// adding cancel subscription button and script to entry info section
 		$cancelsub_button = '';
-		if ( $entry['transaction_type'] == '2' && $entry['payment_status'] <> 'Cancelled' && $this->is_payment_gateway( $entry['id'] ) ) {
+		if ( $entry['transaction_type'] == '2' && $entry['payment_status'] <> 'Cancelled' && $entry['payment_status'] <> 'Failed' && $this->is_payment_gateway( $entry['id'] ) ) {
 			?>
 			<input id="cancelsub" type="button" name="cancelsub"
 			       value="<?php esc_html_e( 'Cancel Subscription', 'gravityforms' ) ?>" class="button"
 			       onclick="cancel_subscription(<?php echo absint( $entry['id'] ); ?>);"
 			       onkeypress="cancel_subscription(<?php echo absint( $entry['id'] ); ?>);"/>
-			<img src="<?php echo GFCommon::get_base_url() ?>/images/spinner.gif" id="subscription_cancel_spinner"
+			<img src="<?php echo GFCommon::get_base_url() ?>/images/spinner.svg" id="subscription_cancel_spinner"
 			     style="display: none;"/>
 
 			<script type="text/javascript">
@@ -3732,7 +3903,7 @@ abstract class GFPaymentAddOn extends GFFeedAddOn {
 		$feed  = $this->get_payment_feed( $entry, $form );
 
 		// If user is not authorized, exit.
-		if ( $feed && $this->_slug === $feed['addon_slug'] && ! GFCommon::current_user_can_any( $this->_capabilities_settings_page ) ) {
+		if ( $feed && $this->get_slug() === $feed['addon_slug'] && ! GFCommon::current_user_can_any( $this->_capabilities_settings_page ) ) {
 			wp_send_json_error( array( 'message' => esc_html__( 'Access denied.', 'gravityforms' ) ) );
 		}
 
@@ -3828,6 +3999,17 @@ class GFPaymentStatsTable extends WP_List_Table {
 				'screen'   => 'gaddon_sales',
 			)
 		);
+	}
+
+	/**
+	 * Get a list of CSS classes for the WP_List_Table table tag.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string[] Array of CSS classes for the table tag.
+	 */
+	protected function get_table_classes() {
+		return array( $this->_args['plural'] );
 	}
 
 	function prepare_items() {

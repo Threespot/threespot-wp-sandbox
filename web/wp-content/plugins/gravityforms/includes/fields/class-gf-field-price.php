@@ -9,6 +9,19 @@ class GF_Field_Price extends GF_Field {
 
 	public $type = 'price';
 
+	/**
+	 * Returns the field's form editor icon.
+	 *
+	 * This could be an icon url or a gform-icon class.
+	 *
+	 * @since 2.8
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_icon() {
+		return 'gform-icon--product';
+	}
+
 	function get_form_editor_field_settings() {
 		return array(
 			'rules_setting',
@@ -54,11 +67,12 @@ class GF_Field_Price extends GF_Field {
 		$disabled_text      = $is_form_editor ? 'disabled="disabled"' : '';
 		$required_attribute = $this->isRequired ? 'aria-required="true"' : '';
 		$invalid_attribute  = $this->failed_validation ? 'aria-invalid="true"' : 'aria-invalid="false"';
+		$describedby_attribute = $this->get_aria_describedby();
 
 		$tabindex = $this->get_tabindex();
 
 		return "<div class='ginput_container ginput_container_product_price'>
-					<input name='input_{$id}' id='{$field_id}' type='text' value='{$value}' class='{$class} ginput_amount' {$tabindex} {$placeholder_attribute} {$required_attribute} {$invalid_attribute} {$disabled_text}/>
+					<input name='input_{$id}' id='{$field_id}' type='text' value='{$value}' class='{$class} ginput_amount' {$tabindex} {$placeholder_attribute} {$required_attribute} {$invalid_attribute} {$describedby_attribute} {$disabled_text}/>
 				</div>";
 
 

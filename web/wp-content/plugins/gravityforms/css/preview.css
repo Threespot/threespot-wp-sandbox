@@ -7,7 +7,7 @@ http://www.gravityforms.com
 updated: November 11, 2016 9:28 AM GMT-5
 
 Gravity Forms is a Rocketgenius project
-copyright 2008-2016 Rocketgenius Inc.
+copyright 2016 Rocketgenius Inc.
 http: //www.rocketgenius.com
 this may not be redistributed without the
 express written permission of the author.
@@ -34,16 +34,16 @@ body {
 	font-family: "lucida sans", "lucida grande", lucida , arial, sans-serif;
 	font-size: 16px;
 	padding: 0 0 20px 0;
-	background-color: #F1F1F1;
+	background-color: #f1f1f1;
 }
 
 div#preview_hdr {
 	margin: 0;
-	color: #FFF;
+	color: #fff;
 	font-family: "Open Sans",sans-serif;
 	padding: 10px 20px 8px 0;
 	font-size: 16px;
-	background-color: #0074A2;
+	background-color: #0074a2;
 	display:block !important;
 }
 
@@ -66,7 +66,7 @@ div#preview_hdr span.toggle_helpers {
 	text-align: right;
 	margin-top: 2px;
 	font-family: "lucida sans", "lucida grande", lucida , sans-serif;
-	color: #FFF;
+	color: #d;
 	font-weight: normal;
 	letter-spacing: normal;
 	font-size: 12px;
@@ -121,18 +121,22 @@ div#preview_note i.hidenotice {
 
 div#preview_form_container {
 	padding: 20px 20px 32px 20px;
-	background-color: #FFF;
-	border: 1px solid #FFF;
-	border-bottom: 4px solid #D3D3D3;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-bottom: 4px solid #d3d3d3;
 }
 
 div#preview_form_container.showgrid {
-	border: 1px solid #E6E6E6;
-	border-bottom: 4px solid #D3D3D3;
+	border: 1px solid #e6e6e6;
+	border-bottom: 4px solid #d3d3d3;
 	background-image:url(../images/preview_grid.gif);
 	background-position: 20px 0;
 	position: relative;
 	box-sizing: border-box;
+}
+
+div#preview_form_container .gfield input[type="checkbox"] {
+	height: auto;
 }
 
 @media only screen and (min-width: 641px)  {
@@ -260,36 +264,9 @@ div#preview_form_container.showgrid {
 	margin: 16px auto;
 }
 
-.gform_footer input.button,
-.gform_footer input[type=button],
-.gform_page_footer input.button,
-.gform_page_footer input[type=button] {
-	border: none;
-    font-size: 1em;
-    text-decoration: none;
-    color: #FFF;
-    background-color: #3498db;
-    box-shadow: inset 0px 1px 0px #73b0d8, 0px 4px 0px #2980b9;
-    text-shadow: 0px 1px 1px rgba(255,255,255,0.3);
-    position: relative;
-    padding: 12px 24px;
-    border-radius: 4px;
-    -webkit-appearance: none !important;
-}
-
-.gform_wrapper.gf_browser_ie .gform_footer input.button,
-.gform_wrapper.gf_browser_ie .gform_footer input[type=button],
-.gform_wrapper.gf_browser_ie .gform_page_footer input.button,
-.gform_wrapper.gf_browser_ie .gform_page_footer input[type=button] {
-	padding: 12px 24px 12px 24px !important;
-}
-
-.gform_footer input.button:hover,
-.gform_footer input[type=button]:hover,
-.gform_page_footer input.button:hover,
-.gform_page_footer input[type=button]:hover {
-    color: #FFF;
-    background-color: #4ba7e5;
+.gform_legacy_markup_wrapper .gform_footer input.button:disabled {
+	height: 0;
+	padding: 0;
 }
 
 div#helper_legend_container,

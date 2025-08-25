@@ -3,12 +3,14 @@
 Plugin Name: SearchWP
 Plugin URI: https://searchwp.com/
 Description: The best WordPress search you can find
-Version: 4.1.0
+Version: 4.5.1
 Author: SearchWP
 Author URI: https://searchwp.com/
+Requires at least: 5.3
+Tested up to: 6.4
 Text Domain: searchwp
 
-Copyright 2013-2021 SearchWP
+Copyright 2013-2025 SearchWP, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,13 +22,12 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/licenses/>.
+For more information please see <http://www.gnu.org/licenses/>.
 */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SEARCHWP_VERSION', '4.1.0' );
+define( 'SEARCHWP_VERSION', '4.5.1' );
 define( 'SEARCHWP_PREFIX', 'searchwp_' );
 define( 'SEARCHWP_SEPARATOR', '.' );
 define( 'SEARCHWP_PLUGIN_DIR', dirname( __FILE__ ) );
@@ -68,11 +69,9 @@ if ( ! function_exists( 'searchwp_plugin_activate' ) ) {
 	 * @return void
 	 */
 	function searchwp_plugin_activate( $network_wide = false ) {
-		global $wpdb;
-
 		// Minimum WordPress version requirement.
 		$wp_version = get_bloginfo( 'version' );
-		if ( version_compare( $wp_version, '5.2', '<' ) ) {
+		if ( version_compare( $wp_version, '5.3', '<' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/plugin.php';
 			deactivate_plugins( __FILE__ );
 			wp_die( esc_html( __( 'SearchWP requires WordPress 5.3 or higher and as a result has been deactivated. Please upgrade WordPress before activating this plugin.', 'searchwp' ) ) . ' <a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">WordPress Admin</a>' );
@@ -96,8 +95,17 @@ if ( ! function_exists( 'searchwp_plugin_activate' ) ) {
 		}
 
 		// Create index database tables.
-		new \SearchWP\Index\Controller();
+		$index = new \SearchWP\Index\Controller();
+		foreach ( $index->get_tables() as $table ) {
+			if ( ! $table->exists() ) {
+				$table->install();
+			}
+		}
 
+		// Add baseline for cron health check.
+		update_site_option( SEARCHWP_PREFIX . 'last_health_check', current_time( 'timestamp' ) );
+
+		// Flag install.
 		if ( is_multisite() && $network_wide ) {
 			wp_schedule_single_event( time(), SEARCHWP_PREFIX . 'network_install' );
 		} else if ( ! is_multisite() || ( is_multisite() && ! $network_wide ) ) {
@@ -114,6 +122,31 @@ register_activation_hook( __FILE__, 'searchwp_plugin_activate' );
 // Kickoff!
 require_once SEARCHWP_PLUGIN_DIR . '/lib/vendor/scoper-autoload.php';
 require_once SEARCHWP_PLUGIN_DIR . '/includes/SearchWP.php';
-require_once SEARCHWP_PLUGIN_DIR . '/lib/class.swp-query.php';
+
+/**
+ * Fires after SearchWP classes were autoloaded by Composer but before any code is run.
+ * This hook should be used to run Composer autoload for SearchWP extensions.
+ *
+ * @since 4.3.10
+ */
+do_action( 'searchwp\composer\autoload' );
+
+/**
+ * Returns an instance of the classes' container.
+ *
+ * @since 4.2.9
+ *
+ * @return \SearchWP\Support\Container
+ */
+function searchwp() {
+
+	static $instance;
+
+	if ( ! ( $instance instanceof \SearchWP\Support\Container ) ) {
+		$instance = new \SearchWP\Support\Container();
+	}
+
+	return $instance;
+}
 
 new SearchWP();

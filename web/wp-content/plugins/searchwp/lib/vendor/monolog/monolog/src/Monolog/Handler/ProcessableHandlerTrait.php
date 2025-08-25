@@ -12,28 +12,31 @@ declare (strict_types=1);
 namespace SearchWP\Dependencies\Monolog\Handler;
 
 use SearchWP\Dependencies\Monolog\ResettableInterface;
+use SearchWP\Dependencies\Monolog\Processor\ProcessorInterface;
 /**
  * Helper trait for implementing ProcessableInterface
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
+ *
+ * @phpstan-import-type Record from \Monolog\Logger
  */
 trait ProcessableHandlerTrait
 {
     /**
      * @var callable[]
+     * @phpstan-var array<ProcessorInterface|callable(Record): Record>
      */
     protected $processors = [];
     /**
-     * {@inheritdoc}
-     * @suppress PhanTypeMismatchReturn
+     * {@inheritDoc}
      */
-    public function pushProcessor(callable $callback) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function pushProcessor(callable $callback) : HandlerInterface
     {
         \array_unshift($this->processors, $callback);
         return $this;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function popProcessor() : callable
     {
@@ -44,6 +47,9 @@ trait ProcessableHandlerTrait
     }
     /**
      * Processes a record.
+     *
+     * @phpstan-param  Record $record
+     * @phpstan-return Record
      */
     protected function processRecord(array $record) : array
     {
@@ -55,7 +61,7 @@ trait ProcessableHandlerTrait
     protected function resetProcessors() : void
     {
         foreach ($this->processors as $processor) {
-            if ($processor instanceof \SearchWP\Dependencies\Monolog\ResettableInterface) {
+            if ($processor instanceof ResettableInterface) {
                 $processor->reset();
             }
         }

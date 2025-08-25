@@ -14,24 +14,25 @@ namespace SearchWP\Dependencies\Monolog\Handler;
 use SearchWP\Dependencies\Monolog\Formatter\LineFormatter;
 use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
 use SearchWP\Dependencies\Monolog\Logger;
+use SearchWP\Dependencies\Monolog\Utils;
 /**
  * Stores to PHP error_log() handler.
  *
  * @author Elan Ruusamäe <glen@delfi.ee>
  */
-class ErrorLogHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class ErrorLogHandler extends AbstractProcessingHandler
 {
     public const OPERATING_SYSTEM = 0;
     public const SAPI = 4;
+    /** @var int */
     protected $messageType;
+    /** @var bool */
     protected $expandNewlines;
     /**
-     * @param int        $messageType    Says where the error should go.
-     * @param int|string $level          The minimum logging level at which this handler will be triggered
-     * @param bool       $bubble         Whether the messages that are handled can bubble up the stack or not
-     * @param bool       $expandNewlines If set to true, newlines in the message will be expanded to be take multiple log entries
+     * @param int  $messageType    Says where the error should go.
+     * @param bool $expandNewlines If set to true, newlines in the message will be expanded to be take multiple log entries
      */
-    public function __construct(int $messageType = self::OPERATING_SYSTEM, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true, bool $expandNewlines = \false)
+    public function __construct(int $messageType = self::OPERATING_SYSTEM, $level = Logger::DEBUG, bool $bubble = \true, bool $expandNewlines = \false)
     {
         parent::__construct($level, $bubble);
         if (\false === \in_array($messageType, self::getAvailableTypes(), \true)) {
@@ -42,7 +43,7 @@ class ErrorLogHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
         $this->expandNewlines = $expandNewlines;
     }
     /**
-     * @return array With all available types
+     * @return int[] With all available types
      */
     public static function getAvailableTypes() : array
     {
@@ -51,12 +52,12 @@ class ErrorLogHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\LineFormatter('[%datetime%] %channel%.%level_name%: %message% %context% %extra%');
+        return new LineFormatter('[%datetime%] %channel%.%level_name%: %message% %context% %extra%');
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     protected function write(array $record) : void
     {
@@ -65,6 +66,10 @@ class ErrorLogHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPro
             return;
         }
         $lines = \preg_split('{[\\r\\n]+}', (string) $record['formatted']);
+        if ($lines === \false) {
+            $pcreErrorCode = \preg_last_error();
+            throw new \RuntimeException('Failed to preg_split formatted string: ' . $pcreErrorCode . ' / ' . Utils::pcreLastErrorMessage($pcreErrorCode));
+        }
         foreach ($lines as $line) {
             \error_log($line, $this->messageType);
         }

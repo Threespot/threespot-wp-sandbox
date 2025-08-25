@@ -38,7 +38,7 @@ class CLI {
 	 * ## OPTIONS
 	 *
 	 * [--site=<all|ids>]
-	 * : Whether to rebuild the index before indexing.
+	 * : Which site(s) to consider, comma separated IDs or `all`.
 	 *
 	 * [--rebuild]
 	 * : Whether to rebuild the index before indexing.
@@ -52,104 +52,115 @@ class CLI {
 
 		$arguments = wp_parse_args( $assoc_args, [
 			'rebuild' => false,
+			'site'    => 'all',
 		] );
 
+		$all_sites = function_exists( 'get_sites' ) ? get_sites( [ 'fields' => 'ids' ] ) : get_current_blog_id();
+
+		// Process the site id argument.
 		if ( is_numeric( $arguments['site'] ) ) {
-			$arguments['site'] = [ absint( $arguments['site'] ) ];
-		} else if ( false !== strpos( $arguments['site'], ',' ) ) {
-			$arguments['site'] = array_filter( array_unique( array_map( function( $site ) {
+			// Single numeric site id.
+			$arguments['site'] = absint( $arguments['site'] );
+			$arguments['site'] = in_array( $arguments['site'], (array) $all_sites, true ) ? $arguments['site'] : false;
+		} elseif ( false !== strpos( $arguments['site'], ',' ) ) {
+			// Comma-separated list of site ids.
+			$arguments['site'] = array_filter( array_unique( array_map( function ( $site ) {
 				return is_numeric( $site ) ? absint( $site ) : false;
 			}, explode( ',', $arguments['site'] ) ) ) );
-		} else {
-			$arguments['site'] = 'all';
+			$arguments['site'] = array_intersect( $arguments['site'], (array) $all_sites );
+			$arguments['site'] = ! empty( $arguments['site'] ) ? $arguments['site'] : false;
+		} elseif ( $arguments['site'] !== 'all' ) {
+			// Unexpected input format.
+			$arguments['site'] = false;
 		}
 
-		$index   = \SearchWP::$index;
-		$indexer = \SearchWP::$indexer;
-
-		// Prevent the indexer from running because this supercedes it.
-		$indexer->pause();
-		$indexer->_destroy_queue();
-
-		/**
-		 * Rebuild the index?
-		 */
-		if ( ! empty( $arguments['rebuild'] ) && 'all' === $arguments['site'] ) {
-			\WP_CLI::line( 'Dropping index' );
-			$index->truncate_tables();
-		} else if ( is_array( $arguments['site'] ) ) {
-			foreach( $arguments['site'] as $site_id ) {
-				\WP_CLI::line( 'Dropping index for site ' . $site_id );
-				$index->drop_site( $site_id );
-			}
+		// Bail if the sites with the provided ids don't exist.
+		if ( $arguments['site'] === false ) {
+			\WP_CLI::error( 'Incorrect site ID(s).' );
 		}
 
-		$entries = [];
+		// Process all sites if 'all' or no site id is specified.
+		if ( $arguments['site'] === 'all' ) {
+			$arguments['site'] = $all_sites;
+		}
 
-		if ( is_multisite() ) {
-			foreach( get_sites( [ 'fields' => 'ids' ] ) as $site_id ) {
-				if ( is_array( $arguments['site'] ) && ! in_array( $site_id, $arguments['site'] ) ) {
-					\WP_CLI::line( 'Skipping site ' . $site_id );
-					continue;
+		// Make sure we avoid unnecessary loops in the next block.
+		if ( is_array( $arguments['site'] ) && count( $arguments['site'] ) === 1 ) {
+			$arguments['site'] = reset( $arguments['site'] );
+		}
+
+		// If we're working with multiple sites, iterate over each with separate, individual site commands.
+		// We need to do this because we need to ensure that plugins are loaded on subsites.
+		if ( is_array( $arguments['site'] ) ) {
+			foreach ( $arguments['site'] as $site_id ) {
+				$subsite_url = get_site_url( $site_id );
+				$command     = "searchwp index --site={$site_id} --url={$subsite_url}";
+
+				if ( ! empty( $arguments['rebuild'] ) ) {
+					$command .= ' --rebuild';
 				}
 
-				\WP_CLI::line( 'Enqueueing entries for site ' . $site_id );
-
-				switch_to_blog( $site_id );
-				$indexer->init();
-				$entries = array_merge( $entries, self::setup_site_entries() );
-				restore_current_blog();
-				$indexer->init();
+				\WP_CLI::runcommand( $command );
 			}
+		} elseif ( get_current_blog_id() != $arguments['site'] ) {
+			$site_id     = $arguments['site'];
+			$subsite_url = get_site_url( $site_id );
+			$command     = "searchwp index --site={$site_id} --url={$subsite_url}";
+
+				if ( ! empty( $arguments['rebuild'] ) ) {
+					$command .= ' --rebuild';
+				}
+
+				\WP_CLI::runcommand( $command );
 		} else {
-			\WP_CLI::line( 'Enqueueing entries...' );
+			// Build the index for the submitted site.
+			$index   = \SearchWP::$index;
+			$indexer = \SearchWP::$indexer;
+
+			// Prevent the indexer from running because this supercedes it.
+			$indexer->pause();
+			$indexer->_destroy_queue();
+
+			if ( ! empty( $arguments['rebuild'] ) ) {
+				\WP_CLI::line( 'Dropping index for site ' . $arguments['site'] );
+				$index->drop_site( $arguments['site'] );
+			}
+
 			$entries = self::setup_site_entries();
-		}
 
-		if ( ! empty( $entries ) ) {
-			$progress = \WP_CLI\Utils\make_progress_bar( 'Building index:', count( $entries ) );
+			if ( ! empty( $entries ) ) {
+				$progress = \WP_CLI\Utils\make_progress_bar( 'Building index:', count( $entries ) );
 
-			foreach ( $entries as $key => $entry ) {
+				foreach ( $entries as $key => $entry ) {
 
-				$switched_site = false;
-				if ( is_multisite() && $entry['site'] != get_current_blog_id() ) {
-					switch_to_blog( $entry['site'] );
-					$indexer->init();
-					$switched_site = true;
-				}
+					$source = $index->get_source_by_name( $entry['source'] );
+					$entry  = apply_filters( 'searchwp\indexer\entry', new Entry( $source, $entry['id'] ) );
 
-				$source = $index->get_source_by_name( $entry['source'] );
-				$entry  = apply_filters( 'searchwp\indexer\entry', new Entry( $source, $entry['id'] ) );
+					if ( ! $entry instanceof Entry ) {
+						$progress->tick();
+						continue;
+					}
 
-				if ( ! $entry instanceof Entry ) {
+					if ( false === $index->add( $entry ) ) {
+						$index->mark_entry_as( $entry, 'omitted' );
+					}
+
+					// Clean up variables and cache usage (because it doesn't apply here).
+					unset( $entry );
+					unset( $source );
+					unset( $entries[ $key ] );
+					gc_collect_cycles();
+
 					$progress->tick();
-					continue;
 				}
 
-				if ( false === $index->add( $entry ) ) {
-					$index->mark_entry_as( $entry, 'omitted' );
-				}
-
-				if ( $switched_site ) {
-					restore_current_blog();
-					$indexer->init();
-				}
-
-				// Clean up variables and cache usage (because it doesn't apply here).
-				unset( $entry );
-				unset( $source );
-				unset( $entries[ $key ] );
-				gc_collect_cycles();
-
-				$progress->tick();
+				$progress->finish();
 			}
 
-			$progress->finish();
+			$indexer->unpause();
+
+			\WP_CLI::success( 'Index built!' );
 		}
-
-		$indexer->unpause();
-
-		\WP_CLI::success( 'Index built!' );
 	}
 
 	/**

@@ -12,28 +12,38 @@ declare (strict_types=1);
 namespace SearchWP\Dependencies\Monolog\Handler;
 
 use Throwable;
-class FallbackGroupHandler extends \SearchWP\Dependencies\Monolog\Handler\GroupHandler
+/**
+ * Forwards records to at most one handler
+ *
+ * If a handler fails, the exception is suppressed and the record is forwarded to the next handler.
+ *
+ * As soon as one handler handles a record successfully, the handling stops there.
+ *
+ * @phpstan-import-type Record from \Monolog\Logger
+ */
+class FallbackGroupHandler extends GroupHandler
 {
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handle(array $record) : bool
     {
         if ($this->processors) {
+            /** @var Record $record */
             $record = $this->processRecord($record);
         }
         foreach ($this->handlers as $handler) {
             try {
                 $handler->handle($record);
                 break;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // What throwable?
             }
         }
         return \false === $this->bubble;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
@@ -42,13 +52,14 @@ class FallbackGroupHandler extends \SearchWP\Dependencies\Monolog\Handler\GroupH
             foreach ($records as $record) {
                 $processed[] = $this->processRecord($record);
             }
+            /** @var Record[] $records */
             $records = $processed;
         }
         foreach ($this->handlers as $handler) {
             try {
                 $handler->handleBatch($records);
                 break;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // What throwable?
             }
         }

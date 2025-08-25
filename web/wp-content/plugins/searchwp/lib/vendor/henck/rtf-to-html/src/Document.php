@@ -29,7 +29,7 @@ class Document
         } else {
             $err = "Parse error: Tried to read past end of input; RTF is probably truncated.";
             \trigger_error($err);
-            throw new \SearchWP\Dependencies\RtfHtmlPhp\Exception($err);
+            throw new \Exception($err);
         }
     }
     /*
@@ -80,7 +80,7 @@ class Document
     // Store state of document on stack.
     protected function ParseStartGroup()
     {
-        $group = new \SearchWP\Dependencies\RtfHtmlPhp\Group();
+        $group = new Group();
         // Is there a current group? Then make the new group its child:
         if ($this->group != null) {
             $group->parent = $this->group;
@@ -173,7 +173,7 @@ class Document
             }
         }
         // Add new RTF word as a child to the current group.
-        $rtfword = new \SearchWP\Dependencies\RtfHtmlPhp\ControlWord();
+        $rtfword = new ControlWord();
         $rtfword->word = $word;
         $rtfword->parameter = $parameter;
         \array_push($this->group->children, $rtfword);
@@ -186,7 +186,7 @@ class Document
         // Exceptional case:
         // Treat EOL symbols as \par control word
         if ($this->is_endofline()) {
-            $rtfword = new \SearchWP\Dependencies\RtfHtmlPhp\ControlWord();
+            $rtfword = new ControlWord();
             $rtfword->word = 'par';
             $rtfword->parameter = 0;
             \array_push($this->group->children, $rtfword);
@@ -203,7 +203,7 @@ class Document
             $parameter = \hexdec($parameter . $this->char);
         }
         // Add new control symbol as a child to the current group:
-        $rtfsymbol = new \SearchWP\Dependencies\RtfHtmlPhp\ControlSymbol();
+        $rtfsymbol = new ControlSymbol();
         $rtfsymbol->symbol = $symbol;
         $rtfsymbol->parameter = $parameter;
         \array_push($this->group->children, $rtfsymbol);
@@ -263,13 +263,13 @@ class Document
             }
         } while (!$terminate && $this->pos < $this->len);
         // Create new Text element:
-        $text = new \SearchWP\Dependencies\RtfHtmlPhp\Text($text);
+        $text = new Text($text);
         // If there is no current group, then this is not a valid RTF file.
         // Throw an exception.
         if ($this->group == null) {
             $err = "Parse error: RTF text outside of group.";
             \trigger_error($err);
-            throw new \SearchWP\Dependencies\RtfHtmlPhp\Exception($err);
+            throw new \Exception($err);
         }
         // Add text as a child to the current group:
         \array_push($this->group->children, $text);
@@ -284,7 +284,7 @@ class Document
         $this->len = \strlen($this->rtf);
         $this->group = null;
         $this->root = null;
-        while ($this->pos < $this->len) {
+        while ($this->pos < $this->len - 1) {
             // Read next character:
             $this->GetChar();
             // Ignore \r and \n

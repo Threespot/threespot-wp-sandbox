@@ -32,9 +32,11 @@ class Statistics {
 	 * Capability requirement for viewing Statistics.
 	 *
 	 * @since 4.0
+     * @since 4.2.6 Visibility changed from public to private.
+     *
 	 * @var string
 	 */
-	public static $capability = 'edit_others_posts';
+	private static $capability = 'edit_others_posts';
 
 	/**
 	 * Statistics constructor.
@@ -42,11 +44,21 @@ class Statistics {
 	 * @since 4.0
 	 */
 	function __construct() {
-		self::$capability = (string) apply_filters( 'searchwp\statistics\capability', self::$capability );
 
 		add_action( 'searchwp\query\ran', [ $this, 'log' ] );
-
 		add_action( SEARCHWP_PREFIX . 'maintenance', [ $this, 'maintenance' ] );
+	}
+
+	/**
+	 * Getter for capability tag.
+	 *
+	 * @since 4.2.6
+	 *
+	 * @return string
+	 */
+	public static function get_capability() {
+
+		return (string) apply_filters( 'searchwp\statistics\capability', self::$capability );
 	}
 
 	/**
@@ -109,6 +121,12 @@ class Statistics {
 	public function log( Query $query ) {
 		global $wpdb;
 
+		$keywords = $query->get_keywords();
+
+		if ( empty( $keywords ) ) {
+			return false;
+		}
+
 		// If it's an ignored query we don't need to clutter the database with it.
 		if ( ! apply_filters(
 			'searchwp\statistics\log',
@@ -118,12 +136,17 @@ class Statistics {
 			return false;
 		}
 
+		// Only log the initial search page of results. All other pages can be skipped to prevent logging multiple times the same search.
+		if ( $query->get_args()['page'] > 1 ) {
+			return false;
+		}
+
 		$this->db_table = \SearchWP::$index->get_tables()['log'];
 
 		return $wpdb->insert(
 			$this->db_table->table_name,
 			[
-				'query'  => $query->get_keywords(),
+				'query'  => $keywords,
 				'tstamp' => current_time( 'mysql' ),
 				'hits'   => $query->found_results,
 				'engine' => $query->get_engine()->get_name(),
@@ -379,11 +402,18 @@ class Statistics {
 			'site'     => [ get_current_blog_id() ], // Site(s) to consider.
 		];
 
-		$args     = wp_parse_args( $args, $defaults );
-		$values   = array_merge(
-			[ $args['days'], $args['engine'] ],
-			$args['site']
-		);
+		$args = wp_parse_args( $args, $defaults );
+
+		if ( 'all' === $args['site'] ) {
+			$site_in = '1=1';
+			$values  = [ $args['days'], $args['engine'] ];
+		} else {
+			$site_in = 'site IN (' . implode( ', ', array_fill( 0, count( $args['site'] ), '%d' ) ) . ')';
+			$values  = array_merge(
+				[ $args['days'], $args['engine'] ],
+				$args['site']
+			);
+		}
 
 		$exclude = '';
 		if ( is_array( $args['exclude'] ) && ! empty( $args['exclude'] ) ) {
@@ -402,7 +432,7 @@ class Statistics {
 				WHERE tstamp > DATE_SUB(NOW(), INTERVAL %d day)
 					AND engine = %s
 					AND query <> ''
-					AND site IN (" . implode( ', ', array_fill( 0, count( $args['site'] ), '%d' ) ) . ")
+					AND {$site_in}
 				{$exclude}
 			GROUP BY TO_DAYS(tstamp)
 			ORDER BY tstamp ASC
@@ -446,11 +476,18 @@ class Statistics {
 			'site'     => [ get_current_blog_id() ], // Site(s) to consider.
 		];
 
-		$args   = wp_parse_args( $args, $defaults );
-		$values = array_merge(
-			[ $args['days'], $args['engine'] ],
-			$args['site']
-		);
+		$args = wp_parse_args( $args, $defaults );
+
+		if ( 'all' === $args['site'] ) {
+			$site_in = '1=1';
+			$values  = [ $args['days'], $args['engine'] ];
+		} else {
+			$site_in = 'site IN (' . implode( ', ', array_fill( 0, count( $args['site'] ), '%d' ) ) . ')';
+			$values  = array_merge(
+				[ $args['days'], $args['engine'] ],
+				$args['site']
+			);
+		}
 
 		$min_hits = '';
 		if ( false !== $args['min_hits'] ) {
@@ -496,7 +533,7 @@ class Statistics {
 			FROM {$db_table->table_name}
 			WHERE tstamp > DATE_SUB(NOW(), INTERVAL %d DAY)
 			AND engine = %s
-			AND site IN (" . implode( ', ', array_fill( 0, count( $args['site'] ), '%d' ) ) . ")
+			AND {$site_in}
 			{$min_hits}
 			{$max_hits}
 			{$exclude}

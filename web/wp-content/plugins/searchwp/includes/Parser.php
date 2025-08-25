@@ -202,7 +202,7 @@ class Parser {
 	 * @param string $mime_type File mime type.
 	 * @return bool|mixed|string
 	 */
-	private static function extract_msoffice_docx_text( string $file, $data = null, string $mime_type ) {
+	private static function extract_msoffice_docx_text( string $file, $data, string $mime_type ) {
 		if ( false !== strpos( $mime_type, 'opendocument' ) ) {
 			$content = self::get_file_content_from_package( $file, 'content.xml' );
 		} else {
@@ -271,7 +271,7 @@ class Parser {
 	 * @param string $mime_type File mime type.
 	 * @return string
 	 */
-	private static function extract_msoffice_excel_text( string $file, $data = null, string $mime_type ) {
+	private static function extract_msoffice_excel_text( string $file, $data, string $mime_type ) {
 		if ( false !== strpos( $mime_type, 'opendocument' ) ) {
 			$content = self::get_file_content_from_package( $file, 'content.xml' );
 		} else {
@@ -290,7 +290,7 @@ class Parser {
 	 * @param string $mime_type File mime type.
 	 * @return string
 	 */
-	private static function extract_msoffice_powerpoint_text( string $file, $data = null, string $mime_type ) {
+	private static function extract_msoffice_powerpoint_text( string $file, $data, string $mime_type ) {
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			do_action( 'searchwp\debug\log', 'Document parsing failed: ZipArchive not available', 'parser' );
 			return '';

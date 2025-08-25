@@ -30,32 +30,32 @@ use SearchWP\Dependencies\Monolog\Logger;
  *
  * @author Paul Statezny <paulstatezny@gmail.com>
  */
-class RollbarHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class RollbarHandler extends AbstractProcessingHandler
 {
     /**
      * @var RollbarLogger
      */
     protected $rollbarLogger;
-    protected $levelMap = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => 'debug', \SearchWP\Dependencies\Monolog\Logger::INFO => 'info', \SearchWP\Dependencies\Monolog\Logger::NOTICE => 'info', \SearchWP\Dependencies\Monolog\Logger::WARNING => 'warning', \SearchWP\Dependencies\Monolog\Logger::ERROR => 'error', \SearchWP\Dependencies\Monolog\Logger::CRITICAL => 'critical', \SearchWP\Dependencies\Monolog\Logger::ALERT => 'critical', \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => 'critical'];
+    /** @var string[] */
+    protected $levelMap = [Logger::DEBUG => 'debug', Logger::INFO => 'info', Logger::NOTICE => 'info', Logger::WARNING => 'warning', Logger::ERROR => 'error', Logger::CRITICAL => 'critical', Logger::ALERT => 'critical', Logger::EMERGENCY => 'critical'];
     /**
      * Records whether any log records have been added since the last flush of the rollbar notifier
      *
      * @var bool
      */
     private $hasRecords = \false;
+    /** @var bool */
     protected $initialized = \false;
     /**
      * @param RollbarLogger $rollbarLogger RollbarLogger object constructed with valid token
-     * @param string|int    $level         The minimum logging level at which this handler will be triggered
-     * @param bool          $bubble        Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct(\SearchWP\Dependencies\Rollbar\RollbarLogger $rollbarLogger, $level = \SearchWP\Dependencies\Monolog\Logger::ERROR, bool $bubble = \true)
+    public function __construct(RollbarLogger $rollbarLogger, $level = Logger::ERROR, bool $bubble = \true)
     {
         $this->rollbarLogger = $rollbarLogger;
         parent::__construct($level, $bubble);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     protected function write(array $record) : void
     {
@@ -66,13 +66,14 @@ class RollbarHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
         }
         $context = $record['context'];
         $context = \array_merge($context, $record['extra'], ['level' => $this->levelMap[$record['level']], 'monolog_level' => $record['level_name'], 'channel' => $record['channel'], 'datetime' => $record['datetime']->format('U')]);
-        if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
+        if (isset($context['exception']) && $context['exception'] instanceof Throwable) {
             $exception = $context['exception'];
             unset($context['exception']);
             $toLog = $exception;
         } else {
             $toLog = $record['message'];
         }
+        // @phpstan-ignore-next-line
         $this->rollbarLogger->log($context['level'], $toLog, $context);
         $this->hasRecords = \true;
     }
@@ -84,14 +85,14 @@ class RollbarHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
         }
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function close() : void
     {
         $this->flush();
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function reset()
     {

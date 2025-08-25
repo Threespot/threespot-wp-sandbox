@@ -107,7 +107,7 @@ Suggested Search: <?php echo esc_html( $query->get_suggested_search() ) . "\n"; 
 Tokens:           <?php echo esc_html( implode( ', ', $query->get_tokens() ) ) . "\n"; ?>
 Found Results:    <?php echo esc_html( $query->found_results ) . "\n"; ?>
 Max Pages:        <?php echo esc_html( $query->max_num_pages ) . "\n"; ?>
-Query Time:       <?php echo esc_html( $query->query_time ) . "\n"; ?>
+Execution Time:   <?php echo esc_html( $query->execution_time ) . "\n"; ?>
 <?php if ( ! empty( $query->get_errors() ) ) : ?>
 Errors:           YES [<?php echo count( $query->get_errors() ); ?>]<?php echo "\n"; endif; ?>
 

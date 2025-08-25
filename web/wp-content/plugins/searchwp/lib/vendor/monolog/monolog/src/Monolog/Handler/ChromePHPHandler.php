@@ -21,8 +21,10 @@ use SearchWP\Dependencies\Monolog\Utils;
  * This also works out of the box with Firefox 43+
  *
  * @author Christophe Coevoet <stof@notk.org>
+ *
+ * @phpstan-import-type Record from \Monolog\Logger
  */
-class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class ChromePHPHandler extends AbstractProcessingHandler
 {
     use WebRequestRecognizerTrait;
     /**
@@ -37,6 +39,7 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
      * Regular expression to detect supported browsers (matches any Chrome, or Firefox 43+)
      */
     protected const USER_AGENT_REGEX = '{\\b(?:Chrome/\\d+(?:\\.\\d+)*|HeadlessChrome|Firefox/(?:4[3-9]|[5-9]\\d|\\d{3,})(?:\\.\\d)*)\\b}';
+    /** @var bool */
     protected static $initialized = \false;
     /**
      * Tracks whether we sent too much data
@@ -46,13 +49,11 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
      * @var bool
      */
     protected static $overflowed = \false;
+    /** @var mixed[] */
     protected static $json = ['version' => self::VERSION, 'columns' => ['label', 'log', 'backtrace', 'type'], 'rows' => []];
+    /** @var bool */
     protected static $sendHeaders = \true;
-    /**
-     * @param string|int $level  The minimum logging level at which this handler will be triggered
-     * @param bool       $bubble Whether the messages that are handled can bubble up the stack or not
-     */
-    public function __construct($level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct($level = Logger::DEBUG, bool $bubble = \true)
     {
         parent::__construct($level, $bubble);
         if (!\function_exists('json_encode')) {
@@ -60,7 +61,7 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
         }
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
@@ -72,7 +73,9 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
             if ($record['level'] < $this->level) {
                 continue;
             }
-            $messages[] = $this->processRecord($record);
+            /** @var Record $message */
+            $message = $this->processRecord($record);
+            $messages[] = $message;
         }
         if (!empty($messages)) {
             $messages = $this->getFormatter()->formatBatch($messages);
@@ -83,9 +86,9 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\ChromePHPFormatter();
+        return new ChromePHPFormatter();
     }
     /**
      * Creates & sends header for a record
@@ -119,14 +122,14 @@ class ChromePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractPr
             }
             self::$json['request_uri'] = $_SERVER['REQUEST_URI'] ?? '';
         }
-        $json = \SearchWP\Dependencies\Monolog\Utils::jsonEncode(self::$json, null, \true);
-        $data = \base64_encode(\utf8_encode($json));
+        $json = Utils::jsonEncode(self::$json, Utils::DEFAULT_JSON_FLAGS & ~\JSON_UNESCAPED_UNICODE, \true);
+        $data = \base64_encode($json);
         if (\strlen($data) > 3 * 1024) {
             self::$overflowed = \true;
-            $record = ['message' => 'Incomplete logs, chrome header size limit reached', 'context' => [], 'level' => \SearchWP\Dependencies\Monolog\Logger::WARNING, 'level_name' => \SearchWP\Dependencies\Monolog\Logger::getLevelName(\SearchWP\Dependencies\Monolog\Logger::WARNING), 'channel' => 'monolog', 'datetime' => new \DateTimeImmutable(), 'extra' => []];
+            $record = ['message' => 'Incomplete logs, chrome header size limit reached', 'context' => [], 'level' => Logger::WARNING, 'level_name' => Logger::getLevelName(Logger::WARNING), 'channel' => 'monolog', 'datetime' => new \DateTimeImmutable(), 'extra' => []];
             self::$json['rows'][\count(self::$json['rows']) - 1] = $this->getFormatter()->format($record);
-            $json = \SearchWP\Dependencies\Monolog\Utils::jsonEncode(self::$json, null, \true);
-            $data = \base64_encode(\utf8_encode($json));
+            $json = Utils::jsonEncode(self::$json, Utils::DEFAULT_JSON_FLAGS & ~\JSON_UNESCAPED_UNICODE, \true);
+            $data = \base64_encode($json);
         }
         if (\trim($data) !== '') {
             $this->sendHeader(static::HEADER_NAME, $data);

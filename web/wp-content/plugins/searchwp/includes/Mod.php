@@ -99,6 +99,14 @@ class Mod {
 	private $weights = [];
 
 	/**
+	 * Relevance calculation clauses.
+	 *
+	 * @since 4.1.17
+	 * @var array
+	 */
+	private $relevances = [];
+
+	/**
 	 * Custom columns.
 	 *
 	 * @since 4.0
@@ -127,7 +135,7 @@ class Mod {
 
 			wp_die( new \WP_Error(
 				'init',
-				__( '\\SearchWP\\Mod cannot be instaniated until the wp_loaded action has fired.','searchwp' )
+				esc_html__( '\\SearchWP\\Mod cannot be instantiated until the wp_loaded action has fired.','searchwp' )
 			) );
 		}
 
@@ -162,6 +170,17 @@ class Mod {
 	}
 
 	/**
+	 * Adds index weight modification.
+	 *
+	 * @since 4.1.17
+	 * @param mixed $sql The prepared SQL.
+	 * @return void
+	 */
+	public function relevance( $sql ) {
+		$this->relevances[] = $sql;
+	}
+
+	/**
 	 * Adds column modification.
 	 *
 	 * @since 4.0
@@ -190,6 +209,16 @@ class Mod {
 	 */
 	public function get_weights() {
 		return $this->weights;
+	}
+
+	/**
+	 * Getter for index weight modifications.
+	 *
+	 * @sine 4.1.17
+	 * @return array Prepared SQL statements for weight modifications.
+	 */
+	public function get_relevances() {
+		return $this->relevances;
 	}
 
 	/**

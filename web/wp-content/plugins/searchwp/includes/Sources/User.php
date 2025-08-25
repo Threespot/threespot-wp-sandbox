@@ -123,7 +123,11 @@ final class User extends Source {
 							$user_meta = array_shift( $user_meta );
 						}
 
-						return $do_shortcodes ? do_shortcode( $user_meta ) : $user_meta;
+						if ( $do_shortcodes ) {
+							$user_meta = is_array( $user_meta ) ? json_decode( do_shortcode( wp_json_encode( $user_meta ) ), true ) : do_shortcode( $user_meta );
+						}
+
+						return $user_meta;
 					}, $meta_keys ) );
 
 					$meta_value = apply_filters(
@@ -232,6 +236,11 @@ final class User extends Source {
 	 * @return array
 	 */
 	public function add_hooks( array $params = [] ) {
+		// If this Source is not active we can bail out early.
+		if ( isset( $params['active'] ) && ! $params['active'] ) {
+			return;
+		}
+
 		// Reindex when profile is updated.
 		if ( ! has_action( 'profile_update', [ $this, 'drop' ] ) ) {
 			add_action( 'profile_update', [ $this, 'drop' ], 999 );

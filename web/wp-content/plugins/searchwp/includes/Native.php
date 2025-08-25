@@ -74,11 +74,19 @@ class Native {
 	 * @return void
 	 */
 	public function init( $query ) {
-		if ( apply_filters( 'searchwp\native\short_circuit', ! $query->is_search(), $query ) ) {
+		// If there's no search string, there's nothing to do, we can short circuit.
+		// Depending on whether this is a WP_Query or WP_User_Query the approach differs slightly.
+		if ( $query instanceof \WP_User_Query ) {
+			$short_circuit = empty( trim ( $query->get( 'search' ) ) );
+		} else {
+			$short_circuit = method_exists( $query, 'is_search' ) && ! $query->is_search();
+		}
+
+		if ( apply_filters( 'searchwp\native\short_circuit', $short_circuit, $query ) ) {
 			return $query;
 		}
 
-		// WP_User_Query doesn't have our expected methods and it alters the search query.
+		// If we're not short-circuiting, should we force SearchWP to run with this query?
 		if (
 			$query instanceof \WP_User_Query
 			&& empty( trim( $query->get( 'search' ) ) )
@@ -108,7 +116,8 @@ class Native {
 			$engine = $admin_engine;
 
 			$current_screen  = get_current_screen();
-			$this->post_type = $current_screen->post_type;
+			$this->post_type = isset( $_REQUEST['post_type'] ) && post_type_exists( $_REQUEST['post_type'] )
+				? $_REQUEST['post_type'] : $current_screen->post_type;
 		}
 
 		$query->set( 'searchwp', $engine );
@@ -209,18 +218,21 @@ class Native {
 	 * @return boolean
 	 */
 	public function is_applicable( $query ) {
-		if (
-			! $query->get( 'searchwp' )
-			|| (
-				isset( $query->query_vars['s'] ) && empty( $query->query_vars['s'] )
-				&& ( isset( $query->query['s'] ) && empty( $query->query['s'] ) )
-			)
-		) {
+		if ( ! $query->get( 'searchwp' ) ) {
 			return false;
 		}
 
 		// Check for supported Source during Admin search.
 		if ( is_admin() && ! wp_doing_ajax() ) {
+
+			// Do not run empty searches on admin side.
+			if (
+				isset( $query->query_vars['s'] ) && empty( $query->query_vars['s'] )
+				&& ( isset( $query->query['s'] ) && empty( $query->query['s'] ) )
+			) {
+				return false;
+			}
+
 			$engine = new Engine( $query->get( 'searchwp' ) );
 
 			$supported_post_types = array_filter( array_map( function( $source_name ) {
@@ -329,22 +341,77 @@ class Native {
 			}
 
 			// We're going to base our args on the query_vars which SWP_Query will pick up where supported.
+			$search_query      = get_search_query();
 			$args              = $query->query_vars;
-			$args['s']         = get_search_query();
+			$args['s']         = ! empty( $search_query ) ? $search_query : $args['s'];
 			$args['engine']    = $query->get( 'searchwp' );
 			$args['post_type'] = is_admin() && ! wp_doing_ajax() ? $this->post_type : null;
 
-			// Hierarchical post types use differing fields in the admin.
-			$args['fields'] = is_admin() && 'id=>parent' !== $query->get( 'fields' ) ? 'ids' : 'all';
+			$args['post_type'] = apply_filters( 'searchwp\native\args\post_type', $args['post_type'], [
+				'args'    => $args,
+				'query'   => $query,
+				'context' => $this,
+			] );
 
-			if ( ! empty( $query->get_query_var( 'fields' ) ) ) {
-				$args['fields'] = $query->get_query_var( 'fields' );
+			// In some cases get_search_query() doesn't work as expected so let's add an empty search string check here.
+			// Developers can also use the searchwp\native\args to adjust where necessary.
+			if ( empty( trim( $args['s'] ) ) ) {
+				do_action( 'searchwp\debug\log', 'Unexpected empty search string', 'native' );
+
+				if ( isset( $query->query['s'] ) && is_string( $query->query['s'] ) && ! empty( trim( $query->query['s'] ) ) ) {
+					$args['s'] = esc_attr( $query->query['s'] ); // esc_attr() is performed in get_search_query();
+				} else {
+					do_action( 'searchwp\debug\log', 'Unable to locate search string!', 'native' );
+				}
+			}
+
+			// Check again if the search string is empty after a recovery attempt.
+			if ( empty( trim( $args['s'] ) ) ) {
+				if ( ! apply_filters( 'searchwp\native\run_empty_search', true ) ) {
+					return []; // If we are not running empty searches we can return an empty array to cause empty results.
+				}
+
+				do_action( 'searchwp\debug\log', 'Running query with empty search string', 'native' );
+			}
+
+			// TODO: Refactor this logic that determines the fields argument depending on whether
+			// we're searching a hierarchical post type in the Admin, or a query var has been set.
+
+			// Hierarchical post types use differing fields in the Admin.
+			$args['fields'] = is_admin() && ! wp_doing_ajax() && 'id=>parent' !== $query->get( 'fields' ) ? 'ids' : 'all';
+
+			// Fallback/override for fields definition.
+			if ( ! is_admin() ) {
+				if ( method_exists( $query, 'get_query_var' ) && ! empty( $query->get_query_var( 'fields' ) ) ) {
+					$args['fields'] = $query->get_query_var( 'fields' );
+				} else if ( method_exists( $query, 'get' ) && ! empty( $query->get( 'fields' ) ) ) {
+					$args['fields'] = $query->get( 'fields' );
+				}
 			}
 
 			// tax_query and meta_query (and date_query) are direct properties.
 			$args['tax_query']  = $query->tax_query->queries;
 			$args['meta_query'] = $query->meta_query->queries;
 			// Date query not supported at this time.
+
+			// If the search string is empty and the orderby was not set, order results by date.
+			if ( empty( $args['orderby'] ) && empty( trim( $args['s'] ) ) ) {
+				add_filter( 'searchwp\query\mods', function( $mods ) {
+					$mod = new \SearchWP\Mod();
+
+					$mod->raw_join_sql( function( $runtime ) {
+						global $wpdb;
+
+						return "LEFT JOIN {$wpdb->posts} emptyqueryorder ON (emptyqueryorder.ID = {$runtime->get_foreign_alias()}.id)";
+					} );
+
+					$mod->order_by( 'emptyqueryorder.post_date', 'DESC', 10 );
+
+					$mods[] = $mod;
+
+					return $mods;
+				} );
+			}
 
 			$this->results = apply_filters(
 				'searchwp\native\results',

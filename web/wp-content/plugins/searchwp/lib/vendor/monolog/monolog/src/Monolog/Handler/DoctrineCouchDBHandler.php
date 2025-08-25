@@ -20,10 +20,11 @@ use SearchWP\Dependencies\Doctrine\CouchDB\CouchDBClient;
  *
  * @author Markus Bachmann <markus.bachmann@bachi.biz>
  */
-class DoctrineCouchDBHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class DoctrineCouchDBHandler extends AbstractProcessingHandler
 {
+    /** @var CouchDBClient */
     private $client;
-    public function __construct(\SearchWP\Dependencies\Doctrine\CouchDB\CouchDBClient $client, $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(CouchDBClient $client, $level = Logger::DEBUG, bool $bubble = \true)
     {
         $this->client = $client;
         parent::__construct($level, $bubble);
@@ -35,8 +36,8 @@ class DoctrineCouchDBHandler extends \SearchWP\Dependencies\Monolog\Handler\Abst
     {
         $this->client->postDocument($record['formatted']);
     }
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\NormalizerFormatter();
+        return new NormalizerFormatter();
     }
 }

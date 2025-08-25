@@ -15,9 +15,11 @@
  * @file This file is part of the PdfParser library.
  *
  * @author  Konrad Abicht <k.abicht@gmail.com>
+ *
  * @date    2020-01-06
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -39,9 +41,13 @@
  */
 namespace SearchWP\Dependencies\Smalot\PdfParser\RawData;
 
-use Exception;
+use SearchWP\Dependencies\Smalot\PdfParser\Config;
 class RawDataParser
 {
+    /**
+     * @var \Smalot\PdfParser\Config
+     */
+    private $config;
     /**
      * Configuration array.
      */
@@ -56,23 +62,25 @@ class RawDataParser
     /**
      * @param array $cfg Configuration array, default is []
      */
-    public function __construct($cfg = [])
+    public function __construct($cfg = [], Config $config = null)
     {
         // merge given array with default values
         $this->cfg = \array_merge($this->cfg, $cfg);
-        $this->filterHelper = new \SearchWP\Dependencies\Smalot\PdfParser\RawData\FilterHelper();
+        $this->filterHelper = new FilterHelper();
+        $this->config = $config ?: new Config();
     }
     /**
      * Decode the specified stream.
      *
      * @param string $pdfData PDF data
-     * @param array  $xref
      * @param array  $sdic    Stream's dictionary array
      * @param string $stream  Stream to decode
      *
      * @return array containing decoded stream data and remaining filters
+     *
+     * @throws \Exception
      */
-    protected function decodeStream($pdfData, $xref, $sdic, $stream)
+    protected function decodeStream(string $pdfData, array $xref, array $sdic, string $stream) : array
     {
         // get stream length and filters
         $slength = \strlen($stream);
@@ -111,7 +119,7 @@ class RawDataParser
         foreach ($filters as $filter) {
             if (\in_array($filter, $this->filterHelper->getAvailableFilters())) {
                 try {
-                    $stream = $this->filterHelper->decodeFilter($filter, $stream);
+                    $stream = $this->filterHelper->decodeFilter($filter, $stream, $this->config->getDecodeMemoryLimit());
                 } catch (\Exception $e) {
                     $emsg = $e->getMessage();
                     if ('~' == $emsg[0] && !$this->cfg['ignore_missing_filter_decoders'] || '~' != $emsg[0] && !$this->cfg['ignore_filter_decoding_errors']) {
@@ -133,13 +141,15 @@ class RawDataParser
      * @param array  $xref      Previous xref array (if any)
      *
      * @return array containing xref and trailer data
+     *
+     * @throws \Exception
      */
-    protected function decodeXref($pdfData, $startxref, $xref = [])
+    protected function decodeXref(string $pdfData, int $startxref, array $xref = []) : array
     {
         $startxref += 4;
         // 4 is the length of the word 'xref'
-        // skip initial white space chars: \x00 null (NUL), \x09 horizontal tab (HT), \x0A line feed (LF), \x0C form feed (FF), \x0D carriage return (CR), \x20 space (SP)
-        $offset = $startxref + \strspn($pdfData, "\0\t\n\f\r ", $startxref);
+        // skip initial white space chars
+        $offset = $startxref + \strspn($pdfData, $this->config->getPdfWhitespaces(), $startxref);
         // initialize object number
         $obj_num = 0;
         // search for cross-reference entries or subsection
@@ -208,9 +218,9 @@ class RawDataParser
      *
      * @return array containing xref and trailer data
      *
-     * @throws Exception if unknown PNG predictor detected
+     * @throws \Exception if unknown PNG predictor detected
      */
-    protected function decodeXrefStream($pdfData, $startxref, $xref = [])
+    protected function decodeXrefStream(string $pdfData, int $startxref, array $xref = []) : array
     {
         // try to read Cross-Reference Stream
         $xrefobj = $this->getRawObject($pdfData, $startxref);
@@ -227,6 +237,7 @@ class RawDataParser
         }
         $valid_crs = \false;
         $columns = 0;
+        $predictor = null;
         $sarr = $xrefcrs[0][1];
         if (!\is_array($sarr)) {
             $sarr = [];
@@ -236,8 +247,11 @@ class RawDataParser
             if ('/' == $v[0] && 'Type' == $v[1] && (isset($sarr[$k + 1]) && '/' == $sarr[$k + 1][0] && 'XRef' == $sarr[$k + 1][1])) {
                 $valid_crs = \true;
             } elseif ('/' == $v[0] && 'Index' == $v[1] && isset($sarr[$k + 1])) {
-                // first object number in the subsection
-                $index_first = (int) $sarr[$k + 1][1][0][1];
+                // initialize list for: first object number in the subsection / number of objects
+                $index_blocks = [];
+                for ($m = 0; $m < \count($sarr[$k + 1][1]); $m += 2) {
+                    $index_blocks[] = [$sarr[$k + 1][1][$m][1], $sarr[$k + 1][1][$m + 1][1]];
+                }
             } elseif ('/' == $v[0] && 'Prev' == $v[1] && (isset($sarr[$k + 1]) && 'numeric' == $sarr[$k + 1][0])) {
                 // get previous xref offset
                 $prevxref = (int) $sarr[$k + 1][1];
@@ -273,82 +287,93 @@ class RawDataParser
         }
         // decode data
         if ($valid_crs && isset($xrefcrs[1][3][0])) {
-            // number of bytes in a row
-            $rowlen = $columns + 1;
-            // convert the stream into an array of integers
-            $sdata = \unpack('C*', $xrefcrs[1][3][0]);
-            // split the rows
-            $sdata = \array_chunk($sdata, $rowlen);
-            // initialize decoded array
-            $ddata = [];
-            // initialize first row with zeros
-            $prev_row = \array_fill(0, $rowlen, 0);
-            // for each row apply PNG unpredictor
-            foreach ($sdata as $k => $row) {
-                // initialize new row
-                $ddata[$k] = [];
-                // get PNG predictor value
-                $predictor = 10 + $row[0];
-                // for each byte on the row
-                for ($i = 1; $i <= $columns; ++$i) {
-                    // new index
-                    $j = $i - 1;
-                    $row_up = $prev_row[$j];
-                    if (1 == $i) {
-                        $row_left = 0;
-                        $row_upleft = 0;
-                    } else {
-                        $row_left = $row[$i - 1];
-                        $row_upleft = $prev_row[$j - 1];
+            if (null !== $predictor) {
+                // number of bytes in a row
+                $rowlen = $columns + 1;
+                // convert the stream into an array of integers
+                /** @var array<int> */
+                $sdata = \unpack('C*', $xrefcrs[1][3][0]);
+                // TODO: Handle the case when unpack returns false
+                // split the rows
+                $sdata = \array_chunk($sdata, $rowlen);
+                // initialize decoded array
+                $ddata = [];
+                // initialize first row with zeros
+                $prev_row = \array_fill(0, $rowlen, 0);
+                // for each row apply PNG unpredictor
+                foreach ($sdata as $k => $row) {
+                    // initialize new row
+                    $ddata[$k] = [];
+                    // get PNG predictor value
+                    $predictor = 10 + $row[0];
+                    // for each byte on the row
+                    for ($i = 1; $i <= $columns; ++$i) {
+                        // new index
+                        $j = $i - 1;
+                        $row_up = $prev_row[$j];
+                        if (1 == $i) {
+                            $row_left = 0;
+                            $row_upleft = 0;
+                        } else {
+                            $row_left = $row[$i - 1];
+                            $row_upleft = $prev_row[$j - 1];
+                        }
+                        switch ($predictor) {
+                            case 10:
+                                // PNG prediction (on encoding, PNG None on all rows)
+                                $ddata[$k][$j] = $row[$i];
+                                break;
+                            case 11:
+                                // PNG prediction (on encoding, PNG Sub on all rows)
+                                $ddata[$k][$j] = $row[$i] + $row_left & 0xff;
+                                break;
+                            case 12:
+                                // PNG prediction (on encoding, PNG Up on all rows)
+                                $ddata[$k][$j] = $row[$i] + $row_up & 0xff;
+                                break;
+                            case 13:
+                                // PNG prediction (on encoding, PNG Average on all rows)
+                                $ddata[$k][$j] = $row[$i] + ($row_left + $row_up) / 2 & 0xff;
+                                break;
+                            case 14:
+                                // PNG prediction (on encoding, PNG Paeth on all rows)
+                                // initial estimate
+                                $p = $row_left + $row_up - $row_upleft;
+                                // distances
+                                $pa = \abs($p - $row_left);
+                                $pb = \abs($p - $row_up);
+                                $pc = \abs($p - $row_upleft);
+                                $pmin = \min($pa, $pb, $pc);
+                                // return minimum distance
+                                switch ($pmin) {
+                                    case $pa:
+                                        $ddata[$k][$j] = $row[$i] + $row_left & 0xff;
+                                        break;
+                                    case $pb:
+                                        $ddata[$k][$j] = $row[$i] + $row_up & 0xff;
+                                        break;
+                                    case $pc:
+                                        $ddata[$k][$j] = $row[$i] + $row_upleft & 0xff;
+                                        break;
+                                }
+                                break;
+                            default:
+                                // PNG prediction (on encoding, PNG optimum)
+                                throw new \Exception('Unknown PNG predictor: ' . $predictor);
+                        }
                     }
-                    switch ($predictor) {
-                        case 10:
-                            // PNG prediction (on encoding, PNG None on all rows)
-                            $ddata[$k][$j] = $row[$i];
-                            break;
-                        case 11:
-                            // PNG prediction (on encoding, PNG Sub on all rows)
-                            $ddata[$k][$j] = $row[$i] + $row_left & 0xff;
-                            break;
-                        case 12:
-                            // PNG prediction (on encoding, PNG Up on all rows)
-                            $ddata[$k][$j] = $row[$i] + $row_up & 0xff;
-                            break;
-                        case 13:
-                            // PNG prediction (on encoding, PNG Average on all rows)
-                            $ddata[$k][$j] = $row[$i] + ($row_left + $row_up) / 2 & 0xff;
-                            break;
-                        case 14:
-                            // PNG prediction (on encoding, PNG Paeth on all rows)
-                            // initial estimate
-                            $p = $row_left + $row_up - $row_upleft;
-                            // distances
-                            $pa = \abs($p - $row_left);
-                            $pb = \abs($p - $row_up);
-                            $pc = \abs($p - $row_upleft);
-                            $pmin = \min($pa, $pb, $pc);
-                            // return minimum distance
-                            switch ($pmin) {
-                                case $pa:
-                                    $ddata[$k][$j] = $row[$i] + $row_left & 0xff;
-                                    break;
-                                case $pb:
-                                    $ddata[$k][$j] = $row[$i] + $row_up & 0xff;
-                                    break;
-                                case $pc:
-                                    $ddata[$k][$j] = $row[$i] + $row_upleft & 0xff;
-                                    break;
-                            }
-                            break;
-                        default:
-                            // PNG prediction (on encoding, PNG optimum)
-                            throw new \Exception('Unknown PNG predictor');
-                    }
+                    $prev_row = $ddata[$k];
                 }
-                $prev_row = $ddata[$k];
+                // end for each row
+                // complete decoding
+            } else {
+                // number of bytes in a row
+                $rowlen = \array_sum($wb);
+                // convert the stream into an array of integers
+                $sdata = \unpack('C*', $xrefcrs[1][3][0]);
+                // split the rows
+                $ddata = \array_chunk($sdata, $rowlen);
             }
-            // end for each row
-            // complete decoding
             $sdata = [];
             // for every row
             foreach ($ddata as $k => $row) {
@@ -371,10 +396,10 @@ class RawDataParser
                     }
                 }
             }
-            $ddata = [];
             // fill xref
-            if (isset($index_first)) {
-                $obj_num = $index_first;
+            if (isset($index_blocks)) {
+                // load the first object number of the first /Index entry
+                $obj_num = $index_blocks[0][0];
             } else {
                 $obj_num = 0;
             }
@@ -405,6 +430,21 @@ class RawDataParser
                         break;
                 }
                 ++$obj_num;
+                if (isset($index_blocks)) {
+                    // reduce the number of remaining objects
+                    --$index_blocks[0][1];
+                    if (0 == $index_blocks[0][1]) {
+                        // remove the actual used /Index entry
+                        \array_shift($index_blocks);
+                        if (0 < \count($index_blocks)) {
+                            // load the first object number of the following /Index entry
+                            $obj_num = $index_blocks[0][0];
+                        } else {
+                            // if there are no more entries, remove $index_blocks to avoid actions on an empty array
+                            unset($index_blocks);
+                        }
+                    }
+                }
             }
         }
         // end decoding data
@@ -414,20 +454,30 @@ class RawDataParser
         }
         return $xref;
     }
+    protected function getObjectHeaderPattern(array $objRefs) : string
+    {
+        // consider all whitespace character (PDF specifications)
+        return '/' . $objRefs[0] . $this->config->getPdfWhitespacesRegex() . $objRefs[1] . $this->config->getPdfWhitespacesRegex() . 'obj/';
+    }
+    protected function getObjectHeaderLen(array $objRefs) : int
+    {
+        // "4 0 obj"
+        // 2 whitespaces + strlen("obj") = 5
+        return 5 + \strlen($objRefs[0]) + \strlen($objRefs[1]);
+    }
     /**
      * Get content of indirect object.
      *
      * @param string $pdfData  PDF data
-     * @param array  $xref
      * @param string $objRef   Object number and generation number separated by underscore character
      * @param int    $offset   Object offset
      * @param bool   $decoding If true decode streams
      *
      * @return array containing object data
      *
-     * @throws Exception if invalid object reference found
+     * @throws \Exception if invalid object reference found
      */
-    protected function getIndirectObject($pdfData, $xref, $objRef, $offset = 0, $decoding = \true)
+    protected function getIndirectObject(string $pdfData, array $xref, string $objRef, int $offset = 0, bool $decoding = \true) : array
     {
         /*
          * build indirect object header
@@ -437,15 +487,15 @@ class RawDataParser
         if (2 !== \count($objRefArr)) {
             throw new \Exception('Invalid object reference for $obj.');
         }
-        $objHeader = $objRefArr[0] . ' ' . $objRefArr[1] . ' obj';
+        $objHeaderLen = $this->getObjectHeaderLen($objRefArr);
         /*
          * check if we are in position
          */
-        // ignore whitespace characters at offset (NUL, HT, LF, FF, CR, SP)
-        $offset += \strspn($pdfData, "\0\t\n\f\r ", $offset);
+        // ignore whitespace characters at offset
+        $offset += \strspn($pdfData, $this->config->getPdfWhitespaces(), $offset);
         // ignore leading zeros for object number
         $offset += \strspn($pdfData, '0', $offset);
-        if (\substr($pdfData, $offset, \strlen($objHeader)) !== $objHeader) {
+        if (0 == \preg_match($this->getObjectHeaderPattern($objRefArr), \substr($pdfData, $offset, $objHeaderLen))) {
             // an indirect reference to an undefined object shall be considered a reference to the null object
             return ['null', 'null', $offset];
         }
@@ -453,7 +503,7 @@ class RawDataParser
          * get content
          */
         // starting position of object content
-        $offset += \strlen($objHeader);
+        $offset += $objHeaderLen;
         $objContentArr = [];
         $i = 0;
         // object main index
@@ -484,9 +534,9 @@ class RawDataParser
      *
      * @return array containing object data
      *
-     * @throws Exception
+     * @throws \Exception
      */
-    protected function getObjectVal($pdfData, $xref, $obj)
+    protected function getObjectVal(string $pdfData, $xref, array $obj) : array
     {
         if ('objref' == $obj[0]) {
             // reference to indirect object
@@ -508,22 +558,14 @@ class RawDataParser
      *
      * @return array containing object type, raw value and offset to next object
      */
-    protected function getRawObject($pdfData, $offset = 0)
+    protected function getRawObject(string $pdfData, int $offset = 0) : array
     {
         $objtype = '';
         // object type to be returned
         $objval = '';
         // object value to be returned
-        /*
-         * skip initial white space chars:
-         *      \x00 null (NUL)
-         *      \x09 horizontal tab (HT)
-         *      \x0A line feed (LF)
-         *      \x0C form feed (FF)
-         *      \x0D carriage return (CR)
-         *      \x20 space (SP)
-         */
-        $offset += \strspn($pdfData, "\0\t\n\f\r ", $offset);
+        // skip initial white space chars
+        $offset += \strspn($pdfData, $this->config->getPdfWhitespaces(), $offset);
         // get first char
         $char = $pdfData[$offset];
         // get object type
@@ -596,11 +638,12 @@ class RawDataParser
                     // get array content
                     $objval = [];
                     do {
+                        $oldOffset = $offset;
                         // get element
                         $element = $this->getRawObject($pdfData, $offset);
                         $offset = $element[2];
                         $objval[] = $element;
-                    } while (']' != $element[0]);
+                    } while (']' != $element[0] && $offset != $oldOffset);
                     // remove closing delimiter
                     \array_pop($objval);
                 }
@@ -617,11 +660,12 @@ class RawDataParser
                         // get array content
                         $objval = [];
                         do {
+                            $oldOffset = $offset;
                             // get element
                             $element = $this->getRawObject($pdfData, $offset);
                             $offset = $element[2];
                             $objval[] = $element;
-                        } while ('>>' != $element[0]);
+                        } while ('>>' != $element[0] && $offset != $oldOffset);
                         // remove closing delimiter
                         \array_pop($objval);
                     }
@@ -632,7 +676,7 @@ class RawDataParser
                     $pregResult = \preg_match('/^([0-9A-Fa-f\\x09\\x0a\\x0c\\x0d\\x20]+)>/iU', \substr($pdfData, $offset), $matches);
                     if ('<' == $char && 1 == $pregResult) {
                         // remove white space characters
-                        $objval = \strtr($matches[1], "\t\n\f\r ", '');
+                        $objval = \strtr($matches[1], $this->config->getPdfWhitespaces(), '');
                         $offset += \strlen($matches[0]);
                     } elseif (\false !== ($endpos = \strpos($pdfData, '>', $offset))) {
                         $offset = $endpos + 1;
@@ -698,16 +742,15 @@ class RawDataParser
     /**
      * Get Cross-Reference (xref) table and trailer data from PDF document data.
      *
-     * @param string $pdfData
-     * @param int    $offset  xref offset (if know)
-     * @param array  $xref    previous xref array (if any)
+     * @param int   $offset xref offset (if known)
+     * @param array $xref   previous xref array (if any)
      *
      * @return array containing xref and trailer data
      *
-     * @throws Exception if it was unable to find startxref
-     * @throws Exception if it was unable to find xref
+     * @throws \Exception if it was unable to find startxref
+     * @throws \Exception if it was unable to find xref
      */
-    protected function getXrefData($pdfData, $offset = 0, $xref = [])
+    protected function getXrefData(string $pdfData, int $offset = 0, array $xref = []) : array
     {
         $startxrefPreg = \preg_match('/[\\r\\n]startxref[\\s]*[\\r\\n]+([0-9]+)[\\s]*[\\r\\n]+%%EOF/i', $pdfData, $matches, \PREG_OFFSET_CAPTURE, $offset);
         if (0 == $offset) {
@@ -753,10 +796,10 @@ class RawDataParser
      *
      * @return array array of parsed PDF document objects
      *
-     * @throws Exception if empty PDF data given
-     * @throws Exception if PDF data missing %PDF header
+     * @throws \Exception if empty PDF data given
+     * @throws \Exception if PDF data missing %PDF header
      */
-    public function parseData($data)
+    public function parseData(string $data) : array
     {
         if (empty($data)) {
             throw new \Exception('Empty PDF data given.');

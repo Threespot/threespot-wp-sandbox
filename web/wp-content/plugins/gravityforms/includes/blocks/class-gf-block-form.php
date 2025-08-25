@@ -32,20 +32,27 @@ class GF_Block_Form extends GF_Block {
 	public $script_handle = 'gform_editor_block_form';
 
 	/**
-	 * Block attributes.
+	 * Handle of primary block style.
 	 *
-	 * @since 2.4.10
-	 * @var   array
+	 * @since 2.5.6
+	 * @var   string
 	 */
-	public $attributes = array(
-		'formId'      => array( 'type' => 'integer' ),
-		'title'       => array( 'type' => 'boolean' ),
-		'description' => array( 'type' => 'boolean' ),
-		'ajax'        => array( 'type' => 'boolean' ),
-		'tabindex'    => array( 'type' => 'string' ),
-		'fieldValues' => array( 'type' => 'string' ),
-		'formPreview' => array( 'type' => 'boolean' ),
-	);
+	public $style_handle = 'gform_editor_block_form';
+
+	public function __construct() {
+		$this->assign_attributes();
+	}
+
+	private function assign_attributes() {
+		$default_attributes = GFForms::get_service_container()->get( \Gravity_Forms\Gravity_Forms\Blocks\GF_Blocks_Service_Provider::FORM_BLOCK_ATTRIBUTES );
+		$attributes         = apply_filters( 'gform_form_block_attributes', $default_attributes );
+
+		array_walk( $attributes, function ( &$value ) {
+			$value = array( 'type' => $value['type'] );
+		} );
+
+		$this->attributes = $attributes;
+	}
 
 	/**
 	 * Get instance of this class.
@@ -57,7 +64,7 @@ class GF_Block_Form extends GF_Block {
 	public static function get_instance() {
 
 		if ( null === self::$_instance ) {
-			self::$_instance = new self;
+			self::$_instance = new self();
 		}
 
 		return self::$_instance;
@@ -65,9 +72,17 @@ class GF_Block_Form extends GF_Block {
 	}
 
 
-
-
 	// # SCRIPT / STYLES -----------------------------------------------------------------------------------------------
+	public function register_block_assets() {
+		parent::register_block_assets();
+		if ( function_exists( 'wp_enqueue_block_style' ) && is_admin() ) {
+			wp_enqueue_block_style( $this->type, array( 'handle' => 'gravity_forms_theme_reset' ) );
+			wp_enqueue_block_style( $this->type, array( 'handle' => 'gravity_forms_theme_foundation' ) );
+			wp_enqueue_block_style( $this->type, array( 'handle' => 'gravity_forms_theme_framework' ) );
+			wp_enqueue_block_style( $this->type, array( 'handle' => 'gravity_forms_orbital_theme' ) );
+		}
+	}
+
 
 	/**
 	 * Register scripts for block.
@@ -77,19 +92,7 @@ class GF_Block_Form extends GF_Block {
 	 * @return array
 	 */
 	public function scripts() {
-
-		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || isset( $_GET['gform_debug'] ) ? '' : '.min';
-
-		return array(
-			array(
-				'handle'   => $this->script_handle,
-				'src'      => GFCommon::get_base_url() . "/js/blocks{$min}.js",
-				'deps'     => array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-i18n', 'wp-editor' ),
-				'version'  => $min ? GFForms::$version : filemtime( GFCommon::get_base_path() . '/js/blocks.js' ),
-				'callback' => array( $this, 'localize_script' ),
-			),
-		);
-
+		return array();
 	}
 
 	/**
@@ -105,7 +108,9 @@ class GF_Block_Form extends GF_Block {
 			$script['handle'],
 			'gform_block_form',
 			array(
-				'forms' => $this->get_forms(),
+				'adminURL' => admin_url( 'admin.php' ),
+				'forms'    => $this->get_forms(),
+				'preview'  => GFCommon::get_base_url() . '/images/gf_block_preview.svg',
 			)
 		);
 
@@ -128,16 +133,31 @@ class GF_Block_Form extends GF_Block {
 		$deps = array( 'wp-edit-blocks' );
 
 		// Add Gravity Forms styling if CSS is enabled.
-		if ( '1' !== get_option( 'rg_gforms_disable_css', false ) ) {
-			$deps = array_merge( $deps, array( 'gforms_formsmain_css', 'gforms_ready_class_css', 'gforms_browsers_css' ) );
+		if ( ! GFCommon::is_frontend_default_css_disabled() ) {
+			$deps = array_merge( $deps, array( 'gforms_reset_css', 'gform_basic', 'gforms_formsmain_css', 'gforms_ready_class_css', 'gforms_browsers_css', 'gform_theme' ) );
+
+			/**
+			 * Allows users to disable the main theme.css file from being loaded on the Front End.
+			 *
+			 * @since 2.5-beta-3
+			 *
+			 * @param boolean Whether to disable the theme css.
+			 */
+			$disable_theme_css = apply_filters( 'gform_disable_form_theme_css', false );
+
+			if ( ! $disable_theme_css ) {
+				$deps[] = 'gform_theme';
+			}
 		}
+
+		$dev_min = defined( 'GF_SCRIPT_DEBUG' ) && GF_SCRIPT_DEBUG ? '' : '.min';
 
 		return array(
 			array(
-				'handle'  => 'gform_editor_block_form',
-				'src'     => GFCommon::get_base_url() . '/css/blocks.min.css',
+				'handle'  => $this->style_handle,
+				'src'     => GFCommon::get_base_url() . "/assets/css/dist/blocks{$dev_min}.css",
 				'deps'    => $deps,
-				'version' => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( GFCommon::get_base_path() . '/css/blocks.min.css' ) : GFForms::$version,
+				'version' => defined( 'GF_SCRIPT_DEBUG' ) && GF_SCRIPT_DEBUG ? filemtime( GFCommon::get_base_path() . "/assets/css/dist/blocks{$dev_min}.css" ) : GFForms::$version,
 			),
 		);
 
@@ -156,6 +176,7 @@ class GF_Block_Form extends GF_Block {
 	 * @return string
 	 */
 	public function render_block( $attributes = array() ) {
+		GFForms::get_service_container()->get( 'block_attributes' )->store( $attributes );
 
 		// Prepare variables.
 		$form_id      = rgar( $attributes, 'formId' ) ? $attributes['formId'] : false;
@@ -163,7 +184,7 @@ class GF_Block_Form extends GF_Block {
 		$description  = isset( $attributes['description'] ) ? $attributes['description'] : true;
 		$ajax         = isset( $attributes['ajax'] ) ? $attributes['ajax'] : false;
 		$tabindex     = isset( $attributes['tabindex'] ) ? intval( $attributes['tabindex'] ) : 0;
-		$field_values = isset( $attributes['fieldValues'] ) ? $attributes['fieldValues'] : null;
+		$field_values = isset( $attributes['fieldValues'] ) ? $attributes['fieldValues'] : '';
 
 		// If form ID was not provided or form does not exist, return.
 		if ( ! $form_id || ( $form_id && ! GFAPI::get_form( $form_id ) ) ) {
@@ -184,7 +205,7 @@ class GF_Block_Form extends GF_Block {
 			}
 
 			// Get form output string.
-			$form_string = gravity_form( $form_id, $title, $description, false, $field_values, $ajax, $tabindex, false );
+			$form_string = gravity_form( $form_id, $title, $description, false, $field_values, $ajax, $tabindex, false, rgar( $attributes, 'theme' ), json_encode( $attributes ) );
 
 			// Get output buffer contents.
 			$buffer_contents = ob_get_contents();
@@ -196,55 +217,17 @@ class GF_Block_Form extends GF_Block {
 		}
 
 		// Encode field values.
-		$field_values = htmlspecialchars( $field_values );
-		$field_values = str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), $field_values );
+		$field_values = htmlspecialchars_decode( $field_values );
+		$field_values = str_replace( array( '&#038;', '&#091;', '&#093;' ), array( '&', '[', ']' ), $field_values );
+		parse_str( $field_values, $field_value_array ); //parsing query string like string for field values and placing them into an associative array
+		$field_values = stripslashes_deep( $field_value_array );
 
-		// If no field values are set, set field values to null.
-		parse_str( $field_values, $field_value_array );
-		if ( empty( $field_value_array ) ) {
-			$field_values = null;
+		// If no field values are set, set field values to an empty string
+		if ( empty( $field_values ) ) {
+			$field_values = '';
 		}
 
-		return sprintf( '[gravityforms id="%d" title="%s" description="%s" ajax="%s" tabindex="%d" field_values="%s"]', $form_id, ( $title ? 'true' : 'false' ), ( $description ? 'true' : 'false' ), ( $ajax ? 'true' : 'false' ), $tabindex, $field_values );
-
-	}
-
-
-
-
-
-	// # HELPER METHODS ------------------------------------------------------------------------------------------------
-
-	/**
-	 * Get list of forms for Block control.
-	 *
-	 * @since 2.4.10
-	 *
-	 * @return array
-	 */
-	public function get_forms() {
-
-		// Initialize forms array.
-		$forms = array();
-
-		// Load GFFormDisplay class.
-		if ( ! class_exists( 'GFFormDisplay' ) ) {
-			require_once GFCommon::get_base_path() . '/form_display.php';
-		}
-
-		// Get form objects.
-		$form_objects = GFAPI::get_forms();
-
-		// Loop through forms, add conditional logic check.
-		foreach ( $form_objects as $form ) {
-			$forms[] = array(
-				'id'                  => $form['id'],
-				'title'               => $form['title'],
-				'hasConditionalLogic' => GFFormDisplay::has_conditional_logic( $form ),
-			);
-		}
-
-		return $forms;
+		return gravity_form( $form_id, $title, $description, false, $field_values, $ajax, $tabindex, false, rgar( $attributes, 'theme' ), json_encode( $attributes ) );
 
 	}
 

@@ -1,0 +1,31 @@
+## 1.6.0 | 2024-07-30
+- Added support for the upcoming gform/submission/pre_submission filter that will be released with Gravity Forms 2.9.
+
+## 1.5.0 | 2024-04-30
+- Fixed an issue where duplicate entries are created when using Conversational Forms with reCAPTCHA v3.
+- Fixed an issue where form submission hangs after Stripe 3DS validation.
+- Fixed an issue where all REST API submissions are marked as spam.
+- Note: If used alongside the Stripe Add-On, this version of the reCAPTCHA Add-On requires version 5.5.0 or later of the Stripe Add-On.
+
+## 1.4.0 | 2024-01-17
+- Fixed an issue where reCaptcha v3 validation is not triggered when using the Stripe Payment Element.
+- Fixed the PHP 8.2 creation of dynamic property deprecation notice that occurs on form submission.
+
+## 1.3.0 | 2023-11-09
+- Fixed an issue where a JavaScript error can occur on the front-end if the page also includes custom or third-party forms.
+- Fixed an issue where the v3 settings aren't populated by the GF_RECAPTCHA_V3_SITE_KEY and GF_RECAPTCHA_V3_SECRET_KEY constants.
+
+## 1.2.0 | 2023-08-31
+- Updated the reCAPTCHA settings link for the Captcha field "To use the reCAPTCHA field" message in the form editor.
+- Fixed an issue where reCAPTCHA fails validation when using the Stripe Payment Element.
+- Fixed an issue that causes the scripts for the frontend to not be available in production mode when compiled by Webpack.
+- Fixed an issue where scripts are sometimes missing dependencies, and sometimes getting loaded unnecessarily.
+
+## 1.1 | 2021-07-21
+- Fixed an issue where an undefined variable notice appears on the add-on settings page.
+- Fixed an issue where forms can fail validation if they include dynamically added fields such as the honeypot.
+- Fixed an issue where the reCAPTCHA response is saved and output by merge tags.
+- Fixed an issue where submissions from the User Registration Add-On login form are blocked.
+
+## 1.0 | 2021-06-23
+- It's all new!

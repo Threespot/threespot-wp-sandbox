@@ -1,0 +1,32 @@
+.searchwp-diagnostics-results-display {
+    margin-top: 20px;
+}
+
+.searchwp-diagnostics-results-display ul {
+	display: flex;
+	flex-wrap: wrap;
+	list-style: none;
+	margin: 1em 0 0;
+	padding: 0;
+}
+
+.searchwp-diagnostics-results-display li {
+	font-family: monospace;
+	width: 25%;
+}
+
+.searchwp-diagnostics-results-display li:last-child {
+    margin-bottom: 0;
+}
+
+.searchwp-diagnostics-results-display {
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.searchwp-diagnostics-indexed-tokens .swp-flex--row{
+	flex-grow: initial;
+}

@@ -17,14 +17,16 @@ use SearchWP\Dependencies\Monolog\Logger;
  *
  * @author Christophe Coevoet <stof@notk.org>
  */
-class ChromePHPFormatter implements \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+class ChromePHPFormatter implements FormatterInterface
 {
     /**
      * Translates Monolog log levels to Wildfire levels.
+     *
+     * @var array<int, 'log'|'info'|'warn'|'error'>
      */
-    private $logLevels = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => 'log', \SearchWP\Dependencies\Monolog\Logger::INFO => 'info', \SearchWP\Dependencies\Monolog\Logger::NOTICE => 'info', \SearchWP\Dependencies\Monolog\Logger::WARNING => 'warn', \SearchWP\Dependencies\Monolog\Logger::ERROR => 'error', \SearchWP\Dependencies\Monolog\Logger::CRITICAL => 'error', \SearchWP\Dependencies\Monolog\Logger::ALERT => 'error', \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => 'error'];
+    private $logLevels = [Logger::DEBUG => 'log', Logger::INFO => 'info', Logger::NOTICE => 'info', Logger::WARNING => 'warn', Logger::ERROR => 'error', Logger::CRITICAL => 'error', Logger::ALERT => 'error', Logger::EMERGENCY => 'error'];
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function format(array $record)
     {
@@ -47,7 +49,7 @@ class ChromePHPFormatter implements \SearchWP\Dependencies\Monolog\Formatter\For
         return [$record['channel'], $message, $backtrace, $this->logLevels[$record['level']]];
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function formatBatch(array $records)
     {

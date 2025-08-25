@@ -3,11 +3,11 @@
 Plugin Name: SearchWP Boolean Query
 Plugin URI: https://searchwp.com/
 Description: Implements support for boolean operators in searches (e.g. terms preceeded with a direct hyphen (no white space) or <code>NOT</code>)
-Version: 1.4.1
+Version: 1.4.3
 Author: SearchWP
 Author URI: https://searchwp.com/
 
-Copyright 2013-2020 SearchWP
+Copyright 2013-2024 SearchWP, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'SEARCHWP_BOOLEAN_VERSION' ) ) {
-	define( 'SEARCHWP_BOOLEAN_VERSION', '1.4.1' );
+	define( 'SEARCHWP_BOOLEAN_VERSION', '1.4.3' );
 }
 
 /**
@@ -89,6 +89,7 @@ class SearchWPBooleanQuery {
 		add_filter( 'searchwp_exclude', array( $this, 'exclude_excluded' ), 10, 1 );
 
 		// SearchWP 4.0 compat.
+		add_action( 'searchwp\query\search_string', array( $this, 'parse_search_query' ), 4, 1 );
 		add_action( 'searchwp\query\mods', array( $this, 'exclude' ), 10, 2 );
 	}
 
@@ -96,14 +97,14 @@ class SearchWPBooleanQuery {
 	function exclude( $mods, $query ) {
 		global $wpdb;
 
-		$this->parse_search_query( $query->get_keywords() );
-
 		if ( ! is_array( $this->excludeTerms ) || empty( $this->excludeTerms ) ) {
 			return $mods;
 		}
 
-		$tokens = new \SearchWP\Tokens( $this->excludeTerms );
-		$token_ids = $tokens->map_index_ids();
+		$tokens    = new \SearchWP\Tokens( $this->excludeTerms );
+		$token_ids = method_exists( $tokens, 'map_index_ids' ) ?
+			$tokens->map_index_ids() :
+			\SearchWP\Utils::map_token_ids( $tokens->get() );
 
 		$index        = new \SearchWP\Index\Controller();
 		$index_tables = $index->get_tables();

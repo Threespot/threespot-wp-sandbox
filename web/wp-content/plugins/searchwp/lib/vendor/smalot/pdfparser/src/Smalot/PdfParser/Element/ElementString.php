@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -35,30 +37,20 @@ use SearchWP\Dependencies\Smalot\PdfParser\Font;
 /**
  * Class ElementString
  */
-class ElementString extends \SearchWP\Dependencies\Smalot\PdfParser\Element
+class ElementString extends Element
 {
-    /**
-     * @param string $value
-     */
     public function __construct($value)
     {
         parent::__construct($value, null);
     }
-    /**
-     * @return bool
-     */
-    public function equals($value)
+    public function equals($value) : bool
     {
         return $value == $this->value;
     }
     /**
-     * @param string   $content
-     * @param Document $document
-     * @param int      $offset
-     *
      * @return bool|ElementString
      */
-    public static function parse($content, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null, &$offset = 0)
+    public static function parse(string $content, ?Document $document = null, int &$offset = 0)
     {
         if (\preg_match('/^\\s*\\((?P<name>.*)/s', $content, $match)) {
             $name = $match['name'];
@@ -78,10 +70,10 @@ class ElementString extends \SearchWP\Dependencies\Smalot\PdfParser\Element
             // 2 for '(' and ')'
             $name = \str_replace(['\\\\', '\\ ', '\\/', '\\(', '\\)', '\\n', '\\r', '\\t'], ['\\', ' ', '/', '(', ')', "\n", "\r", "\t"], $name);
             // Decode string.
-            $name = \SearchWP\Dependencies\Smalot\PdfParser\Font::decodeOctal($name);
-            $name = \SearchWP\Dependencies\Smalot\PdfParser\Font::decodeEntities($name);
-            $name = \SearchWP\Dependencies\Smalot\PdfParser\Font::decodeHexadecimal($name, \false);
-            $name = \SearchWP\Dependencies\Smalot\PdfParser\Font::decodeUnicode($name);
+            $name = Font::decodeOctal($name);
+            $name = Font::decodeEntities($name);
+            $name = Font::decodeHexadecimal($name, \false);
+            $name = Font::decodeUnicode($name);
             return new self($name);
         }
         return \false;

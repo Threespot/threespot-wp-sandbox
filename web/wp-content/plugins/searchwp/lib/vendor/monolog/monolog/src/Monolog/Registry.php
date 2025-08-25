@@ -49,12 +49,13 @@ class Registry
      * @param  string|null               $name      Name of the logging channel ($logger->getName() by default)
      * @param  bool                      $overwrite Overwrite instance in the registry if the given name already exists?
      * @throws \InvalidArgumentException If $overwrite set to false and named Logger instance already exists
+     * @return void
      */
-    public static function addLogger(\SearchWP\Dependencies\Monolog\Logger $logger, ?string $name = null, bool $overwrite = \false)
+    public static function addLogger(Logger $logger, ?string $name = null, bool $overwrite = \false)
     {
         $name = $name ?: $logger->getName();
         if (isset(self::$loggers[$name]) && !$overwrite) {
-            throw new \InvalidArgumentException('Logger with the given name already exists');
+            throw new InvalidArgumentException('Logger with the given name already exists');
         }
         self::$loggers[$name] = $logger;
     }
@@ -65,7 +66,7 @@ class Registry
      */
     public static function hasLogger($logger) : bool
     {
-        if ($logger instanceof \SearchWP\Dependencies\Monolog\Logger) {
+        if ($logger instanceof Logger) {
             $index = \array_search($logger, self::$loggers, \true);
             return \false !== $index;
         }
@@ -78,7 +79,7 @@ class Registry
      */
     public static function removeLogger($logger) : void
     {
-        if ($logger instanceof \SearchWP\Dependencies\Monolog\Logger) {
+        if ($logger instanceof Logger) {
             if (\false !== ($idx = \array_search($logger, self::$loggers, \true))) {
                 unset(self::$loggers[$idx]);
             }
@@ -99,10 +100,10 @@ class Registry
      * @param  string                    $name Name of the requested Logger instance
      * @throws \InvalidArgumentException If named Logger instance is not in the registry
      */
-    public static function getInstance($name) : \SearchWP\Dependencies\Monolog\Logger
+    public static function getInstance($name) : Logger
     {
         if (!isset(self::$loggers[$name])) {
-            throw new \InvalidArgumentException(\sprintf('Requested "%s" logger instance is not in the registry', $name));
+            throw new InvalidArgumentException(\sprintf('Requested "%s" logger instance is not in the registry', $name));
         }
         return self::$loggers[$name];
     }
@@ -110,7 +111,7 @@ class Registry
      * Gets Logger instance from the registry via static method call
      *
      * @param  string                    $name      Name of the requested Logger instance
-     * @param  array                     $arguments Arguments passed to static method call
+     * @param  mixed[]                   $arguments Arguments passed to static method call
      * @throws \InvalidArgumentException If named Logger instance is not in the registry
      * @return Logger                    Requested instance of Logger
      */

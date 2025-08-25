@@ -9,7 +9,9 @@
 
 namespace SearchWP;
 
+use SearchWP\Debug\Watcher;
 use SearchWP\Mod;
+use SearchWP\Support\Arr;
 use SearchWP\Utils;
 use SearchWP\Entry;
 use SearchWP\Engine;
@@ -24,8 +26,26 @@ use SearchWP\Logic\PhraseLimiter;
  * @since 4.0
  */
 class Query {
+
+	/**
+	 * Unique query id.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @var string
+	 */
+	private $id;
+
 	/**
 	 * The submitted search string.
+	 *
+	 * @since 4.1.20
+	 * @var string
+	 */
+	private $keywords_orig;
+
+	/**
+	 * The submitted search string with modifications.
 	 *
 	 * @since 4.0
 	 * @var string
@@ -71,6 +91,24 @@ class Query {
 	 * @var float
 	 */
 	public $query_time;
+
+	/**
+	 * Execution time (in seconds) the full search process took to run.
+	 *
+	 * @since 4.3.18
+	 *
+	 * @var float
+	 */
+	public $execution_time;
+
+	/**
+	 * The total results of this search.
+	 *
+	 * @since 4.3.18
+	 *
+	 * @var array
+	 */
+	private $total_results = [];
 
 	/**
 	 * The results of this search.
@@ -185,6 +223,15 @@ class Query {
 	private $algorithm_logic_passes = [ 'or' ];
 
 	/**
+	 * The debugging data for the query.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @var array
+	 */
+	private $debug_data = [];
+
+	/**
 	 * Query constructor.
 	 *
 	 * @since 4.0
@@ -198,21 +245,25 @@ class Query {
 			do_action( 'searchwp\debug\log', 'Query instantiated before wp_loaded', 'query' );
 			$this->errors[] = new \WP_Error(
 				'init',
-				__( '\\SearchWP\\Query cannot be instaniated until the wp_loaded action has fired.','searchwp' )
+				__( '\\SearchWP\\Query cannot be instantiated until the wp_loaded action has fired.','searchwp' )
 			);
 		} elseif ( empty( Settings::get_engines() ) ) {
 			do_action( 'searchwp\debug\log', 'Query instantiated before initial settings have been saved', 'query' );
 			$this->errors[] = new \WP_Error(
 				'init',
-				__( '\\SearchWP\\Query cannot be instaniated until the initial settings have been saved.','searchwp' )
+				__( '\\SearchWP\\Query cannot be instantiated until the initial settings have been saved.','searchwp' )
 			);
 		} else {
-			$time_start  = microtime( true );
+			$time_start = microtime( true );
+
 			$this->index = \SearchWP::$index;
 
 			// Allow for filtration of the search string.
-			$search = (string) apply_filters( 'searchwp\query\search_string', $search, $this );
-			$this->keywords = Utils::decode_string( $search );
+			$this->keywords_orig = Utils::decode_string( $search );
+
+			$this->set_debug_data( 'string.filter.before', $this->keywords_orig );
+			$this->keywords = (string) apply_filters( 'searchwp\query\search_string', $this->keywords_orig, $this );
+			$this->set_debug_data( 'string.filter.after', $this->keywords );
 
 			do_action( 'searchwp\debug\log', "Query for: {$this->keywords}", 'query' );
 
@@ -223,9 +274,11 @@ class Query {
 			$this->run();
 			do_action( 'searchwp\query\after', $this );
 
-			$this->query_time = number_format( microtime( true ) - $time_start, 5 );
+			$this->set_debug_data( 'query.relevance', $this->get_debug_relevance_data() );
 
-			do_action( 'searchwp\debug\log', "Execution time: {$this->query_time}", 'query' );
+			$this->execution_time = number_format( microtime( true ) - $time_start, 5 );
+
+			do_action( 'searchwp\debug\log', "Execution time: {$this->execution_time}", 'query' ); // phpcs:ignore WPForms.Comments.PHPDocHooks.RequiredHookDocumentation
 		}
 	}
 
@@ -237,6 +290,7 @@ class Query {
 	 * @return void
 	 */
 	public function setup( array $args = [] ) {
+		$this->set_id();
 		$this->set_placeholder();
 		$this->set_args( $args );
 		$this->set_engine();
@@ -258,6 +312,30 @@ class Query {
 	}
 
 	/**
+	 * Sets the unique id for the query.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @return void
+	 */
+	private function set_id() {
+
+		$this->id = substr( Utils::get_random_hash(), 0, 7 );
+	}
+
+	/**
+	 * Gets the unique query id.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @return string
+	 */
+	public function get_id() {
+
+		return $this->id;
+	}
+
+	/**
 	 * Sets the placeholder to be used with LIKE clauses.
 	 *
 	 * @since 4.0
@@ -271,7 +349,7 @@ class Query {
 	 * Gets the placeholder to be used with LIKE clauses.
 	 *
 	 * @since 4.1
-	 * @return void
+	 * @return string
 	 */
 	public function get_placeholder() {
 		return $this->placeholder;
@@ -307,7 +385,7 @@ class Query {
 		$defaults = [
 			'engine'   => 'default',
 			'mods'     => [],
-			'site'     => [ get_current_blog_id() ],
+			'site'     => is_multisite() ? [ get_current_blog_id() ] : 'all',
 			'per_page' => get_option( 'posts_per_page' ),
 			'page'     => get_query_var( 'paged', 1 ),
 			'offset'   => 0,
@@ -322,6 +400,14 @@ class Query {
 
 		if ( ! in_array( (string) $this->args['fields'], [ 'default', 'ids', 'all', 'entries' ] ) ) {
 			$this->args['fields'] = 'default';
+		}
+
+		if (
+			is_array( $this->args['site'] )
+			&& 1 === count( $this->args['site'] )
+			&& in_array( 'all', $this->args['site'], true )
+		) {
+			$this->args['site'] = 'all';
 		}
 
 		if ( 'all' !== $this->args['site'] ) {
@@ -371,7 +457,7 @@ class Query {
 			}
 		}
 
-		if ( $engine && empty( $engine->errors ) ) {
+		if ( $engine && empty( $engine->get_errors() ) ) {
 			$this->engine = $engine;
 
 			do_action( 'searchwp\debug\log', "Engine: {$this->engine->get_name()}", 'query' );
@@ -398,11 +484,19 @@ class Query {
 		// an additional safety net to have in case database records were edited manually.
 		// We can only apply this limit if we are searching the current site only.
 		if (
-			is_array( $this->args['site'] )
-			&& 1 === count( $this->args['site'] )
-			&& isset( $this->args['site'][0] )
-			&& get_current_blog_id() == $this->args['site'][0]
-			&& apply_filters( 'searchwp\query\do_source_db_where', true, $this )
+			apply_filters( 'searchwp\query\do_source_db_where', true, $this )
+			&& (
+				(
+					$this->args['site'] === 'all'
+					&& ! is_multisite()
+				)
+				|| (
+					is_array( $this->args['site'] )
+					&& count( $this->args['site'] ) === 1
+					&& isset( $this->args['site'][0] )
+					&& $this->args['site'][0] == get_current_blog_id()
+				)
+			)
 		) {
 			$this->set_core_mods();
 		} else {
@@ -560,9 +654,9 @@ class Query {
 	 * @since 4.0
 	 * @return array The clauses.
 	 */
-	private function weight_calc_sql() {
-		$weights = array_filter( array_map( function( $mod ) {
-			$weights = $mod->get_weights();
+	private function weight_calc_sql( $relevance = false ) {
+		$weights = array_filter( array_map( function( $mod ) use ( $relevance ) {
+			$weights = $relevance ? $mod->get_relevances() : $mod->get_weights();
 			if ( empty( $weights ) ) {
 				return false;
 			}
@@ -608,21 +702,25 @@ class Query {
 	public function run() {
 		global $wpdb;
 
-		// If there's nothing to search, there's nothing to do!
-		if ( ! empty( $this->engine ) && ! empty( $this->engine->get_sources() ) && ! empty( $this->tokens ) ) {
+		// Empty tokens are permitted only if the search string was empty as well.
+		$has_valid_tokens = ! ( ! empty( $this->keywords_orig ) && empty( $this->tokens ) );
+
+		if ( ! empty( $this->engine ) && ! empty( $this->engine->get_sources() ) && $has_valid_tokens ) {
 			// Build the base query and process query values.
 			$query = $this->build();
 			$this->process_values();
 
 			// Find search results.
-			$this->raw_results   = $this->find_results( $query );
+			$this->total_results = $this->find_results( $query );
+			$this->raw_results   = $this->limit_results( $this->total_results );
 			$this->sql           = preg_replace( '/[\n\t\r]{1,}/m', ' ', $wpdb->last_query );
-			$this->found_results = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+			$this->found_results = count( $this->total_results );
 			$this->max_num_pages = $this->args['per_page'] < 1 ? 1 : ceil( $this->found_results / $this->args['per_page'] );
 
 			// Maybe load native Source Entry objects.
 			$results = $this->raw_results;
 			$fields  = $this->args['fields'];
+
 			if ( 'entries' === $fields || 'all' === $fields || 'ids' === $fields ) {
 				$current_site_id = get_current_blog_id();
 				$results = array_map( function( $result ) use ( $current_site_id, $fields ) {
@@ -667,10 +765,63 @@ class Query {
 		}
 
 		if ( ! empty( $this->engine ) && ! empty( $this->engine->get_sources() ) ) {
-			do_action( 'searchwp\debug\log', "Request: {$this->sql}", 'query' );
-			do_action( 'searchwp\debug\log', "Results: {$this->found_results} Pages of results: {$this->max_num_pages}", 'query' );
+			do_action( 'searchwp\debug\log', "Request: {$this->sql}", 'query' ); // phpcs:ignore WPForms.Comments.PHPDocHooks
+			do_action( 'searchwp\debug\log', "Results: {$this->found_results} Pages of results: {$this->max_num_pages}", 'query' ); // phpcs:ignore WPForms.Comments.PHPDocHooks
+			/**
+			 * Fires after the query has been executed.
+			 *
+			 * @since 4.0
+			 *
+			 * @param Query $this The Query object.
+			 */
 			do_action( 'searchwp\query\ran', $this );
 		}
+	}
+
+	/**
+	 * Slices the total results to the requested page.
+	 *
+	 * @since 4.3.18
+	 *
+	 * @param array $total_results The total results.
+	 *
+	 * @return array|mixed
+	 */
+	private function limit_results( $total_results ) {
+
+		$per_page = (int) $this->args['per_page'];
+
+		// Disable pagination if posts per page is -1.
+		if ( $per_page < 1 ) {
+			return $total_results;
+		}
+
+		// Defining the offset takes precedence (and breaks pagination).
+		$offset = ! empty( $this->args['offset'] )
+			? (int) $this->args['offset']
+			: ( (int) $this->args['page'] * $per_page ) - $per_page;
+
+		/**
+		 * Filters the offset for the query.
+		 *
+		 * @since 4.0
+		 *
+		 * @param int   $offset The offset.
+		 * @param Query $this   The Query object.
+		 */
+		$offset = (int) apply_filters( 'searchwp\query\limit_offset', $offset, $this );
+
+		/**
+		 * Filters the limit for the query.
+		 *
+		 * @since 4.0
+		 *
+		 * @param int   $per_page The number of results per page.
+		 * @param Query $this     The Query object.
+		 */
+		$limit = (int) apply_filters( 'searchwp\query\limit_total', $per_page, $this );
+
+		return array_slice( $total_results, $offset, $limit );
 	}
 
 	/**
@@ -724,7 +875,7 @@ class Query {
 			switch ( $logic ) {
 				case 'phrase':
 					// We only get here if there are phrases to search to begin with.
-					$phrase_logic = new PhraseLimiter( $this );
+					$phrase_logic = new PhraseLimiter( $this, apply_filters( 'searchwp\query\logic\and', true, $this ), $logic_is_strict );
 					$logic_sql    = $phrase_logic->get_sql();
 					break;
 
@@ -778,8 +929,8 @@ class Query {
 	 * @since 4.0
 	 * return string.
 	 */
-	public function get_keywords() {
-		return $this->keywords;
+	public function get_keywords( $original = false ) {
+		return $original ? $this->keywords_orig : $this->keywords;
 	}
 
 	/**
@@ -790,10 +941,23 @@ class Query {
 	 * @return array The search results.
 	 */
 	private function execute( array $query ) {
+
 		global $wpdb;
 
-		$sql     = $this->generate_sql_from_query( $query );
-		$results = $wpdb->get_results( $wpdb->prepare( $sql, $this->values ) );
+		$final_query_start = microtime( true );
+
+		$results = $wpdb->get_results(
+			apply_filters(
+				'searchwp\query\sql',
+				$wpdb->prepare(
+					$this->generate_sql_from_query( $query ),
+					$this->values
+				),
+				[ 'context' => $this, ]
+			)
+		);
+
+		$this->query_time = number_format( microtime( true ) - $final_query_start, 5 );
 
 		return $results;
 	}
@@ -850,6 +1014,20 @@ class Query {
 		$transfers = (array) apply_filters( 'searchwp\query\weight_transfers', $transfers, [
 			'query' => $this,
 		] );
+
+		// Normalize ID transfer.
+		if ( ! empty( $transfers ) ) {
+			foreach ( $transfers as $transfer_key => $transfer ) {
+				if ( 'id' === $transfer['transfer']['weight_transfer']['option']
+					&& ! empty( $transfer['transfer']['weight_transfer']['enabled'] )
+					&& empty( $transfer['transfer']['weight_transfer']['value'] )
+				) {
+					unset( $transfers[ $transfer_key ] );
+				}
+			}
+
+			$transfers = array_values( $transfers );
+		}
 
 		if ( empty( $transfers ) ) {
 			return false;
@@ -953,23 +1131,27 @@ class Query {
 				"{$index_alias}.id",
 				"{$index_alias}.source",
 				"{$index_alias}.site",
-				"SUM(relevance) AS relevance",
+				"SUM(relevance) {$this->weight_calc_sql( true )} AS relevance"
 			],
 			'from'     => [
 				'select'   => [
 					false === $weight_transfers ? "{$index_alias}.id"     : $weight_transfers['id_cases'],
 					false === $weight_transfers ? "{$index_alias}.source" : $weight_transfers['source_cases'],
 					"{$index_alias}.site",
-					"{$index_alias}.attribute",
-					"((SUM({$index_alias}.occurrences) * {$this->weight_cases()}) {$this->weight_calc_sql()} ) AS relevance",
+					! empty( $this->keywords_orig ) ? "{$index_alias}.attribute" : '',
+					! empty( $this->keywords_orig )
+						? "((SUM({$index_alias}.occurrences) {$this->weight_cases()}) {$this->weight_calc_sql()} ) AS relevance"
+						: "1 AS relevance",
 					$this->custom_columns()
 				],
 				'from'     => [
-					"{$this->index->get_tables()['index']->table_name} {$index_alias}"
+					! empty( $this->keywords_orig )
+						? "{$this->index->get_tables()['index']->table_name} {$index_alias}"
+						: "{$this->index->get_tables()['status']->table_name} {$index_alias}"
 				],
 				'join'     => false === $weight_transfers
-								? $this->joins
-								: array_merge( $this->joins, $weight_transfers['joins'] ),
+					? $this->joins
+					: array_merge( $this->joins, $weight_transfers['joins'] ),
 				'where'    => [
 					'1=1',
 					$this->site_where(),
@@ -980,21 +1162,21 @@ class Query {
 				'group_by' => [
 					"{$index_alias}.site",
 					"{$index_alias}.source",
-					"{$index_alias}.attribute",
+					! empty( $this->keywords_orig ) ? "{$index_alias}.attribute" : '',
 					"{$index_alias}.id",
 				],
 			],
 			'join'     => $this->joins,
-			'where'    => [ "{$index_alias}.relevance > "
-							. absint( apply_filters( 'searchwp\query\min_relevance', 0, [ 'query' => $this ] ) )
-			],
+			'where'    => [ '1=1' ],
 			'group_by' => [
 				"{$index_alias}.site",
 				"{$index_alias}.source",
 				"{$index_alias}.id",
 			],
+			'having'   => [ "relevance > "
+				. absint( apply_filters( 'searchwp\query\min_relevance', 0, [ 'query' => $this ] ) )
+			],
 			'order_by' => $this->build_order_by(),
-			'limit'    => $this->limit_sql(),
 		], [
 			'index_alias' => $index_alias,
 			'args'        => $this->args,
@@ -1019,7 +1201,7 @@ class Query {
 		}
 
 		$sources_entries_exist = [];
-		$index_alias   = $this->index->get_alias();
+		$index_alias           = $this->index->get_alias();
 
 		foreach ( $this->get_engine_sources() as $source => $settings ) {
 			$source_model     = $this->index->get_source_by_name( $source );
@@ -1027,46 +1209,25 @@ class Query {
 			$source_db_table  = $source_model->get_db_table();
 			$source_db_id_col = $source_model->get_db_id_column();
 
-			$sources_entries_exist[] = $wpdb->prepare( "
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$sources_entries_exist[] = $wpdb->prepare(
+				"
 				EXISTS (
 					SELECT {$source_db_id_col}
 					FROM {$source_db_table}
 					WHERE {$index_alias}.id = {$source_db_table}.{$source_db_id_col}
 						AND {$index_alias}.source = %s
 				)",
-			$source_name );
+				$source_name
+			);
+
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
 
 		return $sources_entries_exist;
 	}
 
 	/**
-	 * Builds LIMIT SQL clause, applies pagination.
-	 *
-	 * @since 4.0
-	 * @return string SQL clause.
-	 */
-	private function limit_sql() {
-		$per_page = (int) $this->args['per_page'];
-
-		// Disable pagination if posts per page is -1.
-		if ( $per_page < 1 ) {
-			return '';
-		}
-
-		// Defining the offset takes precedence (and breaks pagination).
-		$offset = ( (int) $this->args['page'] * $per_page ) - $per_page;
-		if ( ! empty( $this->args['offset'] ) ) {
-			$offset = (int) $this->args['offset'];
-		}
-
-		$this->values[] = (int) apply_filters( 'searchwp\query\limit_offset', $offset,   $this );
-		$this->values[] = (int) apply_filters( 'searchwp\query\limit_total',  $per_page, $this );
-
-		return "LIMIT %d, %d";
-	}
-
-	/*
 	 * Implements site ID limiter.
 	 *
 	 * @since 4.0
@@ -1102,6 +1263,10 @@ class Query {
 	 * @return string SQL clause.
 	 */
 	private function token_where() {
+		if ( empty( $this->keywords_orig ) ) {
+			return '';
+		}
+
 		$this->values = array_merge( $this->values, array_keys( $this->tokens ) );
 
 		return "{$this->index->get_alias()}.token IN ("
@@ -1175,9 +1340,11 @@ class Query {
 			$this->values[] = $source;
 
 			// Source Attributes limiter.
-			$source_where[]   = $this->get_source_attributes_as_where_sql( array_keys( $settings['attributes'] ) );
-			$attribute_values = $this->get_source_attributes_as_values( array_keys( $settings['attributes'] ) );
-			$this->values     = array_merge( $this->values, $attribute_values );
+			if ( ! empty( $this->keywords_orig ) ) {
+				$source_where[]   = $this->get_source_attributes_as_where_sql( array_keys( $settings['attributes'] ) );
+				$attribute_values = $this->get_source_attributes_as_values( array_keys( $settings['attributes'] ) );
+				$this->values     = array_merge( $this->values, $attribute_values );
+			}
 
 			// Consider Mods for this Source.
 			$source_where = array_merge( $source_where, $this->source_where( $source ) );
@@ -1317,28 +1484,28 @@ class Query {
 		$index_where    = implode( ' AND ', $query['from']['where'] );
 		$index_group_by = implode( ',', $query['from']['group_by'] );
 
-		$index_query    = "SELECT {$index_select}
+		$index_query = "SELECT {$index_select}
 			FROM {$index_from} {$index_join}
 			WHERE {$index_where}
 			GROUP BY {$index_group_by}";
 
-		// Build the SQL itself
+		// Build the SQL itself.
 		$index_alias = $this->index->get_alias();
 		$select      = implode( ',', $query['select'] );
 		$from        = $index_query;
 		$join        = implode( ' ', $query['join'] );
 		$where       = implode( ' AND ', $query['where'] );
 		$group_by    = implode( ', ', $query['group_by'] );
+		$having      = implode( ' AND ', $query['having'] );
 		$order_by    = implode( ', ', array_unique( $query['order_by'] ) );
-		$limit       = $query['limit'];
 
-		return "SELECT SQL_CALC_FOUND_ROWS {$select}
+		return "SELECT {$select}
 				FROM ({$from}) AS {$index_alias}
 				{$join}
 				WHERE {$where}
 				GROUP BY {$group_by}
-				ORDER BY {$order_by}
-				{$limit}";
+				HAVING {$having}
+				ORDER BY {$order_by}";
 	}
 
 	/**
@@ -1378,6 +1545,24 @@ class Query {
 		// Sort by priority.
 		ksort( $order_by );
 
+		/**
+		 * Filters whether to sort by index ID.
+		 * This is necessary for consistency with results that share the same identical relevance.
+		 *
+		 * @since 4.3.18
+		 *
+		 * @param bool  $sort_by_index_id Whether to sort by index ID.
+		 * @param Query $query            The Query object.
+		 */
+		if ( apply_filters( 'searchwp\query\sort_by_index_id', true, $this ) ) {
+			$order_by[ PHP_INT_MAX ] = [
+				[
+					'column'    => $this->index->get_alias() . '.id',
+					'direction' => 'DESC',
+				],
+			];
+		}
+
 		// Concatenate everything and return.
 		return array_map( function( $clause ) {
 			$key       = $clause['column'];
@@ -1405,7 +1590,7 @@ class Query {
 		$all_attributes = array_keys(
 			call_user_func_array(
 				'array_merge',
-				wp_list_pluck( $sources, 'attributes' )
+				array_values( wp_list_pluck( $sources, 'attributes' ) )
 			)
 		);
 
@@ -1535,7 +1720,7 @@ class Query {
 	 */
 	private function weight_cases() {
 		$weight_groups = $this->get_weight_groups();
-		$case          = [ 'CASE' ];
+		$case          = [];
 		$index_alias   = $this->index->get_alias();
 
 		foreach ( $weight_groups as $weight => $pairs ) {
@@ -1562,9 +1747,11 @@ class Query {
 			$this->values[] = $weight;
 		}
 
-		$case[] = 'END';
+		if ( empty( $case ) ) {
+			return '';
+		}
 
-		return implode( ' ', $case );
+		return '* CASE ' . implode( ' ', $case ) . ' END';
 	}
 
 	/**
@@ -1593,13 +1780,23 @@ class Query {
 		$tokenized = (array) apply_filters( 'searchwp\query\tokens', $tokenized, $this );
 
 		$token_limit = absint( apply_filters( 'searchwp\query\tokens\limit', 10, $this ) );
+		$this->set_debug_data( 'query.tokens.limit', $token_limit );
+
 		if ( count( $tokenized ) > $token_limit ) {
 			$tokenized = array_slice( $tokenized, 0, $token_limit );
 		}
 
+		if ( $this->use_stems ) {
+			$this->set_debug_data( 'tokens.stemming.before', $tokenized );
+		}
+
 		// Retrieve the token IDs for the tokenized search string.
-		$tokens_ids   = $tokens->map_index_ids( $tokenized, $this->use_stems );
+		$tokens_ids   = Utils::map_token_ids( $tokenized, $this->use_stems, $this );
 		$this->tokens = empty( $tokens_ids ) ? [] : $tokens_ids;
+
+		if ( $this->use_stems ) {
+			$this->set_debug_data( 'tokens.stemming.after', $this->tokens );
+		}
 
 		do_action( 'searchwp\debug\log', 'Tokens: ' . implode( ', ', $this->tokens ), 'query' );
 	}
@@ -1642,5 +1839,114 @@ class Query {
 	 */
 	public function get_tokens() {
 		return $this->tokens;
+	}
+
+	/**
+	 * Getter for debug data.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @return array
+	 */
+	public function get_debug_data( $key = null ) {
+
+		return Arr::get( $this->debug_data, $key );
+	}
+
+	/**
+	 * Write debug data to the query.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @param string $key   Debug data array key to add data to.
+	 * @param mixed  $value Data to add.
+	 */
+	public function set_debug_data( $key, $value ) {
+
+		Arr::set( $this->debug_data, $key, $value );
+	}
+
+	/**
+	 * Get relevance debug data.
+	 *
+	 * @since 4.3.16
+	 *
+	 * @return array
+	 */
+	private function get_debug_relevance_data() {
+
+		global $wpdb;
+
+		if ( ! Watcher::is_enabled() ) {
+			return [];
+		}
+
+		if ( empty( $this->keywords_orig ) || empty( $this->found_results ) ) {
+			return [];
+		}
+
+		$index_alias      = $this->index->get_alias();
+		$weight_transfers = $this->get_weight_transfer_clauses( $index_alias );
+		$entries_id       = wp_list_pluck( $this->raw_results, 'id' );
+		$entries_where    = $index_alias . '.id IN (' . implode( ',', $entries_id ) . ')';
+		$values           = $this->values;
+
+		$query = [
+			'select'   => [
+				$weight_transfers === false ? "{$index_alias}.id" : $weight_transfers['id_cases'],
+				"{$index_alias}.source",
+				"{$index_alias}.attribute",
+				"{$index_alias}.occurrences",
+				'tokens.token AS token',
+				"{$index_alias}.token AS token_id",
+				"SUM((({$index_alias}.occurrences) {$this->weight_cases()}) {$this->weight_calc_sql()} ) AS relevance",
+				$this->custom_columns(),
+			],
+			'from'     => [
+				"{$this->index->get_tables()['index']->table_name} {$index_alias}",
+			],
+			'join'     => $weight_transfers === false
+				? $this->joins
+				: array_merge( $this->joins, $weight_transfers['joins'] ),
+			'where'    => [
+				'1=1',
+				$entries_where,
+				$this->site_where(),
+				$this->token_where(),
+				$this->index_where(),
+				$this->sources_where(),
+			],
+			'group_by' => [
+				"{$index_alias}.source",
+				"{$index_alias}.attribute",
+				"{$index_alias}.id",
+				"{$index_alias}.occurrences",
+				'token_id',
+				'token',
+				"{$index_alias}.site",
+			],
+		];
+
+		$query['join'][] = " LEFT JOIN {$this->index->get_tables()['tokens']->table_name} AS tokens ON tokens.id = {$index_alias}.token ";
+
+		// Clean up the array.
+		foreach ( $query as $group => $clauses ) {
+			$query[ $group ] = array_filter( array_map( 'trim', $clauses ) );
+		}
+
+		// Build the SQL itself.
+		$select   = implode( ',', $query['select'] );
+		$from     = implode( ',', $query['from'] );
+		$join     = implode( ' ', $query['join'] );
+		$where    = implode( ' AND ', $query['where'] );
+		$group_by = implode( ', ', $query['group_by'] );
+
+		$sql = "SELECT {$select}
+				FROM {$from}
+				{$join}
+				WHERE {$where}
+				GROUP BY {$group_by}";
+
+		return $wpdb->get_results( $wpdb->prepare( $sql, $values ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 }

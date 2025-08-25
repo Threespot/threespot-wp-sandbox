@@ -25,12 +25,16 @@ use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
  *
  * @author Bryan Davis <bd808@wikimedia.org>
  * @author Kunal Mehta <legoktm@gmail.com>
+ *
+ * @phpstan-import-type Record from \Monolog\Logger
+ * @phpstan-import-type Level from \Monolog\Logger
  */
-class SamplingHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHandler implements \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface, \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface
+class SamplingHandler extends AbstractHandler implements ProcessableHandlerInterface, FormattableHandlerInterface
 {
     use ProcessableHandlerTrait;
     /**
-     * @var callable|HandlerInterface $handler
+     * @var HandlerInterface|callable
+     * @phpstan-var HandlerInterface|callable(Record|array{level: Level}|null, HandlerInterface): HandlerInterface
      */
     protected $handler;
     /**
@@ -38,7 +42,7 @@ class SamplingHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
      */
     protected $factor;
     /**
-     * @psalm-param HandlerInterface|callable(array, HandlerInterface): HandlerInterface $handler
+     * @psalm-param HandlerInterface|callable(Record|array{level: Level}|null, HandlerInterface): HandlerInterface $handler
      *
      * @param callable|HandlerInterface $handler Handler or factory callable($record|null, $samplingHandler).
      * @param int                       $factor  Sample factor (e.g. 10 means every ~10th record is sampled)
@@ -48,7 +52,7 @@ class SamplingHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
         parent::__construct();
         $this->handler = $handler;
         $this->factor = $factor;
-        if (!$this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\HandlerInterface && !\is_callable($this->handler)) {
+        if (!$this->handler instanceof HandlerInterface && !\is_callable($this->handler)) {
             throw new \RuntimeException("The given handler (" . \json_encode($this->handler) . ") is not a callable nor a Monolog\\Handler\\HandlerInterface object");
         }
     }
@@ -60,6 +64,7 @@ class SamplingHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
     {
         if ($this->isHandling($record) && \mt_rand(1, $this->factor) === 1) {
             if ($this->processors) {
+                /** @var Record $record */
                 $record = $this->processRecord($record);
             }
             $this->getHandler($record)->handle($record);
@@ -71,31 +76,41 @@ class SamplingHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
      *
      * If the handler was provided as a factory callable, this will trigger the handler's instantiation.
      *
+     * @phpstan-param Record|array{level: Level}|null $record
+     *
      * @return HandlerInterface
      */
     public function getHandler(array $record = null)
     {
-        if (!$this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\HandlerInterface) {
+        if (!$this->handler instanceof HandlerInterface) {
             $this->handler = ($this->handler)($record, $this);
-            if (!$this->handler instanceof \SearchWP\Dependencies\Monolog\Handler\HandlerInterface) {
+            if (!$this->handler instanceof HandlerInterface) {
                 throw new \RuntimeException("The factory callable should return a HandlerInterface");
             }
         }
         return $this->handler;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
-        $this->getHandler()->setFormatter($formatter);
-        return $this;
+        $handler = $this->getHandler();
+        if ($handler instanceof FormattableHandlerInterface) {
+            $handler->setFormatter($formatter);
+            return $this;
+        }
+        throw new \UnexpectedValueException('The nested handler of type ' . \get_class($handler) . ' does not support formatters.');
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function getFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    public function getFormatter() : FormatterInterface
     {
-        return $this->getHandler()->getFormatter();
+        $handler = $this->getHandler();
+        if ($handler instanceof FormattableHandlerInterface) {
+            return $handler->getFormatter();
+        }
+        throw new \UnexpectedValueException('The nested handler of type ' . \get_class($handler) . ' does not support formatters.');
     }
 }

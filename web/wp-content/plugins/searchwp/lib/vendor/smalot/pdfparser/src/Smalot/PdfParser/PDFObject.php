@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -36,9 +38,9 @@ use SearchWP\Dependencies\Smalot\PdfParser\XObject\Image;
  */
 class PDFObject
 {
-    const TYPE = 't';
-    const OPERATOR = 'o';
-    const COMMAND = 'c';
+    public const TYPE = 't';
+    public const OPERATOR = 'o';
+    public const COMMAND = 'c';
     /**
      * The recursion stack.
      *
@@ -61,66 +63,48 @@ class PDFObject
      * @var Config
      */
     protected $config;
-    /**
-     * @param Header $header
-     * @param string $content
-     * @param Config $config
-     */
-    public function __construct(\SearchWP\Dependencies\Smalot\PdfParser\Document $document, \SearchWP\Dependencies\Smalot\PdfParser\Header $header = null, $content = null, \SearchWP\Dependencies\Smalot\PdfParser\Config $config = null)
+    public function __construct(Document $document, ?Header $header = null, ?string $content = null, ?Config $config = null)
     {
         $this->document = $document;
-        $this->header = null !== $header ? $header : new \SearchWP\Dependencies\Smalot\PdfParser\Header();
+        $this->header = $header ?? new Header();
         $this->content = $content;
         $this->config = $config;
     }
     public function init()
     {
     }
-    /**
-     * @return Header|null
-     */
-    public function getHeader()
+    public function getDocument() : Document
+    {
+        return $this->document;
+    }
+    public function getHeader() : ?Header
     {
         return $this->header;
     }
+    public function getConfig() : ?Config
+    {
+        return $this->config;
+    }
     /**
-     * @param string $name
-     *
-     * @return Element|PDFObject
+     * @return Element|PDFObject|Header
      */
-    public function get($name)
+    public function get(string $name)
     {
         return $this->header->get($name);
     }
-    /**
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function has($name)
+    public function has(string $name) : bool
     {
         return $this->header->has($name);
     }
-    /**
-     * @param bool $deep
-     *
-     * @return array
-     */
-    public function getDetails($deep = \true)
+    public function getDetails(bool $deep = \true) : array
     {
         return $this->header->getDetails($deep);
     }
-    /**
-     * @return string|null
-     */
-    public function getContent()
+    public function getContent() : ?string
     {
         return $this->content;
     }
-    /**
-     * @param string $content
-     */
-    public function cleanContent($content, $char = 'X')
+    public function cleanContent(string $content, string $char = 'X')
     {
         $char = $char[0];
         $content = \str_replace(['\\\\', '\\)', '\\('], $char . $char, $content);
@@ -164,19 +148,14 @@ class PDFObject
         }
         return $content;
     }
-    /**
-     * @param string $content
-     *
-     * @return array
-     */
-    public function getSectionsText($content)
+    public function getSectionsText(?string $content) : array
     {
         $sections = [];
         $content = ' ' . $content . ' ';
         $textCleaned = $this->cleanContent($content, '_');
         // Extract text blocks.
-        if (\preg_match_all('/\\s+BT[\\s|\\(|\\[]+(.*?)\\s*ET/s', $textCleaned, $matches, \PREG_OFFSET_CAPTURE)) {
-            foreach ($matches[1] as $part) {
+        if (\preg_match_all('/(\\sQ)?\\s+BT[\\s|\\(|\\[]+(.*?)\\s*ET(\\sq)?/s', $textCleaned, $matches, \PREG_OFFSET_CAPTURE)) {
+            foreach ($matches[2] as $pos => $part) {
                 $text = $part[0];
                 if ('' === $text) {
                     continue;
@@ -185,6 +164,9 @@ class PDFObject
                 $section = \substr($content, $offset, \strlen($text));
                 // Removes BDC and EMC markup.
                 $section = \preg_replace('/(\\/[A-Za-z0-9]+\\s*<<.*?)(>>\\s*BDC)(.*?)(EMC\\s+)/s', '${3}', $section . ' ');
+                // Add Q and q flags if detected around BT/ET.
+                // @see: https://github.com/smalot/pdfparser/issues/387
+                $section = \trim((!empty($matches[1][$pos][0]) ? "Q\n" : '') . $section) . (!empty($matches[3][$pos][0]) ? "\nq" : '');
                 $sections[] = $section;
             }
         }
@@ -199,37 +181,44 @@ class PDFObject
         }
         return $sections;
     }
-    private function getDefaultFont(\SearchWP\Dependencies\Smalot\PdfParser\Page $page = null)
+    private function getDefaultFont(Page $page = null) : Font
     {
         $fonts = [];
         if (null !== $page) {
             $fonts = $page->getFonts();
         }
-        $fonts = \array_merge($fonts, \array_values($this->document->getFonts()));
+        $firstFont = $this->document->getFirstFont();
+        if (null !== $firstFont) {
+            $fonts[] = $firstFont;
+        }
         if (\count($fonts) > 0) {
             return \reset($fonts);
         }
-        return new \SearchWP\Dependencies\Smalot\PdfParser\Font($this->document);
+        return new Font($this->document, null, null, $this->config);
     }
     /**
-     * @param Page $page
-     *
-     * @return string
-     *
      * @throws \Exception
      */
-    public function getText(\SearchWP\Dependencies\Smalot\PdfParser\Page $page = null)
+    public function getText(?Page $page = null) : string
     {
-        $text = '';
+        $result = '';
         $sections = $this->getSectionsText($this->content);
         $current_font = $this->getDefaultFont($page);
+        $clipped_font = $current_font;
         $current_position_td = ['x' => \false, 'y' => \false];
         $current_position_tm = ['x' => \false, 'y' => \false];
         self::$recursionStack[] = $this->getUniqueId();
         foreach ($sections as $section) {
             $commands = $this->getCommandsText($section);
+            $reverse_text = \false;
+            $text = '';
             foreach ($commands as $command) {
                 switch ($command[self::OPERATOR]) {
+                    case 'BMC':
+                        if ('ReversedChars' == $command[self::COMMAND]) {
+                            $reverse_text = \true;
+                        }
+                        break;
                     // set character spacing
                     case 'Tc':
                         break;
@@ -242,8 +231,7 @@ class PDFObject
                             // vertical offset
                             $text .= "\n";
                         } elseif (\false !== $current_position_td['x'] && (float) $x > (float) $current_position_td['x']) {
-                            // horizontal offset
-                            $text .= ' ';
+                            $text .= $this->config->getHorizontalOffset();
                         }
                         $current_position_td = ['x' => $x, 'y' => $y];
                         break;
@@ -272,6 +260,14 @@ class PDFObject
                                 $current_font = $new_font;
                             }
                         }
+                        break;
+                    case 'Q':
+                        // Use clip: restore font.
+                        $current_font = $clipped_font;
+                        break;
+                    case 'q':
+                        // Use clip: save font.
+                        $clipped_font = $current_font;
                         break;
                     case "'":
                     case 'Tj':
@@ -358,22 +354,24 @@ class PDFObject
                     default:
                 }
             }
+            // Fix Hebrew and other reverse text oriented languages.
+            // @see: https://github.com/smalot/pdfparser/issues/398
+            if ($reverse_text) {
+                $chars = \mb_str_split($text, 1, \mb_internal_encoding());
+                $text = \implode('', \array_reverse($chars));
+            }
+            $result .= $text;
         }
-        \array_pop(self::$recursionStack);
-        return $text . ' ';
+        return $result . ' ';
     }
     /**
-     * @param Page $page
-     *
-     * @return array
-     *
      * @throws \Exception
      */
-    public function getTextArray(\SearchWP\Dependencies\Smalot\PdfParser\Page $page = null)
+    public function getTextArray(?Page $page = null) : array
     {
         $text = [];
         $sections = $this->getSectionsText($this->content);
-        $current_font = new \SearchWP\Dependencies\Smalot\PdfParser\Font($this->document);
+        $current_font = new Font($this->document, null, null, $this->config);
         foreach ($sections as $section) {
             $commands = $this->getCommandsText($section);
             foreach ($commands as $command) {
@@ -415,11 +413,11 @@ class PDFObject
                         break;
                     // set horizontal scaling
                     case 'Tz':
-                        //$text .= "\n";
+                        // $text .= "\n";
                         break;
                     // move to start of next line
                     case 'T*':
-                        //$text .= "\n";
+                        // $text .= "\n";
                         break;
                     case 'Da':
                         break;
@@ -462,17 +460,11 @@ class PDFObject
         }
         return $text;
     }
-    /**
-     * @param string $text_part
-     * @param int    $offset
-     *
-     * @return array
-     */
-    public function getCommandsText($text_part, &$offset = 0)
+    public function getCommandsText(string $text_part, int &$offset = 0) : array
     {
         $commands = $matches = [];
         while ($offset < \strlen($text_part)) {
-            $offset += \strspn($text_part, "\0\t\n\f\r ", $offset);
+            $offset += \strspn($text_part, "\x00\t\n\f\r ", $offset);
             $char = $text_part[$offset];
             $operator = '';
             $type = '';
@@ -585,45 +577,38 @@ class PDFObject
         }
         return $commands;
     }
-    /**
-     * @param string $content
-     *
-     * @return PDFObject
-     */
-    public static function factory(\SearchWP\Dependencies\Smalot\PdfParser\Document $document, \SearchWP\Dependencies\Smalot\PdfParser\Header $header, $content, \SearchWP\Dependencies\Smalot\PdfParser\Config $config = null)
+    public static function factory(Document $document, Header $header, ?string $content, ?Config $config = null) : self
     {
         switch ($header->get('Type')->getContent()) {
             case 'XObject':
                 switch ($header->get('Subtype')->getContent()) {
                     case 'Image':
-                        return new \SearchWP\Dependencies\Smalot\PdfParser\XObject\Image($document, $header, $content, $config);
+                        return new Image($document, $header, $config->getRetainImageContent() ? $content : null, $config);
                     case 'Form':
-                        return new \SearchWP\Dependencies\Smalot\PdfParser\XObject\Form($document, $header, $content, $config);
+                        return new Form($document, $header, $content, $config);
                 }
                 return new self($document, $header, $content, $config);
             case 'Pages':
-                return new \SearchWP\Dependencies\Smalot\PdfParser\Pages($document, $header, $content, $config);
+                return new Pages($document, $header, $content, $config);
             case 'Page':
-                return new \SearchWP\Dependencies\Smalot\PdfParser\Page($document, $header, $content, $config);
+                return new Page($document, $header, $content, $config);
             case 'Encoding':
-                return new \SearchWP\Dependencies\Smalot\PdfParser\Encoding($document, $header, $content, $config);
+                return new Encoding($document, $header, $content, $config);
             case 'Font':
                 $subtype = $header->get('Subtype')->getContent();
-                $classname = '\\Smalot\\PdfParser\\Font\\Font' . $subtype;
+                $classname = 'SearchWP\\Dependencies\\Smalot\\PdfParser\\Font\\Font' . $subtype;
                 if (\class_exists($classname)) {
                     return new $classname($document, $header, $content, $config);
                 }
-                return new \SearchWP\Dependencies\Smalot\PdfParser\Font($document, $header, $content, $config);
+                return new Font($document, $header, $content, $config);
             default:
                 return new self($document, $header, $content, $config);
         }
     }
     /**
      * Returns unique id identifying the object.
-     *
-     * @return string
      */
-    protected function getUniqueId()
+    protected function getUniqueId() : string
     {
         return \spl_object_hash($this);
     }

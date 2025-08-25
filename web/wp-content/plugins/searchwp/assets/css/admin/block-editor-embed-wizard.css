@@ -1,0 +1,118 @@
+/* Form Embed Wizard styles */
+.searchwp-embed-wizard-tooltip {
+	display: none;
+	position: fixed;
+	width: 260px !important;
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+	z-index: 9999999;
+}
+
+/* Gutenberg tooltip positioning */
+.searchwp-embed-wizard-tooltip-gutenberg {
+	top: 140px;
+	left: 60px;
+}
+
+/* Classic Editor tooltip positioning */
+.searchwp-embed-wizard-tooltip-classic {
+	top: 40px;
+	right: 20px;
+}
+
+.searchwp-embed-wizard-dot {
+	position: absolute;
+	top: 75px;
+	left: 16px;
+	z-index: 9999;
+	display: inline-block;
+	width: 12px;
+	height: 12px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 50%;
+	background-color: #df7839;
+	animation: searchwp-embed-wizard-pulse 1.5s infinite !important;
+	margin: 3px 10px;
+}
+
+.searchwp-embed-wizard-tooltip-arrow {
+	position: absolute;
+	display: block;
+	width: 15px;
+	height: 42px;
+	top: -75px;
+	left: 150px;
+	background-image: url(../../images/red-arrow.svg);
+	background-size: 15px 42px;
+	background-repeat: no-repeat;
+}
+
+@keyframes searchwp-embed-wizard-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(223, 119, 57, 0.6);
+	}
+	100% {
+		box-shadow: 0 0 0 10px rgba(223, 119, 57, 0);
+	}
+}
+
+#searchwp-embed-wizard-tooltip-content {
+	color: #444444;
+	padding: 15px 10px 20px;
+	text-align: center;
+}
+
+.searchwp-embed-wizard-tooltip h3 {
+	margin: 0;
+	font-size: 16px;
+	letter-spacing: 0px;
+	line-height: 18px;
+	color: #23282C;
+}
+
+.searchwp-embed-wizard-tooltip p {
+	font-size: 14px;
+	letter-spacing: 0px;
+	line-height: 18px;
+	margin: 10px 0 15px;
+	color: #444444;
+}
+
+.searchwp-embed-wizard-done-btn {
+	display: block;
+	margin: 15px auto 0;
+	padding: 7px 18px;
+	border: none;
+	border-radius: 3px;
+	background-color: #437e47;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0px;
+	color: #ffffff;
+
+	text-decoration: none;
+	text-align: center;
+	vertical-align: middle;
+	white-space: nowrap;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+#searchwp-embed-wizard-tooltip-content:before {
+	display: block;
+	content: '';
+	position: absolute;
+	top: -5px;
+	left: calc(50% - 2.5px);
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-bottom: 5px solid #fff;
+}
+
+.block-editor-page .edit-post-layout .components-notice-list>div {
+	padding-left: 50px;
+}

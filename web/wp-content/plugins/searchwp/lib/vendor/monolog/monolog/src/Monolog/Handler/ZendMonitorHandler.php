@@ -19,54 +19,59 @@ use SearchWP\Dependencies\Monolog\Logger;
  *
  * @author  Christian Bergau <cbergau86@gmail.com>
  * @author  Jason Davis <happydude@jasondavis.net>
+ *
+ * @phpstan-import-type FormattedRecord from AbstractProcessingHandler
  */
-class ZendMonitorHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class ZendMonitorHandler extends AbstractProcessingHandler
 {
     /**
      * Monolog level / ZendMonitor Custom Event priority map
      *
-     * @var array
+     * @var array<int, int>
      */
     protected $levelMap = [];
     /**
-     * @param  string|int                $level  The minimum logging level at which this handler will be triggered.
-     * @param  bool                      $bubble Whether the messages that are handled can bubble up the stack or not.
      * @throws MissingExtensionException
      */
-    public function __construct($level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct($level = Logger::DEBUG, bool $bubble = \true)
     {
         if (!\function_exists('SearchWP\\Dependencies\\zend_monitor_custom_event')) {
-            throw new \SearchWP\Dependencies\Monolog\Handler\MissingExtensionException('You must have Zend Server installed with Zend Monitor enabled in order to use this handler');
+            throw new MissingExtensionException('You must have Zend Server installed with Zend Monitor enabled in order to use this handler');
         }
         //zend monitor constants are not defined if zend monitor is not enabled.
-        $this->levelMap = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => \ZEND_MONITOR_EVENT_SEVERITY_INFO, \SearchWP\Dependencies\Monolog\Logger::INFO => \ZEND_MONITOR_EVENT_SEVERITY_INFO, \SearchWP\Dependencies\Monolog\Logger::NOTICE => \ZEND_MONITOR_EVENT_SEVERITY_INFO, \SearchWP\Dependencies\Monolog\Logger::WARNING => \ZEND_MONITOR_EVENT_SEVERITY_WARNING, \SearchWP\Dependencies\Monolog\Logger::ERROR => \ZEND_MONITOR_EVENT_SEVERITY_ERROR, \SearchWP\Dependencies\Monolog\Logger::CRITICAL => \ZEND_MONITOR_EVENT_SEVERITY_ERROR, \SearchWP\Dependencies\Monolog\Logger::ALERT => \ZEND_MONITOR_EVENT_SEVERITY_ERROR, \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => \ZEND_MONITOR_EVENT_SEVERITY_ERROR];
+        $this->levelMap = [Logger::DEBUG => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_INFO, Logger::INFO => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_INFO, Logger::NOTICE => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_INFO, Logger::WARNING => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_WARNING, Logger::ERROR => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_ERROR, Logger::CRITICAL => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_ERROR, Logger::ALERT => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_ERROR, Logger::EMERGENCY => \SearchWP\Dependencies\ZEND_MONITOR_EVENT_SEVERITY_ERROR];
         parent::__construct($level, $bubble);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     protected function write(array $record) : void
     {
-        $this->writeZendMonitorCustomEvent(\SearchWP\Dependencies\Monolog\Logger::getLevelName($record['level']), $record['message'], $record['formatted'], $this->levelMap[$record['level']]);
+        $this->writeZendMonitorCustomEvent(Logger::getLevelName($record['level']), $record['message'], $record['formatted'], $this->levelMap[$record['level']]);
     }
     /**
      * Write to Zend Monitor Events
      * @param string $type      Text displayed in "Class Name (custom)" field
      * @param string $message   Text displayed in "Error String"
-     * @param mixed  $formatted Displayed in Custom Variables tab
+     * @param array  $formatted Displayed in Custom Variables tab
      * @param int    $severity  Set the event severity level (-1,0,1)
+     *
+     * @phpstan-param FormattedRecord $formatted
      */
     protected function writeZendMonitorCustomEvent(string $type, string $message, array $formatted, int $severity) : void
     {
         zend_monitor_custom_event($type, $message, $formatted, $severity);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    public function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\NormalizerFormatter();
+        return new NormalizerFormatter();
     }
+    /**
+     * @return array<int, int>
+     */
     public function getLevelMap() : array
     {
         return $this->levelMap;

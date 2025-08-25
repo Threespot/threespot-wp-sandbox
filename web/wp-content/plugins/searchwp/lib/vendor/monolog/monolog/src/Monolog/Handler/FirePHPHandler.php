@@ -17,8 +17,10 @@ use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
  * Simple FirePHP Handler (http://www.firephp.org/), which uses the Wildfire protocol.
  *
  * @author Eric Clemmons (@ericclemmons) <eric@uxdriven.com>
+ *
+ * @phpstan-import-type FormattedRecord from AbstractProcessingHandler
  */
-class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class FirePHPHandler extends AbstractProcessingHandler
 {
     use WebRequestRecognizerTrait;
     /**
@@ -39,6 +41,7 @@ class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
     protected const HEADER_PREFIX = 'X-Wf';
     /**
      * Whether or not Wildfire vendor-specific headers have been generated & sent yet
+     * @var bool
      */
     protected static $initialized = \false;
     /**
@@ -46,13 +49,17 @@ class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
      * @var int
      */
     protected static $messageIndex = 1;
+    /** @var bool */
     protected static $sendHeaders = \true;
     /**
      * Base header creation function used by init headers & record headers
      *
-     * @param  array  $meta    Wildfire Plugin, Protocol & Structure Indexes
-     * @param  string $message Log message
-     * @return array  Complete header string ready for the client as key and message as value
+     * @param array<int|string> $meta    Wildfire Plugin, Protocol & Structure Indexes
+     * @param string            $message Log message
+     *
+     * @return array<string, string> Complete header string ready for the client as key and message as value
+     *
+     * @phpstan-return non-empty-array<string, string>
      */
     protected function createHeader(array $meta, string $message) : array
     {
@@ -62,7 +69,13 @@ class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
     /**
      * Creates message header from record
      *
+     * @return array<string, string>
+     *
+     * @phpstan-return non-empty-array<string, string>
+     *
      * @see createHeader()
+     *
+     * @phpstan-param FormattedRecord $record
      */
     protected function createRecordHeader(array $record) : array
     {
@@ -73,15 +86,17 @@ class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\WildfireFormatter();
+        return new WildfireFormatter();
     }
     /**
      * Wildfire initialization headers to enable message parsing
      *
      * @see createHeader()
      * @see sendHeader()
+     *
+     * @return array<string, string>
      */
     protected function getInitHeaders() : array
     {
@@ -102,7 +117,6 @@ class FirePHPHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProc
      *
      * @see sendHeader()
      * @see sendInitHeaders()
-     * @param array $record
      */
     protected function write(array $record) : void
     {

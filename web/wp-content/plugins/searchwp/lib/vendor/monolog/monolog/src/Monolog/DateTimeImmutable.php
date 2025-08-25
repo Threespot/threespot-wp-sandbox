@@ -24,7 +24,7 @@ class DateTimeImmutable extends \DateTimeImmutable implements \JsonSerializable
      * @var bool
      */
     private $useMicroseconds;
-    public function __construct(bool $useMicroseconds, ?\DateTimeZone $timezone = null)
+    public function __construct(bool $useMicroseconds, ?DateTimeZone $timezone = null)
     {
         $this->useMicroseconds = $useMicroseconds;
         parent::__construct('now', $timezone);

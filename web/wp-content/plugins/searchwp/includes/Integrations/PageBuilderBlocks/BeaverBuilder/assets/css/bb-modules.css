@@ -1,0 +1,58 @@
+/**
+ * SearchWP Beaver Builder Modules CSS
+ */
+
+.searchwp-bb-empty-block {
+	text-align: center;
+	padding: 30px;
+	background-color: #f8f8f8;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	margin: 20px 0;
+}
+
+.searchwp-bb-empty-block img {
+	max-width: 80px;
+	margin-bottom: 20px;
+}
+
+.searchwp-bb-empty-block p {
+	margin: 0 0 20px;
+	color: #444;
+	font-size: 14px;
+}
+
+.searchwp-bb-button {
+	display: inline-block;
+	background-color: #456b47;
+	color: #fff;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	transition: background-color 0.2s ease;
+}
+
+.searchwp-bb-button:hover {
+	background-color: #385539;
+	color: #fff;
+}
+
+.searchwp-bb-no-forms-footer,
+.searchwp-bb-placeholder-text {
+	font-size: 13px;
+	margin-top: 20px;
+	color: #666;
+}
+
+.searchwp-bb-no-forms-footer a,
+.searchwp-bb-placeholder-text a {
+	color: #456b47;
+	text-decoration: none;
+}
+
+.searchwp-bb-no-forms-footer a:hover,
+.searchwp-bb-placeholder-text a:hover {
+	text-decoration: underline;
+} 

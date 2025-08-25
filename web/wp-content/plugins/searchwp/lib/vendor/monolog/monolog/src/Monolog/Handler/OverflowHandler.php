@@ -33,12 +33,12 @@ use SearchWP\Dependencies\Monolog\Formatter\FormatterInterface;
  *
  * @author Kris Buist <krisbuist@gmail.com>
  */
-class OverflowHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHandler implements \SearchWP\Dependencies\Monolog\Handler\FormattableHandlerInterface
+class OverflowHandler extends AbstractHandler implements FormattableHandlerInterface
 {
     /** @var HandlerInterface */
     private $handler;
     /** @var int[] */
-    private $thresholdMap = [\SearchWP\Dependencies\Monolog\Logger::DEBUG => 0, \SearchWP\Dependencies\Monolog\Logger::INFO => 0, \SearchWP\Dependencies\Monolog\Logger::NOTICE => 0, \SearchWP\Dependencies\Monolog\Logger::WARNING => 0, \SearchWP\Dependencies\Monolog\Logger::ERROR => 0, \SearchWP\Dependencies\Monolog\Logger::CRITICAL => 0, \SearchWP\Dependencies\Monolog\Logger::ALERT => 0, \SearchWP\Dependencies\Monolog\Logger::EMERGENCY => 0];
+    private $thresholdMap = [Logger::DEBUG => 0, Logger::INFO => 0, Logger::NOTICE => 0, Logger::WARNING => 0, Logger::ERROR => 0, Logger::CRITICAL => 0, Logger::ALERT => 0, Logger::EMERGENCY => 0];
     /**
      * Buffer of all messages passed to the handler before the threshold was reached
      *
@@ -48,10 +48,8 @@ class OverflowHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
     /**
      * @param HandlerInterface $handler
      * @param int[]            $thresholdMap Dictionary of logger level => threshold
-     * @param int|string       $level        The minimum logging level at which this handler will be triggered
-     * @param bool             $bubble
      */
-    public function __construct(\SearchWP\Dependencies\Monolog\Handler\HandlerInterface $handler, array $thresholdMap = [], $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(HandlerInterface $handler, array $thresholdMap = [], $level = Logger::DEBUG, bool $bubble = \true)
     {
         $this->handler = $handler;
         foreach ($thresholdMap as $thresholdLevel => $threshold) {
@@ -69,10 +67,7 @@ class OverflowHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
      * Unless the bubbling is interrupted (by returning true), the Logger class will keep on
      * calling further handlers in the stack with a given log record.
      *
-     * @param array $record The record to handle
-     *
-     * @return Boolean true means that this handler handled the record, and that bubbling is not permitted.
-     *                 false means the record was either not processed or that this handler allows bubbling.
+     * {@inheritDoc}
      */
     public function handle(array $record) : bool
     {
@@ -101,18 +96,24 @@ class OverflowHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractHan
         return \false === $this->bubble;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
-        $this->handler->setFormatter($formatter);
-        return $this;
+        if ($this->handler instanceof FormattableHandlerInterface) {
+            $this->handler->setFormatter($formatter);
+            return $this;
+        }
+        throw new \UnexpectedValueException('The nested handler of type ' . \get_class($this->handler) . ' does not support formatters.');
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function getFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    public function getFormatter() : FormatterInterface
     {
-        return $this->handler->getFormatter();
+        if ($this->handler instanceof FormattableHandlerInterface) {
+            return $this->handler->getFormatter();
+        }
+        throw new \UnexpectedValueException('The nested handler of type ' . \get_class($this->handler) . ' does not support formatters.');
     }
 }

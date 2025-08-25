@@ -1,4 +1,11 @@
 <?php
+/**
+ * Background process. Heavily influenced by
+ * @link https://github.com/deliciousbrains/wp-background-processing
+ *
+ * @package SearchWP
+ * @author  Jon Christopher
+ */
 
 namespace SearchWP;
 
@@ -50,11 +57,10 @@ abstract class BackgroundProcess {
 	 * @return void
 	 */
 	protected function init() {
-		$this->locked = get_site_option( $this->identifier . '_process_lock' );
-
 		// Bind async request callback, received after dispatch().
-		if ( ! has_action( 'wp_ajax_' . $this->identifier, [ $this, 'async' ] ) ) {
+		if ( ! has_action( 'wp_ajax_nopriv_' . $this->identifier, [ $this, 'async' ] ) ) {
 			add_action( 'wp_ajax_' . $this->identifier, [ $this, 'async' ] );
+			add_action( 'wp_ajax_nopriv_' . $this->identifier, [ $this, 'async' ] );
 		}
 
 		// Add our WP_Cron health check schedule.
@@ -76,6 +82,68 @@ abstract class BackgroundProcess {
 		if ( ! has_action( $this->identifier . '_cron', [ $this, 'health_check' ] ) ) {
 			add_action( $this->identifier . '_cron', [ $this, 'health_check' ] );
 		}
+	}
+
+	/**
+	 * Attempts to get a process lock.
+	 *
+	 * @since 4.1.8
+	 * @return bool
+	 */
+	public function get_lock() {
+		global $wpdb;
+
+		if ( ! self::use_legacy_lock() ) {
+			$db_lock = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT GET_LOCK(%s, 5) AS searchwp_process_lock_{$this->name}",
+					'SEARCHWP-PROCESS-LOCK-' . strtoupper( $this->name )
+				)
+			);
+		} else {
+			$db_lock = $this->get_legacy_lock();
+		}
+
+		// If $db_lock is 1 we got the lock and own the process.
+		// If $db_lock is 0 the process is already locked.
+		return ! empty( $db_lock );
+	}
+
+	/**
+	 * Gets a legacy process lock from MySQL < 5.7 or MariaDB < 10.0.2.
+	 *
+	 * @since 4.1.8
+	 * @return int 1 if the lock is good, 0 if the lock is bad.
+	 */
+	private function get_legacy_lock() {
+		$legacy_lock = get_site_option( $this->identifier . '_process_lock' );
+
+		if ( ! empty( $legacy_lock ) ) {
+			// Make sure the lock has not expired.
+			if ( time() > absint( $legacy_lock ) + absint( apply_filters( 'searchwp\background_process\process_time_limit', 60 ) ) ) {
+				do_action( 'searchwp\debug\log', 'LOCK EXPIRED!', $this->name );
+				$legacy_lock = false;
+			}
+		}
+
+		return empty( $legacy_lock ) ? 1 : 0;
+	}
+
+	/**
+	 * Whether a legacy process lock needs to be used.
+	 *
+	 * @since 4.1.8
+	 * @return bool
+	 */
+	public static function use_legacy_lock() {
+		// We can't use GET_LOCK in MySQL 5.6 (or MariaDB 10.0.2) so if that's
+		// what we've got we will fall back to our own options-based lock.
+		$db_info     = \SearchWP\Utils::get_db_details();
+		$engine_ver  = $db_info['version'];
+		$modern_min  = $db_info['engine'] == 'MariaDB' ? '10.0.3' : '5.7.0';
+		$legacy_lock = version_compare( $engine_ver, $modern_min, '<' );
+
+		return (bool) apply_filters( 'searchwp\background_process\use_legacy_lock', $legacy_lock );
 	}
 
 	/**
@@ -101,19 +169,9 @@ abstract class BackgroundProcess {
 	 * @since 4.1
 	 */
 	public function health_check() {
-		// Did we exceed our time limit?
-		if ( $this->locked ) {
-			// Did we exceed our time limit?
-			if ( time() > $this->locked + absint( apply_filters( 'searchwp\background_process\process_time_limit', 60 ) ) ) {
-				$this->time_limit_exceeded();
-				$this->unlock_process();
-				$this->trigger();
-			}
-		} else {
-			// Trigger a recurring update to catch any edits that were made outside of observed hooks.
-			do_action( 'searchwp\debug\log', 'Health check', $this->name . ':background' );
-			$this->trigger();
-		}
+		do_action( 'searchwp\debug\log', 'Health check', $this->name . ':background' );
+		update_site_option( SEARCHWP_PREFIX . 'last_health_check', current_time( 'timestamp' ) );
+		$this->trigger();
 	}
 
 	/**
@@ -156,26 +214,25 @@ abstract class BackgroundProcess {
 	}
 
 	/**
-	 * Locks the process.
-	 *
-	 * @since 4.1
-	 * @return void
-	 */
-	protected function lock_process() {
-		global $wpdb;
-		$this->start_time = time();
-
-		update_site_option( $this->identifier . '_process_lock', $this->start_time );
-	}
-
-	/**
 	 * Unlocks the process.
 	 *
 	 * @since 4.1
 	 * @return void
 	 */
 	protected function unlock_process() {
-		$result = delete_site_option( $this->identifier . '_process_lock' );
+		global $wpdb;
+
+		if ( ! self::use_legacy_lock() ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					"SELECT RELEASE_LOCK(%s) AS searchwp_process_lock_{$this->name}",
+					'SEARCHWP-PROCESS-LOCK-' . strtoupper( $this->name )
+				)
+			);
+		} else {
+			delete_site_option( $this->identifier . '_process_lock' );
+		}
+
 		$this->locked = false;
 	}
 
@@ -199,19 +256,36 @@ abstract class BackgroundProcess {
 	 * @since 4.1
 	 */
 	public function trigger() {
+		$this->locked = ! $this->get_lock();
+
 		if ( ! $this->enabled || $this->locked ) {
 			if ( ! $this->enabled ) {
 				do_action( 'searchwp\debug\log', 'Process is PAUSED', $this->name . ':background' );
 			}
 
 			if ( $this->locked ) {
-				do_action( 'searchwp\debug\log', 'Process is LOCKED', $this->name . ':background' );
+				$message = 'Process is LOCKED';
+
+				$next_health_check = wp_next_scheduled( $this->identifier . '_cron' );
+				if ( $next_health_check ) {
+					$message .= ', health check in ' . human_time_diff( $next_health_check );
+				}
+
+				do_action( 'searchwp\debug\log', $message, $this->name . ':background' );
 			}
 
 			return false;
 		}
 
-		$this->lock_process();
+		// If we're manually handling a legacy lock we need to claim
+		// our lock here. A modern lock has already been claimed.
+		if ( self::use_legacy_lock() ) {
+			update_site_option( $this->identifier . '_process_lock', time() );
+		}
+
+		if ( $this->time_limit_exceeded() ) {
+			$this->handle_process_failure();
+		}
 
 		// Cycle a batch.
 		$done = ! $this->cycle();
@@ -243,17 +317,15 @@ abstract class BackgroundProcess {
 	 */
 	protected function _get_cpu_load_throttle() {
 		$load      = sys_getloadavg();
-		$threshold = abs( apply_filters( 'searchwp\background_process\load_maximum', 2 ) );
+		$threshold = abs( apply_filters( 'searchwp\background_process\load_maximum', 3 ) );
 
-		if ( $load[0] < $threshold ) {
+		if ( ! is_array( $load ) || ! isset( $load[0] ) || $load[0] < $threshold ) {
 			return 0;
 		}
 
-		$throttle = absint( apply_filters( 'searchwp\background_process\load_throttle', [
-			'load' => $load
-		] ), 4 * floor( $load[0] ) );
-
-		$ini_max = absint( ini_get( 'max_execution_time' ) ) - 5;
+		// Default throttle is 2s but it can be customized based on current load.
+		$throttle = absint( apply_filters( 'searchwp\background_process\load_throttle', 2, [ 'load' => $load, ] ) );
+		$ini_max  = absint( ini_get( 'max_execution_time' ) ) - 5;
 
 		if ( $ini_max < 10 ) {
 			$ini_max = 10;
@@ -290,16 +362,19 @@ abstract class BackgroundProcess {
 	 * @return array Arguments for wp_remote_post().
 	 */
 	public function get_post_args() {
+		// In some cases cookie values can get exponentially encoded as the background process progresses.
+		$cookies = $this->get_rawurlencoded_cookies( $_COOKIE );
+
 		$args = array(
-			'timeout'   => 0.01,
+			'timeout'   => 0.1,
 			'blocking'  => false,
 			'body'      => '',
-			'cookies'   => $_COOKIE,
+			'cookies'   => apply_filters( 'searchwp\indexer\loopback\args\cookies', $cookies, [ 'original' => $_COOKIE ] ),
 			'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
 		);
 
 		$basic_auth = apply_filters( 'searchwp\indexer\http_basic_auth_credentials', [] ); // Deprecated.
-		$basic_auth = apply_filters( 'searchwp\background_process\http_basic_auth_credentials', [] );
+		$basic_auth = apply_filters( 'searchwp\background_process\http_basic_auth_credentials', $basic_auth );
 
 		if ( $basic_auth ) {
 			$args['headers'] = [
@@ -311,6 +386,52 @@ abstract class BackgroundProcess {
 
 		return apply_filters( 'searchwp\background_process\loopbackargs', $args );
 	}
+
+	/**
+	 * URL encode cookies.
+	 *
+	 * @since 4.3.8
+	 * @param $cookies
+	 * @return mixed
+	 */
+	private function get_rawurlencoded_cookies( $cookies ){
+
+		$cookies = $_COOKIE;
+
+		if ( is_array( $cookies ) && ! empty( $cookies ) ) {
+			foreach ( $cookies as $cookie_name => $cookie_value ) {
+
+				if ( is_string( $cookie_value ) ) {
+					$cookie_value = false !== strpos( $cookie_value, '\"' )
+						? stripslashes( $cookie_value )
+						: $cookie_value;
+
+					$cookies[ $cookie_name ] = rawurlencode( $cookie_value );
+
+				} else if ( is_array( $cookie_value ) ) {
+
+					foreach( $cookie_value as $index => $value ) {
+						if ( is_string( $value ) ) {
+							$value = false !== strpos( $value, '\"' )
+								? stripslashes( $value )
+								: $value;
+
+							$value = rawurlencode( $value );
+						}
+						$cookies[ $cookie_name . '[' . $index .']' ] = $value;
+					}
+					// This cookie stores an array of values. It will be replicated into multiple single cookies, so we can remove the original copy.
+					unset( $cookies[$cookie_name] );
+
+				} else {
+					$cookies[ $cookie_name ] = $cookie_value;
+				}
+			}
+		}
+
+		return $cookies;
+	}
+
 
 	/**
 	 * Whether memory usage has been exceeded.
@@ -346,10 +467,11 @@ abstract class BackgroundProcess {
 		$args['timeout']  = 0.5;
 		$args['body']     = 'SearchWP Indexer Communication Test';
 
-		try	{
+		// serialize() will throw an Exception e.g. if there's a Closure in there for some reason.
+		try {
 			$cache_key = md5( serialize( $args ) . esc_url_raw( $this->get_query_url() ) );
 		} catch ( \Exception $e ) {
-			// Something went wrong with the args so just skip the cache.
+			// If we can't verify the cache key based on the args, skip the cache.
 			$cache_key = false;
 		}
 
@@ -414,4 +536,12 @@ abstract class BackgroundProcess {
 	 * @return mixed
 	 */
 	abstract protected function time_limit_exceeded();
+
+	/**
+	 * Executed when it is determined that the process has failed.
+	 *
+	 * @since 4.1.8
+	 * @return mixed
+	 */
+	abstract protected function handle_process_failure();
 }

@@ -57,12 +57,23 @@ class AdvancedCustomFields {
 	 * @return void
 	 */
 	public function __construct( Source $source ) {
+
+		/**
+		 * Filter to disable ACF integration.
+		 *
+		 * @since 4.3.16
+		 *
+		 * @param bool $disabled Whether to disable ACF integration. Default false.
+		 */
+		$disabled = apply_filters( 'searchwp\acf_integration\disabled', false );
+
 		if (
 			! method_exists( $source, 'get_post_type' ) // Only applies to WP_Post sources.
 			|| ! function_exists( 'acf' )
 			|| ! function_exists( 'acf_get_field_groups' )
 			|| ! function_exists( 'acf_get_fields' )
 			|| ! version_compare( acf()->settings['version'], '5.0', '>=' )
+			|| $disabled
 		) {
 			return;
 		}
@@ -121,7 +132,7 @@ class AdvancedCustomFields {
 	 */
 	public function get_fields() {
 		add_action( 'pre_get_posts', [ $this, 'suppress_filters' ] );
-		$field_groups = acf_get_field_groups( [ 'post_type' => $this->post_type, ] );
+		$field_groups = acf_get_field_groups();
 		remove_action( 'pre_get_posts', [ $this, 'suppress_filters' ] );
 
 		$fields = [];
@@ -166,7 +177,7 @@ class AdvancedCustomFields {
 				];
 
 				foreach ( (array) $field['layouts'] as $layout ) {
-					if ( empty( $field['sub_fields'] ) ) {
+					if ( empty( $layout['sub_fields'] ) ) {
 						continue;
 					}
 
@@ -188,38 +199,64 @@ class AdvancedCustomFields {
 	 * Reduce an ACF Field to only what we need.
 	 *
 	 * @since 4.0
-	 * @param array $field
-	 * @return array
+	 *
+	 * @param array  $field  The ACF Field.
+	 * @param string $prefix The prefix for this field.
+	 *
+	 * @return array $repeatable The reduced ACF Field.
 	 */
 	private function reduce_repeatable( array $field, string $prefix ) {
-		return [
-			'id'    => isset( $field['ID'] )    ? $field['ID']    : null,
-			'key'   => isset( $field['key'] )   ? $field['key']   : null,
+
+		$repeatable = [
+			'id'    => isset( $field['ID'] ) ? $field['ID'] : null,
+			'key'   => isset( $field['key'] ) ? $field['key'] : null,
 			'label' => isset( $field['label'] ) ? $field['label'] : null,
-			'name'  => isset( $field['name'] )  ? $prefix . $field['name'] . '*' : null,
+			'name'  => isset( $field['name'] ) ? $prefix . $field['name'] . '*' : null,
 		];
+
+		if ( empty( $repeatable['label'] ) && ! empty( $repeatable['name'] ) ) {
+			$repeatable['label'] = $repeatable['name'];
+		}
+
+		return $repeatable;
 	}
 
 	/**
 	 * Callback to suppress filters when retrieving ACF Field Groups.
 	 *
 	 * @since 4.0
+	 *
+	 * @param WP_Query $query The WP_Query object.
 	 */
 	public function suppress_filters( $query ) {
+
 		$query->set( 'suppress_filters', true );
 	}
 
 	/**
-	 * Callback to return 'repeatable' ACF Fields e.g. Repeater, Flexible Content
+	 * Callback to return 'repeatable' ACF Fields e.g. Repeater, Flexible Content.
 	 *
 	 * @since 4.0
-	 * @param mixed $keys
-	 * @param mixed $args
+	 *
+	 * @param mixed $keys The existing keys.
+	 * @param mixed $args The arguments.
+	 *
 	 * @return mixed|array
 	 */
 	public function repeatable_meta_keys( $keys, $args ) {
+
+		/**
+		 * Filter to show repeatable ACF fields as Custom Field options.
+		 *
+		 * @since 4.0
+		 *
+		 * @param bool  $show_repeatable_fields Whether to show repeatable ACF fields as Custom Field options. Default true.
+		 * @param array $args                   The arguments.
+		 */
+		$show_repeatable_fields = apply_filters( 'searchwp\acf\show_repeatable_fields', true, $args );
+
 		if (
-			! apply_filters( 'searchwp\acf\show_repeatable_fields', true, $args )
+			! $show_repeatable_fields
 			|| $args['source'] !== $this->source
 			|| $args['attribute'] !== 'meta'
 		) {
@@ -256,13 +293,26 @@ class AdvancedCustomFields {
 	 * Callback to include individual ACF fields as Custom Field optoins.
 	 *
 	 * @since 4.1
-	 * @param mixed $keys
-	 * @param mixed $args
+	 *
+	 * @param mixed $keys The existing keys.
+	 * @param mixed $args The arguments.
+	 *
 	 * @return mixed|array
 	 */
 	public function individual_meta_keys( $keys, $args ) {
+
+		/**
+		 * Filter to show individual ACF fields as Custom Field options.
+		 *
+		 * @since 4.1
+		 *
+		 * @param bool  $show_individual_fields Whether to show individual ACF fields as Custom Field options. Default true.
+		 * @param array $args                   The arguments.
+		 */
+		$show_individual_fields = apply_filters( 'searchwp\acf\show_individual_fields', true, $args );
+
 		if (
-			! apply_filters( 'searchwp\acf\show_individual_fields', true, $args )
+			! $show_individual_fields
 			|| $args['source'] !== $this->source
 			|| $args['attribute'] !== 'meta'
 		) {
@@ -271,12 +321,28 @@ class AdvancedCustomFields {
 
 		// Add individual fields.
 		foreach ( $this->fields as $pair ) {
+
 			$field  = $pair['field'];
 			$group  = $pair['field_group'];
 			$key    = $field['name'];
+			$label  = 'ACF: ' . ( $field['label'] ? $field['label'] : $field['name'] );
+			$parent = $field['parent'] ?? false;
 			$icon   = 'dashicons dashicons-welcome-widgets-menus'; // This is what ACF uses.
 
-			$label  = 'ACF: ' . $field['label'];
+			while ( $parent ) {
+				$parent_field = acf_get_raw_field( $parent );
+
+				if ( ! $parent_field ) {
+					break;
+				}
+
+				$key = isset( $parent_field['name'] ) && ! empty( $parent_field['name'] )
+					? $parent_field['name'] . '_*_' . $key
+					: $key;
+
+				$parent = $parent_field['parent'] ?? false;
+			}
+
 			if ( apply_filters( 'searchwp\acf\include_field_group_in_label', false, $pair ) ) {
 				$label .= ' (' . $group['title'] . ')';
 			}

@@ -2,7 +2,7 @@
 
 namespace SearchWP\Dependencies\RtfHtmlPhp;
 
-class ControlWord extends \SearchWP\Dependencies\RtfHtmlPhp\Element
+class ControlWord extends Element
 {
     public $word;
     public $parameter;

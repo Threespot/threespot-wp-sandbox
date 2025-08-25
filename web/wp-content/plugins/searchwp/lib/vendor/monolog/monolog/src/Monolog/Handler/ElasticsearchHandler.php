@@ -11,6 +11,7 @@ declare (strict_types=1);
  */
 namespace SearchWP\Dependencies\Monolog\Handler;
 
+use SearchWP\Dependencies\Elastic\Elasticsearch\Response\Elasticsearch;
 use Throwable;
 use RuntimeException;
 use SearchWP\Dependencies\Monolog\Logger;
@@ -19,6 +20,8 @@ use SearchWP\Dependencies\Monolog\Formatter\ElasticsearchFormatter;
 use InvalidArgumentException;
 use SearchWP\Dependencies\Elasticsearch\Common\Exceptions\RuntimeException as ElasticsearchRuntimeException;
 use SearchWP\Dependencies\Elasticsearch\Client;
+use SearchWP\Dependencies\Elastic\Elasticsearch\Exception\InvalidArgumentException as ElasticInvalidArgumentException;
+use SearchWP\Dependencies\Elastic\Elasticsearch\Client as Client8;
 /**
  * Elasticsearch handler
  *
@@ -40,24 +43,29 @@ use SearchWP\Dependencies\Elasticsearch\Client;
  *
  * @author Avtandil Kikabidze <akalongman@gmail.com>
  */
-class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\AbstractProcessingHandler
+class ElasticsearchHandler extends AbstractProcessingHandler
 {
     /**
-     * @var Client
+     * @var Client|Client8
      */
     protected $client;
     /**
-     * @var array Handler config options
+     * @var mixed[] Handler config options
      */
     protected $options = [];
     /**
-     * @param Client     $client  Elasticsearch Client object
-     * @param array      $options Handler configuration
-     * @param string|int $level   The minimum logging level at which this handler will be triggered
-     * @param bool       $bubble  Whether the messages that are handled can bubble up the stack or not
+     * @var bool
      */
-    public function __construct(\SearchWP\Dependencies\Elasticsearch\Client $client, array $options = [], $level = \SearchWP\Dependencies\Monolog\Logger::DEBUG, bool $bubble = \true)
+    private $needsType;
+    /**
+     * @param Client|Client8 $client  Elasticsearch Client object
+     * @param mixed[]        $options Handler configuration
+     */
+    public function __construct($client, array $options = [], $level = Logger::DEBUG, bool $bubble = \true)
     {
+        if (!$client instanceof Client && !$client instanceof Client8) {
+            throw new \TypeError('Elasticsearch\\Client or Elastic\\Elasticsearch\\Client instance required');
+        }
         parent::__construct($level, $bubble);
         $this->client = $client;
         $this->options = \array_merge([
@@ -67,6 +75,13 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
             // Elastic document type
             'ignore_error' => \false,
         ], $options);
+        if ($client instanceof Client8 || $client::VERSION[0] === '7') {
+            $this->needsType = \false;
+            // force the type to _doc for ES8/ES7
+            $this->options['type'] = '_doc';
+        } else {
+            $this->needsType = \true;
+        }
     }
     /**
      * {@inheritDoc}
@@ -76,19 +91,19 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
         $this->bulkSend([$record['formatted']]);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
-        if ($formatter instanceof \SearchWP\Dependencies\Monolog\Formatter\ElasticsearchFormatter) {
+        if ($formatter instanceof ElasticsearchFormatter) {
             return parent::setFormatter($formatter);
         }
-        throw new \InvalidArgumentException('ElasticsearchHandler is only compatible with ElasticsearchFormatter');
+        throw new InvalidArgumentException('ElasticsearchHandler is only compatible with ElasticsearchFormatter');
     }
     /**
      * Getter options
      *
-     * @return array
+     * @return mixed[]
      */
     public function getOptions() : array
     {
@@ -97,12 +112,12 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter() : FormatterInterface
     {
-        return new \SearchWP\Dependencies\Monolog\Formatter\ElasticsearchFormatter($this->options['index'], $this->options['type']);
+        return new ElasticsearchFormatter($this->options['index'], $this->options['type']);
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
@@ -112,7 +127,7 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
     /**
      * Use Elasticsearch bulk API to send list of documents
      *
-     * @param  array             $records
+     * @param  array[]           $records Records + _index/_type keys
      * @throws \RuntimeException
      */
     protected function bulkSend(array $records) : void
@@ -120,17 +135,18 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
         try {
             $params = ['body' => []];
             foreach ($records as $record) {
-                $params['body'][] = ['index' => ['_index' => $record['_index'], '_type' => $record['_type']]];
+                $params['body'][] = ['index' => $this->needsType ? ['_index' => $record['_index'], '_type' => $record['_type']] : ['_index' => $record['_index']]];
                 unset($record['_index'], $record['_type']);
                 $params['body'][] = $record;
             }
+            /** @var Elasticsearch */
             $responses = $this->client->bulk($params);
             if ($responses['errors'] === \true) {
                 throw $this->createExceptionFromResponses($responses);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (!$this->options['ignore_error']) {
-                throw new \RuntimeException('Error sending messages to Elasticsearch', 0, $e);
+                throw new RuntimeException('Error sending messages to Elasticsearch', 0, $e);
             }
         }
     }
@@ -139,25 +155,31 @@ class ElasticsearchHandler extends \SearchWP\Dependencies\Monolog\Handler\Abstra
      *
      * Only the first error is converted into an exception.
      *
-     * @param array $responses returned by $this->client->bulk()
+     * @param mixed[]|Elasticsearch $responses returned by $this->client->bulk()
      */
-    protected function createExceptionFromResponses(array $responses) : \SearchWP\Dependencies\Elasticsearch\Common\Exceptions\RuntimeException
+    protected function createExceptionFromResponses($responses) : Throwable
     {
         foreach ($responses['items'] ?? [] as $item) {
             if (isset($item['index']['error'])) {
                 return $this->createExceptionFromError($item['index']['error']);
             }
         }
-        return new \SearchWP\Dependencies\Elasticsearch\Common\Exceptions\RuntimeException('Elasticsearch failed to index one or more records.');
+        if (\class_exists(ElasticInvalidArgumentException::class)) {
+            return new ElasticInvalidArgumentException('Elasticsearch failed to index one or more records.');
+        }
+        return new ElasticsearchRuntimeException('Elasticsearch failed to index one or more records.');
     }
     /**
      * Creates elasticsearch exception from error array
      *
-     * @param array $error
+     * @param mixed[] $error
      */
-    protected function createExceptionFromError(array $error) : \SearchWP\Dependencies\Elasticsearch\Common\Exceptions\RuntimeException
+    protected function createExceptionFromError(array $error) : Throwable
     {
         $previous = isset($error['caused_by']) ? $this->createExceptionFromError($error['caused_by']) : null;
-        return new \SearchWP\Dependencies\Elasticsearch\Common\Exceptions\RuntimeException($error['type'] . ': ' . $error['reason'], 0, $previous);
+        if (\class_exists(ElasticInvalidArgumentException::class)) {
+            return new ElasticInvalidArgumentException($error['type'] . ': ' . $error['reason'], 0, $previous);
+        }
+        return new ElasticsearchRuntimeException($error['type'] . ': ' . $error['reason'], 0, $previous);
     }
 }

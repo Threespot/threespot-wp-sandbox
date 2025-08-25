@@ -75,14 +75,14 @@ final class StatusTable extends Table {
 	 */
 	protected function set_schema() {
 		$this->schema = "statusid bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			id varchar(255) NOT NULL COMMENT 'Source ID',
+			id varchar(100) NOT NULL COMMENT 'Source ID',
 			source varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
 			queued timestamp NULL DEFAULT NULL COMMENT 'Whether this entry is queued for indexing',
 			indexed timestamp NULL DEFAULT NULL COMMENT 'Whether this entry is indexed',
 			omitted timestamp NULL DEFAULT NULL COMMENT 'Whether this entry is omitted',
 			site bigint(20) unsigned NOT NULL COMMENT 'Site ID',
 			PRIMARY KEY (statusid),
-			KEY id_idx (id(191)),
+			KEY id_idx (id),
 			KEY site_idx (site),
 			KEY source_idx (source)";
 	}

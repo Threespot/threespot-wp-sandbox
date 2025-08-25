@@ -2,7 +2,7 @@
 
 namespace SearchWP\Dependencies\RtfHtmlPhp;
 
-class Text extends \SearchWP\Dependencies\RtfHtmlPhp\Element
+class Text extends Element
 {
     public $text;
     /*

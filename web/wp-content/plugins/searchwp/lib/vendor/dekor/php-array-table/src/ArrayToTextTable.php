@@ -104,7 +104,7 @@ class ArrayToTextTable
      */
     protected function calcColumnsList()
     {
-        $this->columnsList = \array_keys(\reset($this->data));
+        $this->columnsList = array_keys(\reset($this->data));
     }
     /**
      * Calculates length for string

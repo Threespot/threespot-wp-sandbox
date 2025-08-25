@@ -13,6 +13,30 @@ class GF_Field_Website extends GF_Field {
 		return esc_attr__( 'Website', 'gravityforms' );
 	}
 
+	/**
+	 * Returns the field's form editor description.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_description() {
+		return esc_attr__( 'Allows users to enter a website URL.', 'gravityforms' );
+	}
+
+	/**
+	 * Returns the field's form editor icon.
+	 *
+	 * This could be an icon url or a gform-icon class.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_icon() {
+		return 'gform-icon--link';
+	}
+
 	function get_form_editor_field_settings() {
 		return array(
 			'conditional_logic_field_setting',
@@ -29,6 +53,7 @@ class GF_Field_Website extends GF_Field {
 			'placeholder_setting',
 			'description_setting',
 			'css_class_setting',
+			'autocomplete_setting',
 		);
 	}
 
@@ -47,7 +72,7 @@ class GF_Field_Website extends GF_Field {
 
 		if ( ! empty( $value ) && ! GFCommon::is_valid_url( $value ) ) {
 			$this->failed_validation  = true;
-			$this->validation_message = empty( $this->errorMessage ) ? esc_html__( 'Please enter a valid Website URL (e.g. http://www.gravityforms.com).', 'gravityforms' ) : $this->errorMessage;
+			$this->validation_message = empty( $this->errorMessage ) ? esc_html__( 'Please enter a valid Website URL (e.g. https://gravityforms.com).', 'gravityforms' ) : $this->errorMessage;
 		}
 	}
 
@@ -64,25 +89,25 @@ class GF_Field_Website extends GF_Field {
 		$class_suffix    = $is_entry_detail ? '_admin' : '';
 		$class           = $size . $class_suffix;
 		$class           = esc_attr( $class );
-		$is_html5        = RGFormsModel::is_html5_enabled();
-		$html_input_type = $is_html5 ? 'url' : 'text';
+		$html_input_type = 'url';
 
 		$placeholder_attribute = $this->get_field_placeholder_attribute();
 		$required_attribute    = $this->isRequired ? 'aria-required="true"' : '';
 		$invalid_attribute     = $this->failed_validation ? 'aria-invalid="true"' : 'aria-invalid="false"';
 		$aria_describedby      = $this->get_aria_describedby();
+		$autocomplete          = $this->enableAutocomplete ? $this->get_field_autocomplete_attribute() : '';
 
 		$tabindex = $this->get_tabindex();
 		$value    = esc_attr( $value );
 		$class    = esc_attr( $class );
 
 		return "<div class='ginput_container ginput_container_website'>
-                    <input name='input_{$id}' id='{$field_id}' type='$html_input_type' value='{$value}' class='{$class}' {$tabindex} {$aria_describedby} {$disabled_text} {$placeholder_attribute} {$required_attribute} {$invalid_attribute}/>
+                    <input name='input_{$id}' id='{$field_id}' type='$html_input_type' value='{$value}' class='{$class}' {$tabindex} {$aria_describedby} {$disabled_text} {$placeholder_attribute} {$required_attribute} {$invalid_attribute} {$autocomplete}/>
                 </div>";
 	}
 
 	public function get_value_entry_detail( $value, $currency = '', $use_text = false, $format = 'html', $media = 'screen' ) {
-		$safe_value = esc_url( $value );
+		$safe_value = esc_url( (string) $value );
 		return GFCommon::is_valid_url( $value ) && $format == 'html' ? "<a href='$safe_value' target='_blank'>$safe_value</a>" : $safe_value;
 	}
 
@@ -111,6 +136,23 @@ class GF_Field_Website extends GF_Field {
 		$operators[] = 'contains';
 
 		return $operators;
+	}
+
+	/**
+	 * Performs actions after the field has been converted to an object.
+	 *
+	 * Ensures the `autocompleteAttribute` property is set to 'url' if it is not already defined.
+	 *
+	 * @since 2.9.8
+	 *
+	 */
+	public function post_convert_field() {
+		parent::post_convert_field();
+
+		if ( $this->is_form_editor() && empty( $this->autocompleteAttribute ) ) {
+			$this->autocompleteAttribute = 'url';
+		}
+
 	}
 
 }

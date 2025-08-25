@@ -16,7 +16,7 @@ namespace SearchWP\Dependencies\Monolog\Formatter;
  *
  * @author Dominik Liebler <liebler.dominik@gmail.com>
  */
-class FlowdockFormatter implements \SearchWP\Dependencies\Monolog\Formatter\FormatterInterface
+class FlowdockFormatter implements FormatterInterface
 {
     /**
      * @var string
@@ -32,7 +32,9 @@ class FlowdockFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Form
         $this->sourceEmail = $sourceEmail;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @return mixed[]
      */
     public function format(array $record) : array
     {
@@ -45,7 +47,9 @@ class FlowdockFormatter implements \SearchWP\Dependencies\Monolog\Formatter\Form
         return $record;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @return mixed[][]
      */
     public function formatBatch(array $records) : array
     {

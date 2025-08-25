@@ -17,8 +17,9 @@ use SearchWP\Dependencies\Monolog\ResettableInterface;
  *
  * @author Simon Mönch <sm@webfactory.de>
  */
-class UidProcessor implements \SearchWP\Dependencies\Monolog\Processor\ProcessorInterface, \SearchWP\Dependencies\Monolog\ResettableInterface
+class UidProcessor implements ProcessorInterface, ResettableInterface
 {
+    /** @var string */
     private $uid;
     public function __construct(int $length = 7)
     {
@@ -27,6 +28,9 @@ class UidProcessor implements \SearchWP\Dependencies\Monolog\Processor\Processor
         }
         $this->uid = $this->generateUid($length);
     }
+    /**
+     * {@inheritDoc}
+     */
     public function __invoke(array $record) : array
     {
         $record['extra']['uid'] = $this->uid;

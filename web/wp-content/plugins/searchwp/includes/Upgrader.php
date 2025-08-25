@@ -46,16 +46,17 @@ class Upgrader {
 		// Maybe redirect to Welcome screen on activated fresh install.
 		if (
 			( ! is_multisite() || ( is_multisite() && ! $network_wide ) )
-			&&  \SearchWP\Settings::get( 'new_activation' )
+			&& \SearchWP\Settings::get( 'new_activation' )
 		) {
 			// Disable redirection for subsequent page loads.
 			\SearchWP\Settings::update( 'new_activation', false );
 
-			wp_redirect( add_query_arg( [
-					'page'    => 'searchwp',
-					'welcome' => '1',
-				], esc_url( admin_url( 'options-general.php' ) )
-			) );
+			wp_safe_redirect(
+				add_query_arg(
+					[ 'page' => 'searchwp-welcome' ],
+					esc_url( admin_url( 'index.php' ) )
+				)
+			);
 		}
 	}
 
@@ -68,6 +69,16 @@ class Upgrader {
 	private static function activate() {
 		// Ensure autoloaded Settings are autoloaded.
 		foreach ( Settings::get_autoload_keys() as $key ) {
+
+			// License is handled separately.
+			if ( $key === 'license' ) {
+				$license = Settings::get( 'license' );
+				if ( empty( $license ) ) {
+					Settings::update( 'license', '0' );
+				}
+				continue;
+			}
+
 			if ( false === Settings::get( $key, 'boolean' ) ) {
 				Settings::update( $key, '0' ); // Use '0' to get around the update short circuit.
 			}
@@ -93,7 +104,9 @@ class Upgrader {
 		] );
 
 		// Maybe execute upgrade routine(s).
-		self::execute( $current_version );
+		if ( ! empty( $current_version ) ) {
+			self::execute( $current_version );
+		}
 
 		// Update current version.
 		if ( SEARCHWP_VERSION !== $current_version ) {
@@ -117,6 +130,15 @@ class Upgrader {
 		if ( version_compare( $upgrading_from, '3.99.0', '<' ) ) {
 			self::migrate_from_3x_to_4_0_0();
 			self::activate();
+		}
+
+		if ( version_compare( $upgrading_from, '4.1.14', '<' ) ) {
+			// Add baseline for cron health check.
+			update_site_option( SEARCHWP_PREFIX . 'last_health_check', current_time( 'timestamp' ) );
+		}
+
+		if ( version_compare( $upgrading_from, '4.4.0', '<' ) ) {
+			self::upgrade_template_settings();
 		}
 	}
 
@@ -194,13 +216,22 @@ class Upgrader {
 		if ( ! empty( $legacy_synonyms ) ) {
 			$synonyms = new \SearchWP\Logic\Synonyms();
 
-			$synonyms->save( array_map( function( $synonym ) {
-				return [
-					'sources'  => $synonym['term'],
-					'synonyms' => implode( ', ', $synonym['synonyms'] ),
-					'replace'  => ! empty( $synonym['replace'] ),
-				];
-			}, $legacy_synonyms ) );
+			$updated = array_filter( array_map( function( $synonym ) {
+				if (
+					( ! isset( $synonym['term'] ) || empty( trim( $synonym['term'] ) ) )
+					|| ( ! isset( $synonym['synonyms'] ) || ! is_array( $synonym['synonyms'] ) || empty( $synonym['synonyms'] ) )
+				) {
+					return false;
+				} else {
+					return [
+						'sources'  => $synonym['term'],
+						'synonyms' => implode( ', ', $synonym['synonyms'] ),
+						'replace'  => ! empty( $synonym['replace'] ),
+					];
+				}
+			}, (array) $legacy_synonyms ) );
+
+			$synonyms->save( $updated );
 		}
 
 		/**
@@ -382,20 +413,89 @@ class Upgrader {
 	 * @return void
 	 */
 	private static function install( $network_wide = false ) {
-		// Allow for custom initial Engine to be implemented.
 		$default_engine_config  = json_decode( json_encode( new Engine( 'default' ) ), true );
+
+		// Keyword stemming is more useful than not.
+		$default_engine_config['settings']['stemming'] = true;
+
+		// Allow for custom initial Engine to be implemented.
 		$initial_default_engine = apply_filters(
 			'searchwp\install\engine\settings',
-			$network_wide ? $default_engine_config : [], // Network-wide installation gets default Engine as starting point.
+			$default_engine_config,
 			$default_engine_config
 		);
 
 		if ( ! empty( $initial_default_engine ) ) {
 			// Establish a Default Engine, which will in turn instantiate the Indexer.
-			// Otherwise the user will need to review and save first.
+			// Otherwise, the user will need to review and save first.
 			Settings::update_engines_config( [
 				'default' => Utils::normalize_engine_config( $initial_default_engine )
 			] );
+
+			// Trigger initial indexing.
+			\SearchWP::$indexer->trigger();
 		}
+
+		// Save initial settings
+		$initial_settings = [
+			'parse_shortcodes'         => true,
+			'do_suggestions'           => true,
+			'partial_matches'          => true,
+			'tokenize_pattern_matches' => true,
+		];
+
+		foreach ( $initial_settings as $key => $value ) {
+			Settings::update( $key, $value );
+		}
+	}
+
+	/**
+	 * Upgrade template settings from old format to new format.
+	 * Converts single template settings from 'searchwp_results_page' option
+	 * to the new multi-template format in 'searchwp_results_templates'.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @return void
+	 */
+	private static function upgrade_template_settings() {
+
+		// Get old settings.
+		$old_settings = get_option( 'searchwp_results_page' );
+
+		if ( empty( $old_settings ) ) {
+			return;
+		}
+
+		// If old settings is a string, try to decode it.
+		if ( is_string( $old_settings ) ) {
+			$old_settings = json_decode( $old_settings, true );
+		}
+
+		if ( ! is_array( $old_settings ) ) {
+			return;
+		}
+
+		// Create new format structure.
+		$new_settings = [
+			'templates' => [
+				// Add the old template as the default template with ID 1.
+				'1' => array_merge(
+					$old_settings,
+					[
+						'title'                 => 'Default', // Add default title.
+						'swp-load-more-enabled' => false,     // Disable load more by default for backward compatibility.
+						'swp-load-more-label'   => '',        // Add empty label for load more.
+					]
+				),
+			],
+			'next_id'   => 2, // Start next ID at 2.
+		];
+
+		// Save new settings.
+		update_option( 'searchwp_results_templates', wp_json_encode( $new_settings ) );
+
+		// Clean up old option.
+		delete_option( 'searchwp_results_page' );
 	}
 }

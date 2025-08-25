@@ -51,20 +51,45 @@ class Post extends Source {
 	protected $db_post_parent_column = 'post_parent';
 
 	/**
+	 * Allowed Ajax requests for post edit
+	 *
+	 * @since 4.3.8
+	 * @var string[]
+	 */
+	protected $allowed_ajax_edits = ['inline-save'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.0
 	 */
-	function __construct( $post_type = 'post' ) {
-		global $wpdb;
+	function __construct( string $post_type = 'post' ) {
+		global $wpdb, $wp_query;
 
 		$post_type_model = get_post_type_object( $post_type );
 
-		if ( is_null( $post_type_model ) && is_search() ) {
+		if ( is_null( $post_type_model ) && ( isset( $wp_query ) && is_search() ) ) {
 			wp_die(
 				__( 'Invalid post type for SearchWP Source Post:', 'searchwp' ) . ' <code>' . esc_html( $post_type ) . '</code>',
 				__( 'SearchWP Source Error', 'searchwp' )
 			);
+		}
+
+		if ( ! $post_type_model instanceof \WP_Post_type ) {
+			do_action( 'searchwp\debug\log', "Invalid post type for SearchWP Source Post:", 'source' );
+			do_action( 'searchwp\debug\log', print_r( $post_type, true ), 'source' );
+
+			if ( current_user_can( \SearchWP\Settings::get_capability() ) ) {
+				wp_die(
+					__( 'Invalid post type for SearchWP Source Post:', 'searchwp' ) . ' <code>' . esc_html( $post_type ) . '</code>',
+					__( 'SearchWP Source Error', 'searchwp' )
+				);
+			}
+		} else {
+			$this->labels     = [
+				'plural'   => $post_type_model->labels->name,
+				'singular' => $post_type_model->labels->singular_name,
+			];
 		}
 
 		$this->name       = 'post' . SEARCHWP_SEPARATOR . $post_type;
@@ -72,10 +97,28 @@ class Post extends Source {
 		$this->db_table   = $this->db_table . $wpdb->posts;
 		$this->attributes = $this->attributes();
 		$this->rules      = $this->rules();
-		$this->labels     = [
-			'plural'   => $post_type_model->labels->name,
-			'singular' => $post_type_model->labels->singular_name,
-		];
+	}
+
+	/**
+	 * Gets permalink for Source Entry ID.
+	 *
+	 * @since 4.1.14
+	 * @param int $id ID of the Entry
+	 * @return null|string
+	 */
+	public static function get_permalink( int $post_id ) {
+		return get_permalink( $post_id );
+	}
+
+	/**
+	 * Gets edit link for Source Entry ID.
+	 *
+	 * @since 4.1.14
+	 * @param int $id ID of the Entry
+	 * @return null|string
+	 */
+	public static function get_edit_link( int $id ) {
+		return get_edit_post_link( $id, '' ); // Pass empty context to prevent urlencode.
 	}
 
 	/**
@@ -222,9 +265,22 @@ class Post extends Source {
 			[	// Post excerpt.
 				'name'    => 'excerpt',
 				'label'   => __( 'Excerpt', 'searchwp' ),
+				'default' => $this->is_excluded_from_search() ? false : Utils::get_min_engine_weight(),
+				'data'    => function( $post_id ) {
+					return has_excerpt( $post_id ) ? get_the_excerpt( $post_id ) : '';
+				},
+				'phrases' => 'post_excerpt',
+			],
+			[	// Post Author.
+				'name'    => 'author',
+				'label'   => __( 'Author', 'searchwp' ),
 				'default' => $this->is_excluded_from_search() ? false : Utils::get_max_engine_weight(),
 				'data'    => function( $post_id ) {
-					return get_the_excerpt( $post_id );
+					return apply_filters(
+						'searchwp\source\post\attributes\author',
+						get_the_author_meta( 'display_name', get_post_field( 'post_author', $post_id ) ),
+						[ 'post_id' => $post_id ]
+					);
 				},
 			],
 			[	// Custom Fields.
@@ -233,6 +289,7 @@ class Post extends Source {
 				'notes'   => [
 					__( 'Tip: Match multiple keys using * as wildcard and hitting Enter', 'searchwp' ),
 				],
+				'tooltip' => true,
 				'default' => $this->is_excluded_from_search() ? false : Utils::get_min_engine_weight(),
 				'options' => function( $search = false, array $include = [] ) {
 					// If we're retrieving a specific set of options, get them and return.
@@ -272,7 +329,14 @@ class Post extends Source {
 
 						if ( $do_shortcodes ) {
 							if ( is_array( $post_meta ) ) {
-								$post_meta = array_map( 'do_shortcode', $post_meta );
+								// Support string[] but anything more advanced can use a hook.
+								$post_meta = array_map( function( $this_meta ) {
+									if ( is_string( $this_meta ) ) {
+										return do_shortcode( $this_meta );
+									} else {
+										return $this_meta;
+									}
+								}, $post_meta );
 							} else {
 								$post_meta = do_shortcode( $post_meta );
 							}
@@ -310,6 +374,7 @@ class Post extends Source {
 						return new Option( $taxonomy->name, $taxonomy->label . ' (' . $taxonomy->name . ')' );
 					}, get_object_taxonomies( $this->post_type, 'objects' ) );
 				},
+				'tooltip' => true,
 				'data'    => function( $post_id, $taxonomy ) {
 					do_action( 'searchwp\source\post\attributes\taxonomy', [
 						'taxonomy'  => $taxonomy,
@@ -329,7 +394,6 @@ class Post extends Source {
 						$terms = array_map( function( $term ) {
 							$term       = get_term( $term ); // Allow hooks to run.
 							$term_array = [
-								'taxonomy' => $term->taxonomy,
 								'name'     => $term->name,
 								'slug'     => $term->slug,
 								'desc'     => $term->description,
@@ -594,7 +658,7 @@ class Post extends Source {
 	protected function rules() {
 		$base_wp_query_args = $this->get_base_wp_query_args();
 
-		return [
+		$rules = [
 			[	// Taxonomies.
 				'name'    => 'taxonomy',
 				'label'   => __( 'Taxonomy', 'searchwp' ),
@@ -606,6 +670,12 @@ class Post extends Source {
 				},
 				'conditions' => [ 'IN', 'NOT IN' ],
 				'values' => function( $option, $search = false, array $include = [] ) {
+
+					// If the option is not a taxonomy, bail out.
+					if ( ! taxonomy_exists( $option ) ) {
+						return [];
+					}
+
 					$args = [
 						'taxonomy'   => $option,
 						'hide_empty' => false,
@@ -686,6 +756,65 @@ class Post extends Source {
 				},
 			],
 		];
+
+		// Some rules apply only when the post type is hierarchical.
+		$post_type = get_post_type_object( $this->post_type );
+
+		if ( $post_type->hierarchical ) {
+			$rules = array_merge( $rules, [
+				[	// Ancestor.
+					'name'        => 'ancestor',
+					'label'       => __( 'Ancestor ID', 'searchwp' ),
+					'tooltip'     => __( 'Ancestor and all descendants will apply to this Rule, comma separate multiple ancestors', 'searchwp' ),
+					'options'     => false,
+					'conditions'  => [ 'IN', 'NOT IN' ],
+					'application' => function( $properties ) {
+						global $wpdb;
+
+						$condition = 'NOT IN' === $properties['condition'] ? 'NOT IN' : 'IN';
+						$ancestors = explode( ',', Utils::get_integer_csv_string_from( $properties['value'] ) );
+						$ids       = [];
+
+						foreach ( $ancestors as $ancestor ) {
+							$ids = array_merge( $ids, \SearchWP\Utils::get_descendant_post_parents( $ancestor ) );
+						}
+
+						// Force empty IDs if applicable.
+						if ( empty( $ids ) ) {
+							$ids = [ '' ];
+						}
+
+						return $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_parent {$condition} ("
+							. implode( ',', array_fill( 0, count( $ids ), '%s' ) )
+							. ')', $ids );
+					},
+				],
+				[	// Post Parent.
+					'name'        => 'post_parent',
+					'label'       => __( 'Post Parent ID', 'searchwp' ),
+					'tooltip'     => __( 'Applies only to children, add another Rule to consider Post Parent itself if necessary', 'searchwp' ),
+					'options'     => false,
+					'conditions'  => [ 'IN', 'NOT IN' ],
+					'application' => function( $properties ) {
+						global $wpdb;
+
+						$condition = 'NOT IN' === $properties['condition'] ? 'NOT IN' : 'IN';
+						$ids = explode( ',', Utils::get_integer_csv_string_from( $properties['value'] ) );
+
+						// Force empty IDs if applicable.
+						if ( empty( $ids ) ) {
+							$ids = [ '' ];
+						}
+
+						return $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_parent {$condition}  ("
+							. implode( ',', array_fill( 0, count( $ids ), '%s' ) )
+							. ')', $ids );
+					},
+				],
+			] );
+		}
+
+		return $rules;
 	}
 
 	/**
@@ -703,7 +832,15 @@ class Post extends Source {
 			return $post;
 		}
 
+		// Set up highlighter if applicable.
 		$highlighter = Settings::get( 'highlighting', 'boolean' ) ? new Highlighter() : false;
+		$highlighter = apply_filters( 'searchwp\source\post\do_highlighting', $highlighter, [
+			'entry' => $entry,
+			'query' => $doing_query,
+		] );
+
+		// Skip highlighting if this is an empty search.
+		$highlighter = ! empty( $doing_query ) && ! empty( $doing_query->get_tokens() ) ? $highlighter : false;
 
 		// Determine whether we're going to find a global excerpt based on whether highlighting is enabled.
 		$global_excerpt = apply_filters( 'searchwp\source\post\global_excerpt', ! empty( $highlighter ), [ 'entry' => $entry, ] );
@@ -716,12 +853,29 @@ class Post extends Source {
 
 		// Apply highlights if applicable.
 		if ( $doing_query instanceof Query && $highlighter ) {
-			// If there is a suggested search, give it priority by prepending it to the submitted search term.
-			$search_terms = ! empty( $doing_query->get_suggested_search() ) ? $doing_query->get_suggested_search() : $doing_query->get_keywords();
-			$search_terms = explode( ' ', preg_quote( $search_terms, '/' ) );
+			// Be sure to check suggested search strings and not just the submitted search.
+			if ( ! empty( $doing_query->get_suggested_search() ) ) {
+				$search_terms = $doing_query->get_suggested_search();
+			} else {
+				// We have to be careful here e.g. with synonyms. We only really want to work with
+				// the original, submitted search string. If we consider synonyms or any other
+				// modifications to the search string itself, we could get both a weird excerpt
+				// and further weird ancillary changes like highlighting the modifications.
+				// However in some cases devs may want that, so leave the option.
+				$search_terms = apply_filters( 'searchwp\source\post\global_excerpt\use_original_search_string', true )
+					? $doing_query->get_keywords( true )
+					: implode( ' ', array_merge( [ $doing_query->get_keywords() ], $doing_query->get_tokens() ) );
+			}
+
+			// If this is a quoted search, limit the highlight to the quoted search.
+			if ( false !== strpos( $search_terms, '"' ) ) {
+				$search_terms = str_replace( '"', '', $doing_query->get_keywords() );
+			}
+
+			$search_terms = explode( ' ', $search_terms );
 
 			$post->post_title   = $highlighter::apply( get_the_title( $post ), $search_terms );
-			$post->post_excerpt = $highlighter::apply( $post->post_excerpt, $search_terms);
+			$post->post_excerpt = $highlighter::apply( $post->post_excerpt, $search_terms );
 		}
 
 		return $post;
@@ -748,18 +902,46 @@ class Post extends Source {
 	public static function get_global_excerpt( Entry $entry, $query, $length = 55 ) {
 		do_action( 'searchwp\get_global_excerpt' );
 
-		if ( $query instanceof Query ) {
-			// Be sure to check suggested search strings and not just the submitted search.
-			$search_terms = ! empty( $query->get_suggested_search() ) ? $query->get_suggested_search() : $query->get_keywords();
-		} else {
-			$search_terms = (string) $query;
-		}
-		$search_terms = $query instanceof Query ? $query->get_keywords() : sanitize_text_field( (string) $query );
-		$post_id      = $entry->get_id();
-		$post         = get_post( $post_id );
+		$post_id = $entry->get_id();
+		$post    = get_post( $post_id );
 
 		if ( ! $post instanceof \WP_Post ) {
 			return '';
+		}
+
+		if ( $query instanceof Query ) {
+			// Be sure to check suggested search strings and not just the submitted search.
+			if ( ! empty( $query->get_suggested_search() ) ) {
+				$search_terms = $query->get_suggested_search();
+			} else {
+				// We have to be careful here e.g. with synonyms. We only really want to work with
+				// the original, submitted search string. If we consider synonyms or any other
+				// modifications to the search string itself, we could get both a weird excerpt
+				// and further weird ancillary changes like highlighting the modifications.
+				// However in some cases devs may want that, so leave the option.
+
+				/**
+				 * Filters whether to use the original search string for the global excerpt.
+				 *
+				 * @since 4.0.0
+				 *
+				 * @param bool $use_original_search_string Whether to use the original search string for the global excerpt.
+				 */
+				$use_original_search_string = apply_filters( 'searchwp\source\post\global_excerpt\use_original_search_string', true );
+
+				if ( ! $use_original_search_string ) {
+					$search_terms = implode( ' ', array_unique( array_merge( [ $query->get_keywords() ], $query->get_tokens() ) ) );
+				} else {
+					$search_terms = $query->get_keywords( true );
+				}
+			}
+		} else {
+			$search_terms = (string) $query;
+		}
+
+		// If this is a quoted search, we should remove the quotes before proceeding
+		if ( false !== strpos( $search_terms, '"' ) ) {
+			$search_terms = str_replace( '"', '', $search_terms );
 		}
 
 		// Priority is the existing Excerpt.
@@ -769,6 +951,9 @@ class Post extends Source {
 			'post'   => $post,
 			'query'  => $query,
 		] );
+
+		$excerpt = Utils::stringify_html( $excerpt );
+
 		if ( ! empty( $excerpt ) && Utils::string_has_substring_from_string( $excerpt, $search_terms ) ) {
 			return Utils::trim_string_around_substring(
 				$excerpt,
@@ -777,8 +962,12 @@ class Post extends Source {
 			);
 		}
 
+		do_action( 'searchwp\get_global_excerpt\the_content\before' );
+
 		// Next check the post content.
 		$content = Utils::stringify_html( apply_filters( 'the_content', $post->post_content ) );
+
+		do_action( 'searchwp\get_global_excerpt\the_content\after' );
 
 		if ( ! empty( $content ) ) {
 			$content = apply_filters( 'searchwp\source\post\excerpt_haystack', $content, [
@@ -804,7 +993,7 @@ class Post extends Source {
 			return ! empty( $excerpt ) ? $excerpt : get_the_title( $post_id );
 		}
 
-		$entry_data = $entry->get_data( true );
+		$entry_data = $entry->get_data( true, true );
 
 		// Check Document Content.
 		if ( isset( $entry_data['document_content'] ) && ! empty( $entry_data['document_content'] ) ) {
@@ -864,7 +1053,11 @@ class Post extends Source {
 		}
 
 		// Nothing was found, send back the native excerpt or worst case the title.
-		return ! empty( $excerpt ) ? $excerpt : apply_filters( 'searchwp\source\post\excerpt_fallback', get_the_excerpt( $post_id ) );
+		return ! empty( $excerpt ) ? $excerpt : apply_filters( 'searchwp\source\post\excerpt_fallback', get_the_excerpt( $post_id ), [
+			'search' => $search_terms,
+			'post'   => $post,
+			'query'  => $query,
+		] );
 	}
 
 	/**
@@ -896,6 +1089,7 @@ class Post extends Source {
 
 		// We want ACF Repeatables to be integrated.
 		new \SearchWP\Integrations\AdvancedCustomFields( $this );
+		new \SearchWP\Integrations\WooCommerceAdminSearch();
 
 		// If this Source is not active we can bail out early.
 		if ( isset( $params['active'] ) && ! $params['active'] ) {
@@ -928,8 +1122,24 @@ class Post extends Source {
 			add_action( 'deleted_post_meta', [ $this, 'updated_post_meta' ], 999, 4 );
 		}
 
-		if ( ! has_action( 'set_object_terms', [ $this, 'purge_post_via_term' ] ) ) {
-			add_action( 'set_object_terms', [ $this, 'purge_post_via_term' ], 10, 6 );
+		if ( ! has_action( 'deleted_term_relationships', [ $this, 'updated_post_term' ] ) ) {
+			add_action( 'deleted_term_relationships', [ $this, 'updated_post_term' ], 10, 3 );
+		}
+
+		if ( ! has_action( 'added_term_relationship', [ $this, 'updated_post_term' ] ) ) {
+			add_action( 'added_term_relationship', [ $this, 'updated_post_term' ], 10, 3 );
+		}
+
+		if ( ! has_action( 'edited_term', [ $this, 'updated_taxonomy_term' ] ) ) {
+			add_action( 'edited_term', [ $this, 'updated_taxonomy_term' ], 10, 3 );
+		}
+
+		if ( ! has_action( 'profile_update', [ $this, 'updated_author_profile' ] ) ) {
+			add_action( 'profile_update', [ $this, 'updated_author_profile' ], 10, 2 );
+		}
+
+		if ( ! has_action( 'delete_user', [ $this, 'deleted_author_profile' ] ) ) {
+			add_action( 'delete_user', [ $this, 'deleted_author_profile' ], 10 );
 		}
 	}
 
@@ -986,17 +1196,97 @@ class Post extends Source {
 	 * Callback when a taxonomy term is edited.
 	 *
 	 * @since 4.0
+	 * @deprecated 4.2.2 Use updated_post_term()
+	 *
 	 * @param int    $object_id  Object ID.
 	 * @param array  $terms      An array of object terms.
 	 * @param array  $tt_ids     An array of term taxonomy IDs.
 	 * @param string $taxonomy   Taxonomy slug.
 	 * @param bool   $append     Whether to append new terms to the old terms.
 	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 *
 	 * @return bool Whether the post was dropped.
 	 */
 	public function purge_post_via_term( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
-		// FUTURE: Check engines to see if $taxonomy is used before proceeding, so we can bail early.
+
+		_deprecated_function( __FUNCTION__, '4.2.2', 'updated_post_term()' );
+
 		return $this->drop_post( $object_id );
+	}
+
+	/**
+	 * Callback when a taxonomy term is added to or removed from a post.
+	 *
+	 * @since 4.2.2
+	 *
+	 * @param int    $object_id Object ID.
+	 * @param array  $tt_ids    An array of term taxonomy IDs.
+	 * @param string $taxonomy  Taxonomy slug.
+	 *
+	 * @return bool Whether the post was dropped.
+	 */
+	public function updated_post_term( $object_id, $tt_ids, $taxonomy ) {
+
+		$allowed_ajax_requests = (array) apply_filters( 'searchwp\source\post\drop\proper_update_term_request', [ 'delete-tag' ] );
+
+		// If doing AJAX check this is a proper request to drop a post.
+		if (
+			defined( 'DOING_AJAX' )
+			&& DOING_AJAX
+			&& ! (
+				isset( $_REQUEST['action'] )
+				&& in_array( $_REQUEST['action'], $allowed_ajax_requests )
+			)
+		) {
+			return false;
+		}
+
+		// If this taxonomy is included in any engine settings drop the post.
+		if ( Utils::any_engine_has_source_attribute_option( $this->get_attributes()['taxonomy'], $this, $taxonomy ) ) {
+
+			do_action( 'searchwp\source\post\drop', [ 'post_id' => $object_id, 'source' => $this ] );
+
+			// Drop this post from the index.
+			\SearchWP::$index->drop( $this, $object_id );
+		}
+	}
+
+	/**
+	 * Callback when a taxonomy term has been updated.
+	 *
+	 * @since 4.2.3
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param int    $tt_id    Term taxonomy ID.
+	 * @param string $taxonomy Taxonomy slug.
+	 */
+	public function updated_taxonomy_term( $term_id, $tt_id, $taxonomy ) {
+
+		// If this taxonomy is not included in any engine settings bail out.
+		if ( ! Utils::any_engine_has_source_attribute_option( $this->get_attributes()['taxonomy'], $this, $taxonomy ) ) {
+			return;
+		}
+
+		// Fetch all post IDs associated with the taxonomy term.
+		$term_posts = new \WP_Query(
+			[
+				'post_type'   => 'any',
+				'post_status' => 'any',
+				'fields'      => 'ids',
+				'nopaging'    => true,
+				'tax_query'   => [
+					[
+						'taxonomy' => $taxonomy,
+						'field'    => 'term_id',
+						'terms'    => $term_id,
+					],
+				],
+			]
+		);
+
+		$this->drop_posts_by_id( $term_posts->posts );
+
+		do_action( 'searchwp\debug\log', "{$taxonomy} id {$term_id} updated dropping posts" );
 	}
 
 	/**
@@ -1063,12 +1353,105 @@ class Post extends Source {
 
 		// Prevent redundant hooks.
 		remove_action( 'updated_post_meta', [ $this, 'drop_post' ], 999 );
-		remove_action( 'set_object_terms',  [ $this, 'purge_post_via_term' ], 10 );
 
 		do_action( 'searchwp\source\post\drop', [ 'post_id' => $post_id, 'source' => $this, ] );
 
 		// Drop this post from the index.
 		\SearchWP::$index->drop( $this, $post_id );
+	}
+
+	/**
+	 * Callback from delete_post action to drop a post from the index.
+	 *
+	 * @since 4.3.4
+	 *
+	 * @param $user_id
+	 * @param $old_user_data
+	 * @param $new_user_data
+	 * @return void
+	 */
+	public function updated_author_profile( $user_id, $old_user_data ) {
+
+		$user = get_userdata( $user_id );
+
+		// If the Author display name hasn't changed, bail out.
+		if ( empty( $user ) || $user->display_name === $old_user_data->display_name ) {
+			return;
+		}
+
+		$this->updated_posts_author( $user_id );
+	}
+
+	/**
+	 * Callback from delete_user action to drop a post from the index.
+	 *
+	 * @since 4.3.4
+	 *
+	 * @param $user_id
+	 * @return void
+	 */
+	public function deleted_author_profile( $user_id ) {
+
+		$this->updated_posts_author( $user_id );
+	}
+
+	/**
+	 * Drop posts from the index if the author's profile is updated.
+	 * @param $user_id
+	 * @return void
+	 */
+	private function updated_posts_author( $user_id ) {
+		// If Author is not included in any engine settings, bail out.
+		if ( ! Utils::any_engine_has_source_attribute( $this->get_attributes()['author'], $this ) ) {
+			return;
+		}
+
+		// Fetch all post IDs associated with the author.
+		$author_posts = new \WP_Query(
+			[
+				'post_type'   => 'any',
+				'post_status' => 'any',
+				'fields'      => 'ids',
+				'nopaging'    => true,
+				'author'      => $user_id,
+			]
+		);
+
+		if ( empty( $author_posts->posts ) ) {
+			return;
+		}
+
+		// Drop the posts from the index.
+		$this->drop_posts_by_id( $author_posts->posts );
+
+		do_action( 'searchwp\debug\log', "Author id {$user_id} updated, dropping posts" );
+	}
+
+	/**
+	 * Drop posts from the index by attribute.
+	 *
+	 * @since 4.3.4
+	 *
+	 * @updated 4.3.15
+	 *
+	 * @param array $post_ids The post IDs to drop.
+	 *
+	 * @return void
+	 */
+	private function drop_posts_by_id( $post_ids ) {
+
+		// Pause the indexer to prevent overloading the indexer process.
+		do_action( 'searchwp\debug\log', 'Pausing indexer to drop posts' ); // phpcs:ignore
+		\SearchWP::$indexer->pause();
+
+		foreach ( $post_ids as $post_id ) {
+			// Drop this post from the index.
+			\SearchWP::$index->drop( $this, $post_id );
+		}
+
+		// Unpause the indexer.
+		\SearchWP::$indexer->unpause();
+		do_action( 'searchwp\debug\log', 'Un-pausing indexer after drop posts' ); // phpcs:ignore
 	}
 
 	/**
@@ -1130,7 +1513,7 @@ class Post extends Source {
 			&& ! (
 				// Quick Edit is still applicable.
 				isset( $_REQUEST['action'] )
-				&& 'inline-save' === $_REQUEST['action']
+				&& in_array( $_REQUEST['action'], $this->allowed_ajax_edits )
 			)
 		) {
 			return false;

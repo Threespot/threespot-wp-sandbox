@@ -11,6 +11,7 @@ namespace SearchWP\Admin;
 
 use SearchWP\Utils;
 use SearchWP\Settings;
+use SearchWP\License;
 
 /**
  * Class AdminBar is responsible for implementing an entry in the WordPress Admin Bar.
@@ -27,35 +28,41 @@ class AdminBar {
 	 */
 	function __construct() {
 		add_action( 'wp_before_admin_bar_render', [ __CLASS__, 'render' ] );
-		add_filter( 'heartbeat_received',         [ __CLASS__ , 'heartbeat_received' ], 10, 2 );
+		add_filter( 'heartbeat_received',         [ __CLASS__, 'heartbeat_received' ], 10, 2 );
+	}
 
-		add_action( 'admin_head', function() {
-			if ( ! \SearchWP\License::inactive_license_notice() ) {
-				return;
-			}
+	/**
+	 * Get notifications counter HTML.
+	 *
+	 * @since 4.2.8
+	 */
+	private static function get_notifications_counter_html() {
 
-			?>
-			<style>
-				#wp-admin-bar-searchwp a {
-					display: flex !important;
-					align-items: center;
-				}
+		$style = '
+			display: inline-block;
+			min-width: 18px;
+			height: 18px;
+			border-radius: 9px;
+			margin: 7px 0 0 2px;
+			vertical-align: top;
+			font-size: 11px;
+			line-height: 1.6;
+			text-align: center;
+		';
 
-				#wpadminbar .searchwp-admin-bar-icon {
-					font-family: dashicons;
-					line-height: 1;
-					font-weight: 400;
-					font-size: 20px;
-					width: 20px;
-					height: 20px;
-					text-transform: none;
-					color: #ca4a1f;
-					margin-left: 6px;
-				}
-			</style>
+		$notifications_count = 0;
 
-			<?php
-		} );
+		if ( License::inactive_license_notice() ) {
+			++ $notifications_count;
+		}
+
+		$notifications_count = apply_filters( 'searchwp\admin_bar\notifications_count', $notifications_count );
+
+		if ( empty( $notifications_count ) ) {
+			return '';
+		}
+
+		return '<span class="wp-ui-notification searchwp-menu-notification-counter" style="' . $style . '">' . absint( $notifications_count ) . '</span>';
 	}
 
 	/**
@@ -65,49 +72,51 @@ class AdminBar {
 	 * @return void
 	 */
 	public static function render() {
-		global $wp_admin_bar, $pagenow, $post, $wpdb;
+		global $wp_admin_bar, $pagenow, $post;
 
 		if ( ! is_admin_bar_showing() || ! apply_filters( 'searchwp\admin_bar', current_user_can( Settings::get_capability() ) ) ) {
 			return;
 		}
 
-		$options_page_url = add_query_arg(
-			[ 'page' => Utils::$slug ],
-			admin_url( 'options-general.php' )
+		$algorithm_page_url = add_query_arg(
+			[ 'page' => 'searchwp-algorithm' ],
+			admin_url( 'admin.php' )
 		);
 
 		// Add base Admin Bar menu entry.
 		$wp_admin_bar->add_menu( [
 			'id'    => Utils::$slug,
-			'title' => \SearchWP\License::inactive_license_notice() ? '<span>SearchWP</span> <span class="dashicons dashicons-warning searchwp-admin-bar-icon"></span>' : 'SearchWP',
-			'href'  => esc_url( $options_page_url ),
+			'title' => '<span>SearchWP</span> ' . self::get_notifications_counter_html(),
+			'href'  => esc_url( $algorithm_page_url ),
 		] );
 
-		if ( \SearchWP\License::inactive_license_notice() ) {
+		if ( License::inactive_license_notice() ) {
 			// Add link to Settings page.
 			$wp_admin_bar->add_menu( [
 				'parent' => Utils::$slug,
 				'id'     => Utils::$slug . '_support',
-				'title'  => '<span style="color: #ca4a1f;">' . __( 'Activate License', 'searchwp' ) . '</span>',
-				'href'   => esc_url( add_query_arg( [ 'tab' => 'support' ], $options_page_url ) ),
+				'title'  => '<span style="color: #ff6b6b; line-height: 1;">' . __( 'Activate License', 'searchwp' ) . '</span>',
+				'href'   => esc_url( add_query_arg( [ 'page' => 'searchwp-settings' ], admin_url( 'admin.php' ) ) ),
 			] );
 		}
 
-		// Add link to Settings page.
-		$wp_admin_bar->add_menu( [
-			'parent' => Utils::$slug,
-			'id'     => Utils::$slug . '_settings',
-			'title'  => __( 'Settings', 'searchwp' ),
-			'href'   => esc_url( $options_page_url ),
-		] );
+		if ( apply_filters( 'searchwp\options\settings_screen', true ) ) {
+			// Add link to Algorithm page.
+			$wp_admin_bar->add_menu( [
+				'parent' => Utils::$slug,
+				'id'     => Utils::$slug . '_settings',
+				'title'  => __( 'Algorithm', 'searchwp' ),
+				'href'   => esc_url( $algorithm_page_url ),
+			] );
+		}
 
 		if ( apply_filters( 'searchwp\admin_bar\statistics', true ) ) {
-			// Add link to Statistics tab of Settings page.
+			// Add link to Statistics page.
 			$wp_admin_bar->add_menu( [
 				'parent' => Utils::$slug,
 				'id'     => Utils::$slug . '_statistics',
 				'title'  => __( 'Statistics', 'searchwp' ),
-				'href'   => esc_url( add_query_arg( [ 'tab' => 'statistics' ], $options_page_url ) ),
+				'href'   => esc_url( add_query_arg( [ 'page' => 'searchwp-statistics' ], admin_url( 'admin.php' ) ) ),
 			] );
 		}
 

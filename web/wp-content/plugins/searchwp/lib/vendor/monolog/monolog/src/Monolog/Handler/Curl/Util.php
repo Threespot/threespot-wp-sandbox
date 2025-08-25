@@ -11,6 +11,7 @@ declare (strict_types=1);
  */
 namespace SearchWP\Dependencies\Monolog\Handler\Curl;
 
+use CurlHandle;
 /**
  * This class is marked as internal and it is not under the BC promise of the package.
  *
@@ -18,14 +19,15 @@ namespace SearchWP\Dependencies\Monolog\Handler\Curl;
  */
 final class Util
 {
+    /** @var array<int> */
     private static $retriableErrorCodes = [\CURLE_COULDNT_RESOLVE_HOST, \CURLE_COULDNT_CONNECT, \CURLE_HTTP_NOT_FOUND, \CURLE_READ_ERROR, \CURLE_OPERATION_TIMEOUTED, \CURLE_HTTP_POST_ERROR, \CURLE_SSL_CONNECT_ERROR];
     /**
      * Executes a CURL request with optional retries and exception on failure
      *
-     * @param  resource    $ch             curl handler
-     * @param  int         $retries
-     * @param  bool        $closeAfterDone
-     * @return bool|string @see curl_exec
+     * @param  resource|CurlHandle $ch             curl handler
+     * @param  int                 $retries
+     * @param  bool                $closeAfterDone
+     * @return bool|string         @see curl_exec
      */
     public static function execute($ch, int $retries = 5, bool $closeAfterDone = \true)
     {

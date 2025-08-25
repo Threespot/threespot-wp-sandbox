@@ -4,8 +4,6 @@ if ( ! class_exists( 'GFForms' ) ) {
 	die();
 }
 
-require_once( ABSPATH . WPINC . '/post.php' );
-
 /**
  * Class GF_Forms_Model_Legacy
  *
@@ -316,7 +314,12 @@ class GF_Forms_Model_Legacy {
 		 * @param $lead_id
 		 * @deprecated
 		 * @see gform_delete_entry
+		 * @remove-in 3.0
 		 */
+
+		if ( has_action( 'gform_delete_lead' ) ) {
+			trigger_error( 'The gform_delete_lead action is deprecated and will be removed in version 3.0. Use gform_delete_entry instead.', E_USER_DEPRECATED );
+		}
 		do_action( 'gform_delete_lead', $lead_id );
 
 		$lead_table             = self::get_lead_table_name();
@@ -452,7 +455,7 @@ class GF_Forms_Model_Legacy {
 			$field_value = '';
 		}
 
-		self::delete_physical_file( $file_url );
+		self::delete_physical_file( $file_url, $entry_id );
 
 		// update lead field value - simulate form submission
 
@@ -2563,9 +2566,15 @@ class GF_Forms_Model_Legacy {
 
 		$lead_table_name   = self::get_lead_table_name();
 
-		$sql = $wpdb->prepare( "SELECT count(id)
+		$result = $wpdb->get_var( "SHOW COLUMNS FROM $lead_table_name LIKE 'status'" );
+
+		if ( $result ) {
+			$sql = $wpdb->prepare( "SELECT count(id)
 								FROM $lead_table_name
 								WHERE status=%s", $status );
+		} else {
+			$sql = "SELECT count(id) FROM $lead_table_name";
+		}
 
 		return $wpdb->get_var( $sql );
 	}

@@ -5,9 +5,11 @@
  *          This file is part of the PdfParser library.
  *
  * @author  Sébastien MALOT <sebastien@malot.fr>
+ *
  * @date    2017-01-03
  *
  * @license LGPLv3
+ *
  * @url     <https://github.com/smalot/pdfparser>
  *
  *  PdfParser is a pdf library written in PHP, extraction oriented.
@@ -36,13 +38,9 @@ use SearchWP\Dependencies\Smalot\PdfParser\PDFObject;
 /**
  * Class ElementArray
  */
-class ElementArray extends \SearchWP\Dependencies\Smalot\PdfParser\Element
+class ElementArray extends Element
 {
-    /**
-     * @param string   $value
-     * @param Document $document
-     */
-    public function __construct($value, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null)
+    public function __construct($value, ?Document $document = null)
     {
         parent::__construct($value, $document);
     }
@@ -53,66 +51,51 @@ class ElementArray extends \SearchWP\Dependencies\Smalot\PdfParser\Element
         }
         return parent::getContent();
     }
-    /**
-     * @return array
-     */
-    public function getRawContent()
+    public function getRawContent() : array
     {
         return $this->value;
     }
-    /**
-     * @param bool $deep
-     *
-     * @return array
-     */
-    public function getDetails($deep = \true)
+    public function getDetails(bool $deep = \true) : array
     {
         $values = [];
         $elements = $this->getContent();
         foreach ($elements as $key => $element) {
-            if ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Header && $deep) {
+            if ($element instanceof Header && $deep) {
                 $values[$key] = $element->getDetails($deep);
-            } elseif ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\PDFObject && $deep) {
+            } elseif ($element instanceof PDFObject && $deep) {
                 $values[$key] = $element->getDetails(\false);
             } elseif ($element instanceof self) {
                 if ($deep) {
                     $values[$key] = $element->getDetails();
                 }
-            } elseif ($element instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element && !$element instanceof self) {
+            } elseif ($element instanceof Element && !$element instanceof self) {
                 $values[$key] = $element->getContent();
             }
         }
         return $values;
     }
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString() : string
     {
         return \implode(',', $this->value);
     }
     /**
-     * @param string $name
-     *
      * @return Element|PDFObject
      */
-    protected function resolveXRef($name)
+    protected function resolveXRef(string $name)
     {
-        if (($obj = $this->value[$name]) instanceof \SearchWP\Dependencies\Smalot\PdfParser\Element\ElementXRef) {
-            /** @var PDFObject $obj */
+        if (($obj = $this->value[$name]) instanceof ElementXRef) {
+            /** @var ElementXRef $obj */
             $obj = $this->document->getObjectById($obj->getId());
             $this->value[$name] = $obj;
         }
         return $this->value[$name];
     }
     /**
-     * @param string   $content
-     * @param Document $document
-     * @param int      $offset
+     * @todo: These methods return mixed and mismatched types throughout the hierarchy
      *
      * @return bool|ElementArray
      */
-    public static function parse($content, \SearchWP\Dependencies\Smalot\PdfParser\Document $document = null, &$offset = 0)
+    public static function parse(string $content, ?Document $document = null, int &$offset = 0)
     {
         if (\preg_match('/^\\s*\\[(?P<array>.*)/is', $content, $match)) {
             \preg_match_all('/(.*?)(\\[|\\])/s', \trim($content), $matches);
@@ -128,7 +111,7 @@ class ElementArray extends \SearchWP\Dependencies\Smalot\PdfParser\Element
             // Removes 1 level [ and ].
             $sub = \substr(\trim($sub), 1, -1);
             $sub_offset = 0;
-            $values = \SearchWP\Dependencies\Smalot\PdfParser\Element::parse($sub, $document, $sub_offset, \true);
+            $values = Element::parse($sub, $document, $sub_offset, \true);
             $offset += \strpos($content, '[') + 1;
             // Find next ']' position
             $offset += \strlen($sub) + 1;

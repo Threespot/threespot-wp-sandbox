@@ -115,7 +115,7 @@ class Entry {
 				}
 
 				// If there are options, we need to iterate over the chosen options.
-				$attribute_data = false;
+				$attribute_data = [];
 				$chosen_options = Utils::get_global_attribute_options_settings( $attribute, $this->source );
 
 				if ( ! empty( $chosen_options ) ) {
@@ -186,7 +186,7 @@ class Entry {
 	 * @since 4.0
 	 * @return array
 	 */
-	public function get_data( $skip_tokenizing = false ) {
+	public function get_data( $skip_tokenizing = false, $skip_cache = false ) {
 		// Utilize the cache if applicable.
 		$cache_key = 'searchwp_entry_' . $this->source->get_name() . '_' . $this->id;
 
@@ -194,18 +194,18 @@ class Entry {
 			$cache_key .= '_notokens';
 		}
 
-		$cache     = wp_cache_get( $cache_key, '' );
+		$cache = wp_cache_get( $cache_key, '' );
 
-		if ( ! empty( $cache ) ) {
+		if ( ! $skip_cache && ! empty( $cache ) ) {
 			return $cache;
 		}
 
-		if ( empty( $this->data ) ) {
+		if ( empty( $this->data ) || $skip_cache ) {
 			$this->update_data( false, $skip_tokenizing );
 		}
 
 		// If the CLI is building the index, skip caching.
-		if ( ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		if ( ! $skip_cache && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 			wp_cache_set( $cache_key, $this->data, '', 1 );
 		}
 
@@ -216,9 +216,14 @@ class Entry {
 	 * Export this Entry as its native Object.
 	 *
 	 * @since 4.0
-	 * @return void
+	 * @return mixed
 	 */
 	public function native( $query = false ) {
+
+		if ( is_wp_error( $this->source ) ) {
+			return $this->source;
+		}
+
 		$native = $this->source->entry( $this, $query );
 
 		if ( $query ) {

@@ -17,11 +17,15 @@ use SearchWP\Dependencies\Monolog\ResettableInterface;
  * Forwards records to multiple handlers
  *
  * @author Lenar Lõhmus <lenar@city.ee>
+ *
+ * @phpstan-import-type Record from \Monolog\Logger
  */
-class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implements \SearchWP\Dependencies\Monolog\Handler\ProcessableHandlerInterface, \SearchWP\Dependencies\Monolog\ResettableInterface
+class GroupHandler extends Handler implements ProcessableHandlerInterface, ResettableInterface
 {
     use ProcessableHandlerTrait;
+    /** @var HandlerInterface[] */
     protected $handlers;
+    /** @var bool */
     protected $bubble;
     /**
      * @param HandlerInterface[] $handlers Array of Handlers.
@@ -30,7 +34,7 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
     public function __construct(array $handlers, bool $bubble = \true)
     {
         foreach ($handlers as $handler) {
-            if (!$handler instanceof \SearchWP\Dependencies\Monolog\Handler\HandlerInterface) {
+            if (!$handler instanceof HandlerInterface) {
                 throw new \InvalidArgumentException('The first argument of the GroupHandler must be an array of HandlerInterface instances.');
             }
         }
@@ -38,7 +42,7 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
         $this->bubble = $bubble;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function isHandling(array $record) : bool
     {
@@ -50,11 +54,12 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
         return \false;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handle(array $record) : bool
     {
         if ($this->processors) {
+            /** @var Record $record */
             $record = $this->processRecord($record);
         }
         foreach ($this->handlers as $handler) {
@@ -63,7 +68,7 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
         return \false === $this->bubble;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     public function handleBatch(array $records) : void
     {
@@ -72,6 +77,7 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
             foreach ($records as $record) {
                 $processed[] = $this->processRecord($record);
             }
+            /** @var Record[] $records */
             $records = $processed;
         }
         foreach ($this->handlers as $handler) {
@@ -82,7 +88,7 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
     {
         $this->resetProcessors();
         foreach ($this->handlers as $handler) {
-            if ($handler instanceof \SearchWP\Dependencies\Monolog\ResettableInterface) {
+            if ($handler instanceof ResettableInterface) {
                 $handler->reset();
             }
         }
@@ -95,12 +101,14 @@ class GroupHandler extends \SearchWP\Dependencies\Monolog\Handler\Handler implem
         }
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function setFormatter(\SearchWP\Dependencies\Monolog\Formatter\FormatterInterface $formatter) : \SearchWP\Dependencies\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter) : HandlerInterface
     {
         foreach ($this->handlers as $handler) {
-            $handler->setFormatter($formatter);
+            if ($handler instanceof FormattableHandlerInterface) {
+                $handler->setFormatter($formatter);
+            }
         }
         return $this;
     }

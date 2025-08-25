@@ -13,37 +13,38 @@ namespace SearchWP\Dependencies\Monolog\Handler;
 
 use SearchWP\Dependencies\Monolog\Logger;
 use SearchWP\Dependencies\Swift;
+use SearchWP\Dependencies\Swift_Message;
 /**
  * MandrillHandler uses cURL to send the emails to the Mandrill API
  *
  * @author Adam Nicholson <adamnicholson10@gmail.com>
  */
-class MandrillHandler extends \SearchWP\Dependencies\Monolog\Handler\MailHandler
+class MandrillHandler extends MailHandler
 {
+    /** @var Swift_Message */
     protected $message;
+    /** @var string */
     protected $apiKey;
     /**
-     * @psalm-param Swift_Message|callable(string, array): Swift_Message $message
+     * @psalm-param Swift_Message|callable(): Swift_Message $message
      *
-     * @param string                  $apiKey  A valid Mandrill API key
-     * @param callable|\Swift_Message $message An example message for real messages, only the body will be replaced
-     * @param string|int              $level   The minimum logging level at which this handler will be triggered
-     * @param bool                    $bubble  Whether the messages that are handled can bubble up the stack or not
+     * @param string                 $apiKey  A valid Mandrill API key
+     * @param callable|Swift_Message $message An example message for real messages, only the body will be replaced
      */
-    public function __construct(string $apiKey, $message, $level = \SearchWP\Dependencies\Monolog\Logger::ERROR, bool $bubble = \true)
+    public function __construct(string $apiKey, $message, $level = Logger::ERROR, bool $bubble = \true)
     {
         parent::__construct($level, $bubble);
-        if (!$message instanceof \SearchWP\Dependencies\Swift_Message && \is_callable($message)) {
+        if (!$message instanceof Swift_Message && \is_callable($message)) {
             $message = $message();
         }
-        if (!$message instanceof \SearchWP\Dependencies\Swift_Message) {
+        if (!$message instanceof Swift_Message) {
             throw new \InvalidArgumentException('You must provide either a Swift_Message instance or a callable returning it');
         }
         $this->message = $message;
         $this->apiKey = $apiKey;
     }
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
     protected function send(string $content, array $records) : void
     {
@@ -53,9 +54,11 @@ class MandrillHandler extends \SearchWP\Dependencies\Monolog\Handler\MailHandler
         }
         $message = clone $this->message;
         $message->setBody($content, $mime);
-        if (\version_compare(\SearchWP\Dependencies\Swift::VERSION, '6.0.0', '>=')) {
+        /** @phpstan-ignore-next-line */
+        if (\version_compare(Swift::VERSION, '6.0.0', '>=')) {
             $message->setDate(new \DateTimeImmutable());
         } else {
+            /** @phpstan-ignore-next-line */
             $message->setDate(\time());
         }
         $ch = \curl_init();
@@ -63,6 +66,6 @@ class MandrillHandler extends \SearchWP\Dependencies\Monolog\Handler\MailHandler
         \curl_setopt($ch, \CURLOPT_POST, 1);
         \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, 1);
         \curl_setopt($ch, \CURLOPT_POSTFIELDS, \http_build_query(['key' => $this->apiKey, 'raw_message' => (string) $message, 'async' => \false]));
-        \SearchWP\Dependencies\Monolog\Handler\Curl\Util::execute($ch);
+        Curl\Util::execute($ch);
     }
 }

@@ -10,9 +10,12 @@ namespace SearchWP;
 
 use SearchWP\Engine;
 use SearchWP\Option;
+use SearchWP\Query;
+use SearchWP\Settings;
 use SearchWP\Source;
 use SearchWP\Tokens;
-use SearchWP\Settings;
+use SearchWP\Support\Str;
+
 
 /**
  * Class Utils provides project-wide utility functions.
@@ -35,7 +38,7 @@ class Utils {
 	 * @since 4.0
 	 * @var string
 	 */
-	public static $word_match_pattern = '/(?!<.*?)(%s)(?![^<>]*?>)/usi';
+	public static $word_match_pattern = '/(?!<.*?)(%s)(?![^<>]*?>)/ui';
 
 	/**
 	 * Retrieves all registered post types.
@@ -77,24 +80,24 @@ class Utils {
 		$cache_key = SEARCHWP_PREFIX . 'post_type_stati' . $post_type . $engine;
 		$cache     = wp_cache_get( $cache_key, '' );
 
-		if ( ! empty( $cache ) && ! $skip_cache ) {
-			return $cache;
-		}
+		if ( empty( $cache ) || $skip_cache ) {
+			if ( 'attachment' === $post_type ) {
+				$post_stati = ['inherit'];
+			} else {
+				$post_stati = array_values( get_post_stati( [
+					'exclude_from_search' => false,
+					'public'              => true,
+				] ) );
+			}
 
-		if ( 'attachment' === $post_type ) {
-			$post_stati = ['inherit'];
+			wp_cache_set( $cache_key, $post_stati, '', 1 );
 		} else {
-			$post_stati = array_values( get_post_stati( [
-				'exclude_from_search' => false,
-				'public'              => true,
-			] ) );
+			$post_stati = $cache;
 		}
 
 		$post_stati = apply_filters( 'searchwp\post_stati', $post_stati, [ 'engine' => $engine ] );
 		$post_stati = apply_filters( 'searchwp\post_stati\\' . $post_type, $post_stati, [ 'engine' => $engine ] );
 		$post_stati = array_unique( $post_stati );
-
-		wp_cache_set( $cache_key, $post_stati, '', 1 );
 
 		return $post_stati;
 	}
@@ -119,6 +122,24 @@ class Utils {
 		} else {
 			return $source_name;
 		}
+	}
+
+	/**
+	 * Retrieves all registered taxonomies.
+	 *
+	 * @since 4.3.3
+	 * @return array
+	 */
+	public static function get_taxonomies() {
+		$taxonomies = get_taxonomies(
+			[
+				'public'  => true,
+				'show_ui' => true
+			] );
+
+		$taxonomies = apply_filters( 'searchwp\taxonomies', array_values( $taxonomies ) );
+
+		return $taxonomies;
 	}
 
 	/**
@@ -536,17 +557,102 @@ class Utils {
 		return $user_meta_keys;
 	}
 
+	/** Retrieves all meta keys for Taxonomy Terms.
+	 *
+	 * @since 4.3.3
+	 * @param string $search    Search string.
+	 * @return array
+	 */
+	public static function get_meta_keys_for_tax_terms( $search = false ) {
+		global $wpdb;
+
+		$cache_key = SEARCHWP_PREFIX . 'meta_keys_' . md5( serialize( [ 'tax_term', $search ] ) );
+		$cache     = wp_cache_get( $cache_key, '' );
+
+		if ( ! empty( $cache ) ) {
+			return $cache;
+		}
+
+		$values      = [ 1 ]; // This is a placeholder to make the prepare() logic more straightforward.
+		$placeholder = self::get_placeholder();
+
+		if ( $search && '*' !== $search ) {
+			// Partial matching (using asterisks) is supported, so we're going to utilize that if applicable.
+			if ( false === strpos( '*', $search ) ) {
+				$search = '*' . $search . '*';
+			}
+
+			$values[]    = str_replace( '*', $placeholder, $wpdb->esc_like( $search ) );
+			$search      = "AND {$wpdb->termmeta}.meta_key LIKE %s";
+		} else {
+			$search = '';
+		}
+
+		$ignored_meta_keys = apply_filters( 'searchwp\source\comment\attributes\meta\ignored', [] );;
+
+		if ( ! empty( $ignored_meta_keys ) ) {
+			$values  = array_merge( $values, $ignored_meta_keys );
+			$ignored = "AND {$wpdb->termmeta}.meta_key NOT IN ("
+				. implode( ',', array_fill( 0, count( $ignored_meta_keys ), '%s' ) ) . ')';
+		} else {
+			$ignored = '';
+		}
+
+		$tax_term__meta_keys = $wpdb->get_col(
+			$wpdb->prepare("
+				SELECT DISTINCT({$wpdb->termmeta}.meta_key)
+				FROM {$wpdb->termmeta}
+				WHERE 1=%d
+				AND {$wpdb->termmeta}.meta_key != ''
+				{$search} {$ignored}",
+				array_map( function( $value ) use ( $placeholder ) {
+					if ( ! is_string( $value ) ) {
+						return $value;
+					}
+
+					return str_replace( $placeholder, '%', $value );
+				}, $values )
+			)
+		);
+
+		wp_cache_set( $cache_key, $tax_term__meta_keys, '', 1 );
+
+		return $tax_term__meta_keys;
+	}
+
+	/**
+	 * Generates a random hash.
+	 *
+	 * @since 4.2.9
+	 *
+	 * @return string
+	 */
+	public static function get_random_hash() {
+
+		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
+		$salt = (string) wp_rand();
+
+		return hash_hmac( $algo, uniqid( $salt, true ), $salt );
+	}
+
 	/**
 	 * Generates a unique placeholder.
 	 *
+	 * @param bool $wrap Wrap a placeholder in the curly brackets.
+	 *
 	 * @since 4.0
+	 *
 	 * @return string
 	 */
-	public static function get_placeholder() {
-		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
-		$salt = (string) rand();
+	public static function get_placeholder( $wrap = true ) {
 
-		return '{' . hash_hmac( $algo, uniqid( $salt, true ), $salt ) . '}';
+		$hash = self::get_random_hash();
+
+		if ( $wrap ) {
+			return '{' . $hash . '}';
+		} else {
+			return $hash;
+		}
 	}
 
 	/**
@@ -610,6 +716,7 @@ class Utils {
 	 * @return string The stringified version of the data.
 	 */
 	public static function get_string_from( $data ) {
+
 		// Strings could be stringified versions of JSON or serialized data.
 		// We need to determine that before further processing.
 		if ( is_string( $data ) ) {
@@ -681,10 +788,14 @@ class Utils {
 	 * @return string The stripslashed and decoded string.
 	 */
 	public static function decode_string( string $string ) {
-		$string = ! seems_utf8( $string ) ? utf8_encode( $string ) : $string;
+
+		if ( function_exists( 'mb_convert_encoding' ) && ! seems_utf8( $string ) ) {
+			$string = mb_convert_encoding( $string, 'UTF-8', mb_list_encodings() );
+		}
+
 		$string = stripslashes( $string );
 		$string = html_entity_decode( $string, ENT_QUOTES );
-		$string = trim( $string );
+		$string = preg_replace( '/\s+/', ' ', trim( $string ) );
 		$string = str_replace( array( '”', '“' ), '"', $string );
 
 		return $string;
@@ -700,7 +811,7 @@ class Utils {
 	public static function stringify_html( $html ) {
 		$valid_html_tags = (array) apply_filters( 'searchwp\valid_html_tags', [
 			'a'     => [ 'title' ],
-			'img'   => [ 'alt', 'src', 'longdesc', 'title' ],
+			'img'   => [ 'alt', 'longdesc', 'title' ],
 			'input' => [ 'placeholder', 'value' ],
 		 ] );
 
@@ -719,13 +830,27 @@ class Utils {
 				$html = preg_replace( '/(<(' . implode( '|', $invalid_nodes ) . ')\b[^>]*>).*?(<\/\2>)/is', ' ', $html );
 			}
 
-			return wp_strip_all_tags( $html );
+			return self::strip_all_tags_preserve_words( $html );
 		}
 
 		// Parse the HTML into something we can work with.
 		$dom = new \DOMDocument();
 		libxml_use_internal_errors( true );
-		$dom->loadHTML( $html );
+
+		if ( function_exists( 'mb_convert_encoding' ) && ! seems_utf8( $html ) ) {
+			$html = mb_convert_encoding( $html, 'UTF-8', mb_list_encodings() );
+		}
+
+		/*
+		Since PHP 8.2, 'HTML-Entities' mbstring encoder is deprecated.
+		htmlentities() is similar to 'HTML-Entities' encoding, however,
+		it encodes <>'"& characters that we do not need to be encoded.
+		htmlspecialchars_decode() decodes these special characters,
+		which result in an HTML-Entities equivalent.
+		@see https://php.watch/versions/8.2/mbstring-qprint-base64-uuencode-html-entities-deprecated#html
+		*/
+		$dom->loadHTML( htmlspecialchars_decode( htmlentities( $html ) ) );
+
 		$xpath = new \DOMXPath( $dom );
 
 		// Remove unwanted nodes.
@@ -738,7 +863,7 @@ class Utils {
 
 			// With unwanted nodes removed, reload the HTML.
 			if ( is_object( $dom->documentElement ) && isset( $dom->documentElement->lastChild ) ) {
-				$dom->loadHTML( $dom->saveHTML( $dom->documentElement->lastChild ) );
+				$dom->loadHTML( htmlspecialchars_decode( htmlentities( $dom->saveHTML( $dom->documentElement->lastChild ) ) ) );
 			}
 		}
 
@@ -766,7 +891,31 @@ class Utils {
 			}
 		}
 
-		return wp_strip_all_tags( $html ) . ' ' . implode( ' ', $attribute_content );
+		return self::strip_all_tags_preserve_words( $html ) . ' ' . implode( ' ', $attribute_content );
+	}
+
+	/**
+	 * Strips all tags and preserves the words integrity.
+	 *
+	 * Using standard `wp_strip_all_tags()` might lead to words merging in some cases:
+	 * <li>First Item</li><li>Second Item</li> becomes "First ItemSecond Item".
+	 *
+	 * This method keeps the words separate while stripping all the tags.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param string $string The string to strip tags.
+	 *
+	 * @return string
+	 */
+	public static function strip_all_tags_preserve_words( $string ) {
+
+		$string = wpautop( $string );
+
+		// All '<br>' tags are formatted by wpautop to appear as '<br />' at this point.
+		$string = str_replace( '<br />', ' ', $string );
+
+		return wp_strip_all_tags( $string, true );
 	}
 
 	/**
@@ -777,8 +926,8 @@ class Utils {
 	 */
 	public static function get_token_regex_patterns() {
 		$patterns = apply_filters( 'searchwp\tokens\regex_patterns', [
-			// Function names.
-			"/\b(\\w+?)?\\(|[\\s\\n]\\(/is",
+			// Function names, including namespaced function names.
+			"/([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*(\\\\[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)*)\(/is",
 
 			// Date formats.
 			'/\b([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\b/is',     // YYYY-MM-DD
@@ -797,6 +946,10 @@ class Utils {
 
 			// Serial numbers.
 			'/(?=\S*[\-\_])([[:alnum:]\-\_]+)/ius', // Hyphen/underscore separator.
+
+			// Strings followed by digits and maybe strings.
+			// e.g. `System 1` or `System 12ab-cd12`
+			'/([A-Za-z0-9]{1,}\s[0-9]{1,}[A-Za-z0-9]*)/iu',
 
 			// Strings of digits.
 			"/\\b(\\d{1,})\\b/is",
@@ -829,6 +982,12 @@ class Utils {
 	 * @return mixed
 	 */
 	public static function maybe_decode_stringified( string $data ) {
+
+		// If the string is exactly "true" or "false", we can bail out early to prevent json_decode to covert it to a boolean.
+		if ( in_array( $data, [ 'true', 'false' ], true ) ) {
+			return $data;
+		}
+
 		$json_decoded_input = json_decode( $data, true );
 
 		if ( is_null( $json_decoded_input ) ) {
@@ -861,12 +1020,32 @@ class Utils {
 	 * Retrieves WP_Post IDs to be used as a limiter.
 	 *
 	 * @since 4.0
+	 *
+	 * @param array $args       Arguments for the filter.
+	 * @param bool  $skip_cache Skip static cache.
+	 *
 	 * @return array The WP_Post IDs.
 	 */
 	public static function get_filtered_post__in( array $args = [], $skip_cache = false ) {
+
+		// Statically cache the result to improve runtime performance.
+		static $cache = [];
+
+		$args_hash = $skip_cache === false ? md5( wp_json_encode( $args ) ) : '';
+
+		// Make sure we return an individual cached result for every unique set of $args.
+		if ( $skip_cache === false && isset( $cache[ $args_hash ] ) ) {
+			return $cache[ $args_hash ];
+		}
+
 		$ids = (array) apply_filters( 'searchwp\post__in', [], $args );
 		$ids = array_map( 'absint', $ids );
 		$ids = array_unique( $ids );
+
+		// Conditionally save the static cache.
+		if ( $skip_cache === false ) {
+			$cache[ $args_hash ] = $ids;
+		}
 
 		return $ids;
 	}
@@ -875,12 +1054,32 @@ class Utils {
 	 * Retrieves WP_Post IDs to be excluded.
 	 *
 	 * @since 4.0
+	 *
+	 * @param array $args       Arguments for the filter.
+	 * @param bool  $skip_cache Skip static cache.
+	 *
 	 * @return array The WP_Post IDs.
 	 */
 	public static function get_filtered_post__not_in( array $args = [], $skip_cache = false ) {
+
+		// Statically cache the result to improve runtime performance.
+		static $cache = [];
+
+		$args_hash = $skip_cache === false ? md5( wp_json_encode( $args ) ) : '';
+
+		// Make sure we return an individual cached result for every unique set of $args.
+		if ( $skip_cache === false && isset( $cache[ $args_hash ] ) ) {
+			return $cache[ $args_hash ];
+		}
+
 		$ids = (array) apply_filters( 'searchwp\post__not_in', [], $args );
 		$ids = array_map( 'absint', $ids );
 		$ids = array_unique( $ids );
+
+		// Conditionally save the static cache.
+		if ( $skip_cache === false ) {
+			$cache[ $args_hash ] = $ids;
+		}
 
 		return $ids;
 	}
@@ -1053,14 +1252,13 @@ class Utils {
 	 * @param \SearchWP\Query $query         The query being run.
 	 * @return bool|string[]
 	 */
-	public static function search_string_has_phrases( string $search_string, Query $query ) {
+	public static function search_string_has_phrases( string $search_string, Query $query, $force = false ) {
 		$phrases = self::get_phrases_from_string( $search_string );
+		$default = $force ? true : \SearchWP\Settings::get( 'quoted_search_support', 'boolean' );
 
 		if (
 			! empty( $phrases )
-			&& apply_filters( 'searchwp\query\logic\phrase',
-					\SearchWP\Settings::get( 'quoted_search_support', 'boolean' ),
-					$query )
+			&& apply_filters( 'searchwp\query\logic\phrase', $default, $query )
 		) {
 			return $phrases;
 		} else {
@@ -1120,13 +1318,15 @@ class Utils {
 		}
 
 		// Extract ony the unique Attribute Option names across all Engines for this Source.
-		return array_filter( array_unique(
-			call_user_func_array( 'array_merge',
-				array_values( array_map( function( $engine_sources ) {
-					return array_keys( call_user_func_array( 'array_merge', $engine_sources ) );
-				}, $per_engine ) )
-			)
-		) );
+		$attribute_options = [];
+
+		foreach ( $per_engine as $engine => $sources ) {
+			foreach ( $sources as $source ) {
+				$attribute_options = array_merge( $attribute_options, array_keys( $source ) );
+			}
+		}
+
+		return array_filter( array_unique( $attribute_options ) );
 	}
 
 	/**
@@ -1153,10 +1353,10 @@ class Utils {
 	public static function get_db_details() {
 		global $wpdb;
 
-		if ( $wpdb->use_mysqli ) {
-			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
-		} else {
+		if ( empty( $wpdb->use_mysqli ) && function_exists( 'mysql_get_server_info' ) ) {
 			$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
+		} else {
+			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
 		}
 
 		return [
@@ -1174,9 +1374,21 @@ class Utils {
 	 * @return boolean
 	 */
 	public static function any_engine_has_source_attribute( Attribute $attribute, Source $source ) {
+		// Retrieve multidimensional array containing Sources that have the Attribute, grouped by Engine.
 		$values = self::get_global_attribute_settings_per_engine( $attribute, $source );
 
-		return ! empty( $values );
+		// Assume the Attribute is not in use anywhere.
+		$has_attribute = false;
+
+		// Iterate over global attribute settings grouped by Engine to
+		// determine if this Source has this Attribute in any Engine.
+		foreach ( $values as $engine => $sources ) {
+			if ( in_array( $source->get_name(), array_keys( $sources ), true ) ) {
+				$has_attribute = true;
+			}
+		}
+
+		return $has_attribute;
 	}
 
 	/**
@@ -1453,12 +1665,13 @@ class Utils {
 	 * @return void
 	 */
 	public static function localize_script( string $handle, array $settings = [] ) {
+
 		wp_localize_script( $handle, '_SEARCHWP', array_merge( [
-			'nonce'      => wp_create_nonce( SEARCHWP_PREFIX . 'settings' ),
-			'separator'  => SEARCHWP_SEPARATOR,
-			'prefix'     => SEARCHWP_PREFIX,
-			'i18n'       => \SearchWP\Admin\i18n::get(),
-			'misc'       => [
+			'nonce'     => current_user_can( Settings::get_capability() ) ? wp_create_nonce( SEARCHWP_PREFIX . 'settings' ) : '',
+			'separator' => SEARCHWP_SEPARATOR,
+			'prefix'    => SEARCHWP_PREFIX,
+			'i18n'      => \SearchWP\Admin\i18n::get(),
+			'misc'      => [
 				'colors' => Settings::get_colors(),
 				'prefix' => SEARCHWP_PREFIX,
 			],
@@ -1481,9 +1694,17 @@ class Utils {
 			}, $needles );
 		} else {
 			// Highlight the whole word when a partial match is found.
-			$needles = array_map( function( $word ) {
-				return '\b([^\s]' . preg_quote( $word, '/' ) . '.*?|' . preg_quote( $word, '/' ) . '.*?)\b';
-			}, $needles );
+			if ( apply_filters( 'searchwp\query\partial_matches\wildcard_before' , false ) ) {
+				$needles = array_map( function( $word ) {
+					return '\b([^\s[:punct:]]+' . preg_quote( $word, '/' ) . '.*?|' . preg_quote( $word, '/' ) . '.*?)\b';
+				}, $needles );
+			} else {
+				$needles = array_map( function( $word ) {
+					return '\b(' . preg_quote( $word, '/' ) . '.*?)\b';
+				}, $needles );
+
+			}
+
 		}
 
 		return $needles;
@@ -1498,12 +1719,14 @@ class Utils {
 	 * @return bool  Whether the string has at least one substring.
 	 */
 	public static function string_has_substring_from_string( string $string, string $substrings ) {
-		$substrings = array_map( function( $substring ) {
-			return preg_quote( $substring, '/' );
-		}, explode( ' ', $substrings ) );
+
+		// Replace < and > with HTML entities to avoid issues with regex.
+		$string = str_replace( [ '<', '>' ], [ '&lt;', '&gt;' ], $string );
+
+		$substrings = explode( ' ', $substrings );
 
 		$needles    = self::map_needles_for_regex( $substrings, Settings::get( 'partial_matches' ) );
-		$pattern    = sprintf( self::$word_match_pattern . 'i', implode( '|', $needles ) );
+		$pattern    = sprintf( self::$word_match_pattern, implode( '|', $needles ) );
 
 		preg_match_all( $pattern, $string, $matches, PREG_SET_ORDER, 0 );
 
@@ -1535,43 +1758,93 @@ class Utils {
 	 * @return string
 	 */
 	public static function trim_string_around_substring( string $string, string $substrings, $length = 55 ) {
-		$text   = self::strip_shortcodes( $string, true );
-		$text   = excerpt_remove_blocks( $text );
+		$string = self::strip_shortcodes( $string, true );
+		$string = trim( excerpt_remove_blocks( $string ) );
+		$string = str_replace( "\n", ' ', $string );
+
 		$length = (int) apply_filters( 'excerpt_length', $length );
 		$more   = apply_filters( 'searchwp\utils\excerpt_more', ' [&hellip;] ' );
+		$flag   = '';
 
-		$flag = false;
-		foreach ( explode( ' ', $substrings ) as $substing ) {
-			$needles = self::map_needles_for_regex( [ $substing ], Settings::get( 'partial_matches' ) );
-			$pattern = sprintf( self::$word_match_pattern . 'i', implode( '|', $needles ) );
+		$substrings_list = explode( ' ', $substrings );
 
-			if ( 1 == preg_match( $pattern, $text, $matches ) ) {
-				$flag = $matches[0];
+		// If there are multiple keywords add them at the beginning of the array as a single item.
+		if ( count( $substrings_list ) > 1 ) {
+			array_unshift( $substrings_list, $substrings );
+		}
+
+		foreach ( $substrings_list as $substring ) {
+
+			// Search for the exact match first.
+			$needles = self::map_needles_for_regex( [ $substring ], false );
+			$pattern = sprintf( self::$word_match_pattern, implode( '|', $needles ) );
+
+			if ( 1 === preg_match( $pattern, Str::lower( $string ), $matches, PREG_OFFSET_CAPTURE ) ) {
+				$flag = isset( $matches[0][0] ) ? $matches[0][0] : '';
+				break;
+			}
+
+			// If no exact match was found, search for partial matches.
+			$needles = self::map_needles_for_regex( [ $substring ], Settings::get( 'partial_matches' ) );
+			$pattern = sprintf( self::$word_match_pattern, implode( '|', $needles ) );
+
+			// Replace < and > with HTML entities to avoid issues with regex.
+			$string = str_replace( [ '<', '>' ], [ '&lt;', '&gt;' ], $string );
+
+			if ( 1 === preg_match( $pattern, Str::lower( $string ), $matches, PREG_OFFSET_CAPTURE ) ) {
+				$flag = isset( $matches[0][0] ) ? $matches[0][0] : '';
 				break;
 			}
 		}
 
-		$words = explode( ' ', $text );
+		$exact_match_pos = ! empty( $flag )
+			? Str::strlen( Str::strcut( Str::lower( $string ), 0, $matches[0][1] ) )
+			: false;
 
-		// If there was no flag or there aren't enough words just start from the beginning.
-		if ( empty( $flag ) || $words <= $length ) {
-			return wp_trim_words( $text, $length, $more );
+		if ( ! empty( $flag ) && $exact_match_pos !== false ) {
+			$exact_match_end_pos = Str::strpos( $string, ' ', $exact_match_pos + Str::strlen( $flag ) );
+			$exact_match_length  = $exact_match_end_pos - $exact_match_pos;
+
+			$before_flag  = preg_split( '/\s+/', trim( Str::substr( $string, 0, $exact_match_pos ) ) );
+			$after_flag   = preg_split( '/\s+/', trim( Str::substr( $string, $exact_match_end_pos ) ) );
+			$current_flag = Str::substr( $string, $exact_match_pos, $exact_match_length );
+
+			$words = array_merge( $before_flag, [ $current_flag ], $after_flag );
+			$flag = $current_flag;
+		} else {
+			$words = preg_split( '/\s+/', $string );
 		}
 
-		// There was a flag found, so we can work from that.
-		$flag_index = ! Settings::get( 'partial_matches' )
-						? array_search( $flag, $words )
-						: array_filter( $words, function( $word ) use( $flag ) {
-							return false !== mb_stripos( $word, $flag );
-						} );
+		$flag = self::clean_string( $flag );
+
+		$flags = array_filter( array_map( self::class . '::clean_string', $words ) );
+
+		// If there was no flag or there aren't enough words just start from the beginning.
+		if ( empty( $flag ) || count( $words ) <= $length ) {
+			return wp_trim_words( $string, $length, $more );
+		}
+
+		// A flag was found, get the index position for it.
+		// Search first for an exact match.
+		$flag_index = array_search( $flag, $flags, true );
+
+		// If no exact match was found, search for partial matches.
+		if ( $flag_index === false && ! Settings::get( 'partial_matches' ) ) {
+			$flag_index = array_filter(
+				$flags,
+				function ( $word ) use( $flag ) {
+					return false !== Str::stripos( $word, $flag );
+				}
+			);
+		}
 
 		// If no flag was found, fall back to the native excerpt.
 		if ( empty( $flag_index ) ) {
-			return wp_trim_words( $text, $length, $more );
-		} else {
-			// Depending on whether partial matching was performed we have either a filtered array or an array key.
-			$flag_index = is_array( $flag_index ) ? key( $flag_index ) : $flag_index;
+			return wp_trim_words( $string, $length, $more );
 		}
+
+		// Depending on whether partial matching was performed we have either a filtered array or an array key.
+		$flag_index = is_array( $flag_index ) ? key( $flag_index ) : $flag_index;
 
 		// This may cause an off by one word issue but that's ok.
 		$buffer = (int) floor( $length / 2 );
@@ -1595,8 +1868,8 @@ class Utils {
 			if ( $end > count( $words ) - 1 ) {
 				$end = count( $words ) - 1;
 			}
-		} else if ( $before_ok && ! $after_ok ) {
-			$end        = count( $words ) - 1;
+		} elseif ( $before_ok && ! $after_ok ) {
+			$end        = count( $words );
 			$adjustment = ( $buffer + $flag_index ) - ( count( $words ) - 1 );
 			$start      = $flag_index - $buffer - $adjustment;
 
@@ -1695,5 +1968,312 @@ class Utils {
 		}
 
 		return wp_convert_hr_to_bytes( $memory_limit );
+	}
+
+	/**
+	 * Map tokens to Index token IDs.
+	 *
+	 * @since 4.1.5
+	 * @return array
+	 */
+	public static function map_token_ids( array $incoming_tokens, $use_stems = false, $query = null ) {
+		global $wpdb;
+
+		$col = 'token';
+
+		if ( $use_stems ) {
+			$stemmer = new Stemmer();
+			$col     = 'stem';
+			$incoming_tokens  = array_unique( array_map( function( $token ) use ( $stemmer ) {
+				return $stemmer->stem( $token );
+			}, $incoming_tokens ) );
+			if ( $query instanceof Query ) {
+				$query->set_debug_data( 'tokens.stemming.stems', $incoming_tokens );
+			}
+		}
+
+		$ids    = [];
+		$index  = \SearchWP::$index;
+		$tokens = ! empty( $incoming_tokens ) ? $wpdb->get_results( $wpdb->prepare(
+			"SELECT id, token
+			FROM {$index->get_tables()['tokens']->table_name}
+			WHERE {$col} IN ( " . implode( ', ', array_fill( 0, count( $incoming_tokens ), '%s' ) ) . " )
+			ORDER BY FIELD(token, " . implode( ', ', array_fill( 0, count( $incoming_tokens ), '%s' ) ) . ')',
+			array_merge( $incoming_tokens, $incoming_tokens )
+		), ARRAY_A ) : [];
+
+		foreach ( $tokens as $token ) {
+			$ids[ absint( $token['id'] ) ] = sanitize_text_field( $token['token'] );
+		}
+
+		// If there was a token submitted that's not in the index it will be flagged with an ID of zero.
+		// This may prove to be essential knowledge e.g. if forcing AND logic.
+		foreach ( $incoming_tokens as $search_token ) {
+			if ( ! in_array( $search_token, $ids, true ) ) {
+				// If stemming is enabled we have the ID of tokens with those stems, so the
+				// incoming token (stemmed) may not match. We must take that into consideration.
+				if ( $use_stems ) {
+					$stemmed_tokens = array_map( function( $unstemmed ) use ( $stemmer ) {
+						return $stemmer->stem( $unstemmed );
+					}, $ids );
+
+					if ( in_array( $search_token, $stemmed_tokens, true ) ) {
+						continue;
+					}
+				}
+
+				// Allow developers to discard invalid tokens.
+				$retain = apply_filters( 'searchwp\map_token_ids\retain_invalid', true, [
+					'invalid' => $search_token,
+					'valid'   => $ids,
+				] );
+
+				if ( $retain ) {
+					$existing_missing = isset( $ids[0] ) ? $ids[0] : '';
+					$ids[0] = trim( $existing_missing . ' ' . sanitize_text_field( $search_token ) );
+				} else {
+					do_action( 'searchwp\debug\log', 'Discarding invalid token: ' . sanitize_text_field( $search_token ), 'tokens' );
+				}
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Whether WP-Cron is running as expected.
+	 *
+	 * @since 4.1.14
+	 * @return boolean
+	 */
+	public static function is_cron_operational() {
+		$operational = true;
+
+		// This was initialized on activation, and is updated every time the health check cron job runs.
+		$last_run = get_site_option( SEARCHWP_PREFIX . 'last_health_check' );
+
+		// We can compare the latest index update timestamp to the last run timestamp
+		// and if the difference between theme is > 10 minutes, assume cron isn't working.
+		$last_index_activity_timestamp = \SearchWP::$index->get_last_activity_timestamp();
+		$last_index_activity = ! empty( $last_index_activity_timestamp ) ? strtotime( $last_index_activity_timestamp ) : 0;
+
+		if ( $last_index_activity - absint( $last_run ) > 10 * MINUTE_IN_SECONDS ) {
+			do_action( 'searchwp\debug\log', 'Potential WP-Cron issue detected (last health check was ' . human_time_diff( $last_run ) . ' ago) ensure WP-Cron is running properly', 'utils' );
+			$operational = false;
+		}
+
+		return apply_filters( 'searchwp\utils\cron_operational', $operational );
+	}
+
+	/**
+	 * Retrieve \WP_Post descendant IDs from the submitted parent.
+	 *
+	 * @since 4.1.14
+	 * @param int $parent_id The ID of the ancestor,
+	 * @return int[] IDs of all descendants in no particular order.
+	 */
+	public static function get_post_descendants( $ancestor_id ) {
+		$descendants = [];
+
+		$children = get_posts( [
+			'post_type'   => 'any',
+			'nopaging'    => true,
+			'fields'      => 'ids',
+			'post_parent' => $ancestor_id,
+		] );
+
+		foreach ( $children as $child ) {
+			$descendants = array_merge( $descendants, self::get_post_descendants( $child ) );
+		}
+
+		return array_filter( array_unique( array_merge( $descendants, $children ) ) );
+	}
+
+	/**
+	 * Retrieve post_parent IDs for all descendants of ancestor ID.
+	 *
+	 * @since 4.1.14
+	 * @param mixed $ancestor_id The ID of the ancestor.
+	 * @return int[]
+	 */
+	public static function get_descendant_post_parents( $ancestor_id ) {
+		$post_parent_ids = [];
+
+		$children = get_posts( [
+			'post_type'   => 'any',
+			'nopaging'    => true,
+			'fields'      => 'ids',
+			'post_parent' => $ancestor_id,
+		] );
+
+		if ( ! empty( $children ) ) {
+			$post_parent_ids[] = $ancestor_id;
+
+			foreach ( $children as $child ) {
+				$post_parent_ids = array_merge( $post_parent_ids, self::get_descendant_post_parents( $child ) );
+			}
+		}
+
+		return $post_parent_ids;
+	}
+
+	/**
+	 * Helper function to determine if loading an SearchWP related admin page.
+	 *
+	 * Here we determine if the current administration page is owned/created by
+	 * SearchWP. This is done in compliance with WordPress best practices for
+	 * development, so that we only load required SearchWP CSS and JS files on pages
+	 * we create. As a result we do not load our assets admin wide, where they might
+	 * conflict with other plugins needlessly, also leading to a better, faster user
+	 * experience for our users.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param string $slug Slug identifier for a specific SearchWP admin page.
+	 * @param string $view Slug identifier for a specific SearchWP admin page view ("subpage").
+	 *
+	 * @return bool
+	 */
+	public static function is_swp_admin_page( $slug = '', $view = '' ) {
+
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$page_prefix = 'searchwp-';
+
+		// Check against basic requirements.
+		if ( empty( $_GET['page'] ) || strpos( $_GET['page'], $page_prefix ) !== 0 ) {
+			return false;
+		}
+
+		// Check against page slug identifier.
+		if ( ! empty( $slug ) && $page_prefix . $slug !== $_GET['page'] ) {
+			return false;
+		}
+
+		// Check against sub-level page view.
+		if ( $view === 'default' && ! empty( $_GET['tab'] ) ) {
+			return false;
+		}
+
+		if ( ! empty( $view ) && $view !== 'default' && ( empty( $_GET['tab'] ) || $view !== $_GET['tab'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Helper function to determine if loading a specific SearchWP extension settings admin page.
+	 *
+	 * @since 4.3.10
+	 *
+	 * @param string $extension   Slug identifier for a specific SearchWP extension.
+	 * @param string $parent_page Slug identifier for an extension settings parent SearchWP admin page.
+	 *
+	 * @return bool
+	 */
+	public static function is_swp_admin_extension_settings_page( $extension = '', $parent_page = 'settings' ) {
+
+		if ( ! self::is_swp_admin_page( $parent_page, 'extensions' ) ) {
+			return false;
+		}
+
+		if ( ! isset( $_GET['extension'] ) || sanitize_key( $_GET['extension'] ) !== $extension ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if the AJAX call has all the necessary permissions (nonce and capability).
+	 *
+	 * @since 4.2.6
+	 *
+	 * @param array $args Arguments to change method's behaviour.
+	 *
+	 * @return bool
+	 */
+	public static function check_ajax_permissions( $args = [] ) {
+
+		$defaults = [
+			'capability' => Settings::get_capability(),
+			'query_arg'  => false,
+			'die'        => true,
+		];
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$result = check_ajax_referer( SEARCHWP_PREFIX . 'settings', $args['query_arg'], $args['die'] );
+
+		if ( $result === false ) {
+			return false;
+		}
+
+		if ( ! current_user_can( $args['capability'] ) ) {
+			$result = false;
+		}
+
+		if ( $result === false && $args['die'] ) {
+			wp_die( -1, 403 );
+		}
+
+		return (bool) $result;
+	}
+
+	/**
+	 * Get the debug suffix for asset URLs.
+	 *
+	 * Returns an empty string if SCRIPT_DEBUG is true or if script_debug is set in the URL,
+	 * otherwise returns '.min'.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @return string
+	 */
+	public static function get_debug_assets_suffix() {
+
+		return ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG === true ) || ( isset( $_GET['script_debug'] ) ) ? '' : '.min'; // phpcs:ignore WordPress.Security.NonceVerification
+	}
+
+	/**
+	 * Check if Gutenberg is active.
+	 *
+	 * @since 4.5.0
+	 *
+	 * @return bool True if Gutenberg is active.
+	 */
+	public static function is_gutenberg_active() {
+
+		$gutenberg    = false;
+		$block_editor = false;
+
+		if ( has_filter( 'replace_editor', 'gutenberg_init' ) ) {
+			// Gutenberg is installed and activated.
+			$gutenberg = true;
+		}
+
+		if ( version_compare( $GLOBALS['wp_version'], '5.0-beta', '>' ) ) {
+			// Block editor.
+			$block_editor = true;
+		}
+
+		if ( ! $gutenberg && ! $block_editor ) {
+			return false;
+		}
+
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		if ( is_plugin_active( 'disable-gutenberg/disable-gutenberg.php' ) ) {
+			return ! disable_gutenberg();
+		}
+
+		if ( is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
+			return get_option( 'classic-editor-replace' ) === 'block';
+		}
+
+		return true;
 	}
 }

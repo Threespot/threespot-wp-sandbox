@@ -20,6 +20,6 @@ class Font
         if (\sizeof($list) == 0) {
             return "";
         }
-        return "font-family:" . \join($list) . ";";
+        return "font-family:" . \join(' ', $list) . ";";
     }
 }
