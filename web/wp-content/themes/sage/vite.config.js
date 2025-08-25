@@ -25,6 +25,7 @@ export default defineConfig({
     }),
     laravel({
       input: [
+        'resources/scripts/default-blocks.jsx',
         'resources/scripts/gutenberg.js',
         'resources/scripts/main.js',
         'resources/styles/admin.scss',

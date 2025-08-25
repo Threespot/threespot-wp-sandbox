@@ -1,0 +1,55 @@
+//------------------------------------------------------------------------
+// Default list block style overrides
+// https://github.com/WordPress/gutenberg/blob/trunk/packages/block-library/src/list/style.scss
+//------------------------------------------------------------------------
+@use "@styles/globals" as *;
+.wp-block-list {
+  $bp-col-2: 640px;
+  $bp-col-3: 900px;
+  $bp-col-4: 1160px;
+  $bp-end-scale: $layout-max-width-bp;
+  $col-gap-min: 40px;
+  $col-gap-max: 80px;
+
+  // Custom field to hide bullets (see default-blocks.jsx)
+  &.no-bullets {
+    padding-left: 0 !important;
+
+    // Note: Use “::marker” to avoid setting “list-style: none;” which
+    //       causes VO in Safari to drop the list semantics.
+    // https://www.scottohara.me/blog/2019/01/12/lists-and-safari.html
+    ::marker {
+      color: transparent !important;
+    }
+  }
+
+  &[class*="is-style-col"] {
+    &:not(:last-child) {
+      margin-bottom: 3em;
+    }
+
+    @include min-width($bp-col-2) {
+      column-gap: scale-clamp(($bp-col-2: $col-gap-min, $bp-col-3 - 1px: $col-gap-max));
+      columns: 2;
+    }
+
+    & > li {
+      break-inside: avoid;
+    }
+  }
+
+  &.is-style-col-3,
+  &.is-style-col-4 {
+    @include min-width($bp-col-3) {
+      column-gap: scale-clamp(($bp-col-3: $col-gap-min, $bp-col-4 - 1px: $col-gap-max));
+      columns: 3;
+    }
+  }
+
+  &.is-style-col-4 {
+    @include min-width($bp-col-4) {
+      column-gap: scale-clamp(($bp-col-4: $col-gap-min, $bp-end-scale: $col-gap-max));
+      columns: 4;
+    }
+  }
+}
