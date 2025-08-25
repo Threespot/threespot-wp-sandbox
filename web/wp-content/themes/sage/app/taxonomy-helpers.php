@@ -79,15 +79,10 @@ function get_post_type_taxonomy($post_id) {
         //     break;
         // FIXME: Set the default taxonomy
         default:
-            $post_type = get_the_tags($post_id);
+            $post_type_terms = [];
     }
 
-    // Use the first if multiple
-    if (is_array($post_type)) {
-        $post_type = $post_type[0];
-    }
-
-    return $post_type;
+    return $post_type_terms;
 }
 
 /**
@@ -98,6 +93,7 @@ function get_post_type_taxonomy($post_id) {
  */
 function get_custom_post_type($post_id) {
     $post_type = get_post_type($post_id);
+    $post_type_obj = get_post_type_object($post_type);
     $custom_post_type = [];
 
     switch ($post_type) {
@@ -113,7 +109,7 @@ function get_custom_post_type($post_id) {
         //     $custom_post_type['url'] = get_post_type_archive_link($post_type);
         //     break;
         default:
-            $custom_post_type['title'] = ucwords($post_type);
+            $custom_post_type['title'] = $post_type_obj ? $post_type_obj->labels->singular_name : str_replace("_", " ", ucwords($post_type));
             $custom_post_type['url'] = get_post_type_archive_link($post_type) ?: null;
         // NOTE: Use this code if not supporting default post type labels
         // default:
@@ -136,6 +132,11 @@ function get_custom_post_labels($post_id) {
     $post_type_tax = get_post_type_taxonomy($post_id);
 
     if ($post_type_tax) {
+      // Use the first if multiple
+      if (is_array($post_type_tax)) {
+          $post_type_tax = $post_type_tax[0];
+      }
+
       $secondary_label['title'] = $post_type_tax->name;
       $secondary_label['url'] = get_term_link($post_type_tax->term_id, $post_type_tax->taxonomy);
 

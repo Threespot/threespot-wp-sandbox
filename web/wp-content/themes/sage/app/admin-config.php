@@ -19,6 +19,27 @@ add_action('admin_enqueue_scripts', function($hook) {
     if (in_array($hook, $include_hooks)) {
         echo Vite::withEntryPoints(['resources/styles/admin.scss'])->toHtml();
     }
+
+    // Add custom styles on the plugins page
+    if ($hook == 'plugins.php') {
+        wp_add_inline_style('wp-admin',
+            '
+            /* Fix layout of notifications on Plugins page */
+            .wp-admin.plugins-php .update-nag {
+                display: block !important;
+                width: fit-content;
+            }
+            /*
+                Hide the Pantheon notice re. plugins and SFTP mode:
+                “If you wish to update or add plugins using the WordPress UI,
+                switch your site to SFTP mode from your Pantheon dashboard.”
+            */
+            .wp-admin.plugins-php .update-nag:has(a[href^="https://dashboard.pantheon.io/sites/"]) {
+                display: none !important;
+            }
+            '
+        );
+    }
 });
 
 /**
@@ -31,23 +52,18 @@ add_action('enqueue_block_editor_assets', function() {
     // NOTE: The “enqueue_block_editor_assets” hook also fires on the front end so we
     //       need to check to make sure we’re in the admin before enqueueing.
     if (is_admin()) {
-        // Load custom Gutenberg editor script
+        // Load custom Gutenberg editor scripts
+        echo Vite::withEntryPoints('resources/scripts/default-blocks.jsx')->toHtml();
         echo Vite::withEntryPoints('resources/scripts/gutenberg.js')->toHtml();
 
-        // NOTE: If we load the CSS here it won’t work when the Vite dev server is running.
+        // NOTE: We can’t load CSS here since it won’t be added to the editor iframe.
         //       See add_filter('block_editor_settings_all') below for better approach.
-        //
-        // $css_url = Vite::asset('resources/styles/gutenberg.scss');
-        // if (file_exists($css_url)) {
-        //     $relative = str_replace(get_theme_file_path(), '', $css_url);
-        //     $css_url = get_theme_file_uri($relative);
-        //     wp_enqueue_style('gutenberg-css', $css_url);
-        // }
     }
 });
 
 /**
- * Load custom Gutenberg styles
+ * Load custom Gutenberg styles in editor iframe
+ * NOTE: Live reload won’t work in the editor, you must refresh.
  */
 add_filter('block_editor_settings_all', function ($settings) {
     $css_path = Vite::asset('resources/styles/gutenberg.scss');
@@ -112,6 +128,12 @@ add_action('admin_init', function() {
         }
     }
 
+    // Remove the Posts section from “Add menu items”
+    global $wp_post_types;
+    if (isset($wp_post_types['post'])) {
+        $wp_post_types['post']->show_in_nav_menus = false;
+    }
+
     // Redirect any user trying to access comments page
     // https://gist.github.com/mattclements/eab5ef656b2f946c4bfb
     global $pagenow;
@@ -119,12 +141,6 @@ add_action('admin_init', function() {
         wp_redirect(admin_url());
         exit;
     }
-
-    // Optional: Remove the Posts section from “Add menu items”
-    // global $wp_post_types;
-    // if (isset($wp_post_types['post'])) {
-    //     $wp_post_types['post']->show_in_nav_menus = false;
-    // }
 }, 11);
 
 /**
@@ -153,9 +169,8 @@ add_action('wp_before_admin_bar_render', function() {
     $wp_admin_bar->remove_node('wpseo-menu');// Yoast
     // $wp_admin_bar->remove_node('my-account')
     // $wp_admin_bar->remove_node('new-content');// New content menu
-    // $wp_admin_bar->remove_node('new-media');// Hide new media link
-    // $wp_admin_bar->remove_node('new-post');// Hide new post link
-
+    $wp_admin_bar->remove_node('new-media');// Hide new media link
+    $wp_admin_bar->remove_node('new-post');// Hide new post link
     // $wp_admin_bar->remove_node('site-name');
 
     // Optional: Customize site name

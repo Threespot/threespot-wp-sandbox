@@ -45,6 +45,10 @@
 // - window.addEventListener('load', () => {…})
 // - document.addEventListener('DOMContentLoaded', () => {…})
 // See https://github.com/WordPress/gutenberg/issues/25330
+// Alternatively, you can try importing domReady difectly
+// import domReady from '@wordpress/dom-ready';
+// domReady(() => {…});
+
 wp.domReady(() => {
   // NOTE: We reccommend using the Block Manager plugin to manage default block support
   // https://wordpress.org/plugins/block-manager/
@@ -89,42 +93,24 @@ wp.domReady(() => {
     }
   );
 
-  // Remove unused default block styles
-  //------------------------------------------------------------------------
-  // Image
-  wp.blocks.unregisterBlockStyle('core/image', 'circle-mask');
-  wp.blocks.unregisterBlockStyle('core/image', 'rounded');
-
-  // Button
-  // wp.blocks.unregisterBlockStyle('core/button', 'outline');
-
-  // Quote
-  wp.blocks.unregisterBlockStyle('core/quote', 'large');
-  wp.blocks.unregisterBlockStyle('core/quote', 'plain');
-
-  // Pullpuote
-  wp.blocks.unregisterBlockStyle('core/pullquote', 'solid');
-  wp.blocks.unregisterBlockStyle('core/pullquote', 'solid-color');
-
-  // Table
-  // wp.blocks.unregisterBlockStyle('core/table', 'stripes');
-
-  // Separator
-  wp.blocks.unregisterBlockStyle('core/separator', 'wide');
-  wp.blocks.unregisterBlockStyle('core/separator', 'dots');
-
-  // Remove unused default block variations
-  //------------------------------------------------------------------------
-  // Group block layouts (WP 6+)
-  wp.blocks.unregisterBlockVariation('core/group', 'group-row');
-  wp.blocks.unregisterBlockVariation('core/group', 'group-stack');
+  // NOTE: Removing unused default block styles & variations is done in block-config.php
 
   // Add project-specific block styles
   //------------------------------------------------------------------------
-  // wp.blocks.registerBlockStyle('core/button', {
-  //   name: 'underline',
-  //   label: 'Underlined',
-  // });
+  wp.blocks.registerBlockStyle('core/button', {
+    name: 'teal',
+    label: 'Teal',
+  });
+
+  wp.blocks.registerBlockStyle('core/button', {
+    name: 'outline',
+    label: 'Outline',
+  });
+
+  wp.blocks.registerBlockStyle('core/button', {
+    name: 'link',
+    label: 'Link',
+  });
 
   wp.blocks.registerBlockStyle('core/columns', {
     name: 'no-col-gap',
@@ -140,11 +126,11 @@ wp.domReady(() => {
   //   name: 'align-center',
   //   label: 'Center Aligned',
   // });
-  //
-  // wp.blocks.registerBlockStyle('core/gallery', {
-  //   name: 'logo-grid',
-  //   label: 'Logo Grid',
-  // });
+
+  wp.blocks.registerBlockStyle('core/gallery', {
+    name: 'logo-grid',
+    label: 'Logo Grid',
+  });
 
   wp.blocks.registerBlockStyle('core/group', {
     name: 'no-vert-margin',
@@ -153,32 +139,52 @@ wp.domReady(() => {
 
   wp.blocks.registerBlockStyle('core/heading', {
     name: 'h2',
-    label: 'Large',
+    label: 'H2',
   });
 
   wp.blocks.registerBlockStyle('core/heading', {
     name: 'h3',
-    label: 'Medium',
+    label: 'H3',
   });
 
   wp.blocks.registerBlockStyle('core/heading', {
     name: 'h4',
-    label: 'Medium Small',
+    label: 'H4',
   });
 
   wp.blocks.registerBlockStyle('core/heading', {
     name: 'h5',
-    label: 'Small',
+    label: 'H5',
   });
 
   wp.blocks.registerBlockStyle('core/heading', {
     name: 'h6',
-    label: 'Extra Small',
+    label: 'H6',
   });
 
   wp.blocks.registerBlockStyle('core/image', {
     name: 'max-height',
     label: 'Max Height',
+  });
+
+  wp.blocks.registerBlockStyle('core/image', {
+    name: 'outside-text',
+    label: 'Outside Text',
+  });
+
+  wp.blocks.registerBlockStyle('core/list', {
+    name: 'col-2',
+    label: '2 Columns',
+  });
+
+  wp.blocks.registerBlockStyle('core/list', {
+    name: 'col-3',
+    label: '3 Columns',
+  });
+
+  wp.blocks.registerBlockStyle('core/list', {
+    name: 'col-4',
+    label: '4 Columns',
   });
 
   wp.blocks.registerBlockStyle('core/paragraph', {
@@ -237,11 +243,3 @@ wp.domReady(() => {
     });
   }
 });
-
-//------------------------------------------------------------------------
-// Sage 10 boilerplate
-//------------------------------------------------------------------------
-/**
- * @see {@link https://webpack.js.org/api/hot-module-replacement/}
- */
-import.meta.webpackHot?.accept(console.error);

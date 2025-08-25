@@ -5,32 +5,6 @@ namespace App;
 // If implementing ACF Image Crop plugin, use largest size of each aspect ratio instead.
 add_image_size('sixteen_nine_thumb', 320, 180, true);
 
-// Optional: Remove unused default WP image sizes (but always keep “thumbnail”)
-// https://developer.wordpress.org/reference/hooks/intermediate_image_sizes_advanced/
-// Note: Can get list of sizes using get_intermediate_image_sizes()
-// add_filter('intermediate_image_sizes_advanced', function($sizes) {
-//     unset($sizes['small']);// 150px
-//     unset($sizes['medium']);// 300px
-//     unset($sizes['medium_large']);// 768px
-//     unset($sizes['large']);// 1024px
-//     unset($sizes['1536x1536']);
-//     unset($sizes['2048x2048']);
-//     return $sizes;
-// });
-
-// TODO: Dynamically generate Fly image sizes using Imgix approach,
-//       create custom helper to add “srcset” like on CompTIA and MilSpouse
-//       https://gist.github.com/tedw/9232548766d5f9e8e517974a52b0d392
-
-// TODO: Look into making all WP images dynamic
-//       https://github.com/junaidbhura/fly-dynamic-image-resizer/issues/26
-
-// TODO: Use native WP image functions instead of Fly.
-//       There’s currently an issue when trying to output an image at an
-//       aspect ratio other than its original one.
-//       - https://developer.wordpress.org/reference/functions/wp_calculate_image_srcset/#comment-1369
-//       - https://threespot.slack.com/archives/C04S5G4P4FR/p1713996576782319
-
 // Add custom image sizes that will only be generated after the first request
 //
 // NOTE: These sizes won’t be available to users in the admin when embedding images.
@@ -60,16 +34,19 @@ if (function_exists('fly_add_image_size')) {
   fly_add_image_size('square_scaled__4', 1280, 1280, false);
 
   // 16:9
-  fly_add_image_size('sixteen_nine__1', 640, 360, true);
-  fly_add_image_size('sixteen_nine__2', 960, 540, true);
-  fly_add_image_size('sixteen_nine__3', 1200, 675, true);
-  fly_add_image_size('sixteen_nine__4', 1600, 900, true);
-  // fly_add_image_size('sixteen_nine__5', 1824, 1026, true);
-  // fly_add_image_size('sixteen_nine__6', 2400, 1350, true);
+  fly_add_image_size('sixteen_nine__1', 750, 422, true);
+  fly_add_image_size('sixteen_nine__2', 1024, 576, true);
+  fly_add_image_size('sixteen_nine__3', 1280, 720, true);
+  fly_add_image_size('sixteen_nine__4', 1440, 810, true);
+  fly_add_image_size('sixteen_nine__5', 1600, 900, true);
+  fly_add_image_size('sixteen_nine__6', 1920, 1080, true);
+  fly_add_image_size('sixteen_nine__7', 2160, 1215, true);
 
-  // 3:2
-  // fly_add_image_size('three_two__1', 630, 420, true);
-  // fly_add_image_size('three_two__2', 960, 640, true);
-  // fly_add_image_size('three_two__3', 1200, 800, true);
-  // fly_add_image_size('three_two__4', 1440, 960, true);
+  // 3:2 (for cards)
+  // fly_add_image_size('three_two__1', 366, 244, true);
+  // fly_add_image_size('three_two__2', 580, 387, true);
+  // fly_add_image_size('three_two__3', 752, 501, true);
+  // fly_add_image_size('three_two__3', 900, 600, true);
+  // fly_add_image_size('three_two__4', 1288, 859, true);
+
 }

@@ -69,6 +69,82 @@ add_filter('wp_get_attachment_image_attributes', function($attr) {
 });
 
 /**
+ * Replace YouTube and Vimeo iframes with <lite-youtube> and <lite-vimeo> custom elements
+ *
+ * @param string $html The oEmbed HTML returned by the provider.
+ * @param string $url The URL of the content being embedded.
+ * @param array  $attr An array of shortcode attributes (if applicable).
+ * @param int    $post_id The post ID where the embed appears.
+ * @return string The modified embed HTML with lite-youtube or lite-vimeo element.
+ */
+add_filter('embed_oembed_html', function($html, $url, $attr, $post_id) {
+ // Process YouTube embeds
+ if (strpos($url, 'youtube.com') !== false || strpos($url, 'youtu.be') !== false) {
+  return preg_replace_callback('/<iframe.*?<\/iframe>/is', function ($iframe_match) {
+   $iframe = $iframe_match[0];
+
+   if (preg_match('/\/embed\/([^?"\'\s]+)/', $iframe, $video_matches)) {
+    $video_id = esc_attr($video_matches[1]);
+
+    // Extract title if present
+    $title = '';
+    if (preg_match('/title="([^"]+)"/', $iframe, $title_matches)) {
+     $title = esc_attr($title_matches[1]);
+    }
+
+    // Create the lite-youtube element with heredoc
+    // PHP 8.2 supports complex expressions in string interpolation
+    $title_text        = $title ? ": {$title}" : "";
+    $lite_youtube_html = <<<HTML
+<lite-youtube videoid="{$video_id}" params="autoplay=0&controls=1&rel=0&enablejsapi=1" js-api>
+    <a href="https://youtube.com/watch?v={$video_id}" class="lty-playbtn">
+        <span class="u-screenreader">Play Video{$title_text}</span>
+    </a>
+</lite-youtube>
+HTML;
+
+    return $lite_youtube_html;
+   }
+
+   return $iframe;
+  }, $html);
+ }
+
+ // Process Vimeo embeds
+ if (strpos($url, 'vimeo.com') !== false) {
+  return preg_replace_callback('/<iframe.*?<\/iframe>/is', function ($iframe_match) {
+   $iframe = $iframe_match[0];
+
+   if (preg_match('/\/video\/([^?"\'\s]+)/', $iframe, $video_matches)) {
+    $video_id = esc_attr($video_matches[1]);
+
+    // Extract title if present
+    $title = '';
+    if (preg_match('/title="([^"]+)"/', $iframe, $title_matches)) {
+     $title = esc_attr($title_matches[1]);
+    }
+
+    // Create the lite-vimeo element with heredoc
+    $title_text       = $title ? ": {$title}" : "";
+    $lite_vimeo_html = <<<HTML
+<lite-vimeo videoid="{$video_id}">
+    <a href="https://vimeo.com/{$video_id}" class="ltv-playbtn">
+        <span class="u-screenreader">Play Video{$title_text}</span>
+    </a>
+</lite-vimeo>
+HTML;
+
+    return $lite_vimeo_html;
+   }
+
+   return $iframe;
+  }, $html);
+ }
+
+ return $html;
+}, 10, 4);
+
+/**
  * Disable h1 heading level option
  * https://github.com/WordPress/gutenberg/pull/63535
  * NOTE: Requires Gutenberg 19+ (supported starting in WP 6.7)
@@ -183,3 +259,48 @@ function format_video_iframe($iframe) {
 
     return $iframe;
 }
+
+/**
+ * Unregister unused default block styles and variations
+ * @link https://github.com/WordPress/gutenberg/issues/25330#issuecomment-2143405764
+ * @link https://discourse.roots.io/t/cant-unregister-core-block-style-with-sage-11/29304
+ */
+add_filter('block_type_metadata', function($metadata) {
+    $disable_block_styles = [
+        'core/button' => ['outline'],
+        'core/image' => ['circle-mask', 'rounded'],
+        'core/pullquote' => ['solid', 'solid-color'],
+        'core/quote' => ['large', 'plain'],
+        'core/separator' => ['dots', 'wide'],
+    ];
+
+    $disable_block_variations = [
+        'core/group' => ['group-row', 'group-stack'],
+    ];
+
+    // Remove block styles
+    if(array_key_exists($metadata['name'], $disable_block_styles)) {
+        $styles = $metadata['styles'] ?? [];// $metadata['styles'] can be null
+
+        $metadata['styles'] = array_filter(
+            $styles,
+            function ($style) use ($disable_block_styles, $metadata) {
+                return !in_array($style['name'], $disable_block_styles[$metadata['name']], true);
+            }
+        );
+    }
+
+    // Remove block variations
+    if(array_key_exists($metadata['name'], $disable_block_variations)) {
+        $variations = $metadata['variations'] ?? [];// $metadata['styles'] can be null
+
+        $metadata['variations'] = array_filter(
+            $variations,
+            function ($variation) use ($disable_block_variations, $metadata) {
+                return !in_array($variation['name'], $disable_block_variations[$metadata['name']], true);
+            }
+        );
+    }
+
+    return $metadata;
+});
