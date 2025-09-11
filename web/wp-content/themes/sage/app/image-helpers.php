@@ -193,7 +193,11 @@ function img_tag($img_id, array $attrs = []) {
 
     // Prepend blank gif to “srcset” if “blank_src” is true
     if (array_key_exists('blank_src', $attrs) && $attrs['blank_src'] == true) {
-        $attrs['srcset'] = blank_gif() . ' 1w,' . $attrs['srcset'];
+        // NOTE: We’re setting the blank GIF width in the “sizes” attribute as 1px
+        //       so to account for high-res displays we have to define the width
+        //       as at least 2w. Since there are devies with a device pixel ratio
+        //       of 4x, we’re using 5w to account for future high-res displays.
+        $attrs['srcset'] = blank_gif() . ' 5w,' . $attrs['srcset'];
         // Remove “blank_src” attribute so it doesn’t get added to the <img>
         unset($attrs['blank_src']);
     }
