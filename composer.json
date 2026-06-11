@@ -16,10 +16,6 @@
     {
       "type": "composer",
       "url": "https://connect.advancedcustomfields.com"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/pantheon-systems/wordpress-composer"
     }
   ],
   "require": {
