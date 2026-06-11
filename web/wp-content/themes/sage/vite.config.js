@@ -114,7 +114,7 @@ export default defineConfig({
       cert: fs.readFileSync(resolve(__dirname, 'certs/threespot-wp-sandbox.lndo.site.pem')),
     },
     hmr: {
-      host: 'wide-angle.lndo.site',
+      host: 'threespot-wp-sandbox.lndo.site',
       protocol: 'wss',
     },
   },

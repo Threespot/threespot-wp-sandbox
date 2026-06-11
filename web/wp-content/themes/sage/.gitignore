@@ -5,6 +5,7 @@
 /public/*
 !/public/.gitkeep
 *.log
+vite.config.js.timestamp-*
 
 # Yarn 2+
 .yarn/*
