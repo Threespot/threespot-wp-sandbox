@@ -276,7 +276,7 @@ workflows:
       - build_yarn
       - build_php:
           context:
-            - acf_license
+            - plugin_keys
       - deploy_to_pantheon:
           requires:
             # - static_tests
