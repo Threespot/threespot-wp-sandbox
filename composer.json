@@ -31,7 +31,7 @@
     "roots/acorn-prettify": "^1.0.1",
     "roots/bedrock-autoloader": "^1.0",
     "roots/bedrock-disallow-indexing": "^2.0",
-    "roots/wordpress": "~6.8.7",
+    "roots/wordpress": "~6.8.8",
     "roots/wp-config": "^1.0.0",
     "vlucas/phpdotenv": "^5.4",
     "wpackagist-plugin/admin-menu-editor": "^1.12.4",
